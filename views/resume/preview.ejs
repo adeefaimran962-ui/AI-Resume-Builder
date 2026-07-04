@@ -1,0 +1,138 @@
+﻿<%- include("../partials/header") %>
+<%- include("../partials/navbar") %>
+<main class="preview-page">
+  <div class="container">
+    <%- include("../partials/flash") %>
+    <div class="preview-toolbar">
+      <a href="/dashboard" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Dashboard</a>
+      <div class="preview-actions">
+        <a href="/resume/<%= resume._id %>/edit" class="btn btn-outline"><i class="fas fa-edit"></i> Edit</a>
+        <a href="/resume/<%= resume._id %>/download" class="btn btn-primary"><i class="fas fa-download"></i> Download PDF</a>
+      </div>
+    </div>
+
+    <div class="resume-preview-wrapper">
+      <!-- Header -->
+      <div class="rv-header">
+        <h1 class="rv-name"><%= resume.personalInfo.fullName || resume.title %></h1>
+        <% if (resume.personalInfo.jobTitle) { %><p class="rv-jobtitle"><%= resume.personalInfo.jobTitle %></p><% } %>
+        <div class="rv-contact">
+          <% if (resume.personalInfo.email) { %><span><i class="fas fa-envelope"></i> <%= resume.personalInfo.email %></span><% } %>
+          <% if (resume.personalInfo.phone) { %><span><i class="fas fa-phone"></i> <%= resume.personalInfo.phone %></span><% } %>
+          <% if (resume.personalInfo.city) { %><span><i class="fas fa-map-marker-alt"></i> <%= resume.personalInfo.city %><% if(resume.personalInfo.country){ %>, <%= resume.personalInfo.country %><% } %></span><% } %>
+          <% if (resume.personalInfo.website) { %><span><i class="fas fa-globe"></i> <%= resume.personalInfo.website %></span><% } %>
+        </div>
+      </div>
+
+      <div class="rv-body">
+        <!-- Left Column -->
+        <div class="rv-left">
+          <% if (resume.skills && resume.skills.length) { %>
+          <div class="rv-section">
+            <h2 class="rv-section-title">Skills</h2>
+            <div class="rv-skills">
+              <% resume.skills.forEach(function(s){ %><span class="rv-skill-tag"><%= s %></span><% }) %>
+            </div>
+          </div>
+          <% } %>
+          <% if (resume.languages && resume.languages.length) { %>
+          <div class="rv-section">
+            <h2 class="rv-section-title">Languages</h2>
+            <% resume.languages.forEach(function(l){ %>
+            <div class="rv-lang">
+              <span class="rv-lang-name"><%= l.language %></span>
+              <span class="rv-lang-level"><%= l.proficiency %></span>
+            </div>
+            <% }) %>
+          </div>
+          <% } %>
+          <% if (resume.certifications && resume.certifications.length) { %>
+          <div class="rv-section">
+            <h2 class="rv-section-title">Certifications</h2>
+            <% resume.certifications.forEach(function(c){ %>
+            <div class="rv-cert">
+              <strong><%= c.name %></strong>
+              <% if(c.issuer){ %><span><%= c.issuer %></span><% } %>
+            </div>
+            <% }) %>
+          </div>
+          <% } %>
+          <% if (resume.socialLinks && resume.socialLinks.length) { %>
+          <div class="rv-section">
+            <h2 class="rv-section-title">Links</h2>
+            <% resume.socialLinks.forEach(function(s){ %>
+            <div class="rv-link"><i class="fas fa-link"></i> <%= s.platform %>: <%= s.url %></div>
+            <% }) %>
+          </div>
+          <% } %>
+        </div>
+
+        <!-- Right Column -->
+        <div class="rv-right">
+          <% if (resume.summary) { %>
+          <div class="rv-section">
+            <h2 class="rv-section-title">Professional Summary</h2>
+            <p class="rv-summary"><%= resume.summary %></p>
+          </div>
+          <% } %>
+          <% if (resume.workExperience && resume.workExperience.length) { %>
+          <div class="rv-section">
+            <h2 class="rv-section-title">Work Experience</h2>
+            <% resume.workExperience.forEach(function(w){ %>
+            <div class="rv-exp-item">
+              <div class="rv-exp-header">
+                <span class="rv-exp-title"><%= w.jobTitle %></span>
+                <span class="rv-exp-dates"><%= w.startDate %> &ndash; <%= w.current ? 'Present' : w.endDate %></span>
+              </div>
+              <div class="rv-exp-company"><%= w.company %><% if(w.location){ %> &bull; <%= w.location %><% } %></div>
+              <% if(w.description){ %><p class="rv-exp-desc"><%= w.description %></p><% } %>
+            </div>
+            <% }) %>
+          </div>
+          <% } %>
+          <% if (resume.education && resume.education.length) { %>
+          <div class="rv-section">
+            <h2 class="rv-section-title">Education</h2>
+            <% resume.education.forEach(function(e){ %>
+            <div class="rv-exp-item">
+              <div class="rv-exp-header">
+                <span class="rv-exp-title"><%= e.degree %><% if(e.fieldOfStudy){ %> in <%= e.fieldOfStudy %><% } %></span>
+                <span class="rv-exp-dates"><%= e.startDate %> &ndash; <%= e.endDate %></span>
+              </div>
+              <div class="rv-exp-company"><%= e.institution %></div>
+            </div>
+            <% }) %>
+          </div>
+          <% } %>
+          <% if (resume.projects && resume.projects.length) { %>
+          <div class="rv-section">
+            <h2 class="rv-section-title">Projects</h2>
+            <% resume.projects.forEach(function(p){ %>
+            <div class="rv-exp-item">
+              <div class="rv-exp-header">
+                <span class="rv-exp-title"><%= p.name %></span>
+                <% if(p.link){ %><a href="<%= p.link %>" class="rv-proj-link" target="_blank"><i class="fas fa-external-link-alt"></i></a><% } %>
+              </div>
+              <% if(p.techStack){ %><div class="rv-exp-company"><%= p.techStack %></div><% } %>
+              <% if(p.description){ %><p class="rv-exp-desc"><%= p.description %></p><% } %>
+            </div>
+            <% }) %>
+          </div>
+          <% } %>
+          <% if (resume.achievements && resume.achievements.length) { %>
+          <div class="rv-section">
+            <h2 class="rv-section-title">Achievements</h2>
+            <% resume.achievements.forEach(function(a){ %>
+            <div class="rv-exp-item">
+              <div class="rv-exp-header"><span class="rv-exp-title"><%= a.title %></span><span class="rv-exp-dates"><%= a.date %></span></div>
+              <% if(a.description){ %><p class="rv-exp-desc"><%= a.description %></p><% } %>
+            </div>
+            <% }) %>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<%- include("../partials/footer") %>

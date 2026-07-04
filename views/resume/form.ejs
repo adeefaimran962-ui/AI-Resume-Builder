@@ -1,0 +1,329 @@
+﻿<%- include("../partials/header") %>
+<%- include("../partials/navbar") %>
+<main class="form-page">
+  <div class="container">
+    <%- include("../partials/flash") %>
+    <div class="form-header">
+      <h1><% if (resume) { %>Edit Resume<% } else { %>Create New Resume<% } %></h1>
+      <p class="text-muted">Fill in your details below. All sections are optional except the title.</p>
+    </div>
+    <% if (errors && errors.length) { %>
+      <div class="alert alert-error">
+        <% errors.forEach(function(e){ %><p><i class="fas fa-exclamation-circle"></i> <%= e %></p><% }) %>
+      </div>
+    <% } %>
+    <form action="<%= action %>" method="<%= method %>" class="resume-form">
+      <!-- Resume Meta -->
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-tag"></i> Resume Details</h2>
+        <div class="form-row">
+          <div class="form-group col-8">
+            <label for="title">Resume Title *</label>
+            <input type="text" id="title" name="title" class="form-control" required
+              placeholder="e.g. Software Engineer Resume"
+              value="<%= resume ? resume.title : '' %>" />
+          </div>
+          <div class="form-group col-4">
+            <label for="template">Template</label>
+            <select id="template" name="template" class="form-control">
+              <option value="modern" <%= resume && resume.template==='modern' ? 'selected' : '' %>>Modern</option>
+              <option value="classic" <%= resume && resume.template==='classic' ? 'selected' : '' %>>Classic</option>
+              <option value="minimal" <%= resume && resume.template==='minimal' ? 'selected' : '' %>>Minimal</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Personal Info -->
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-user"></i> Personal Information</h2>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label>Full Name</label>
+            <input type="text" name="fullName" class="form-control" placeholder="John Doe"
+              value="<%= resume ? resume.personalInfo.fullName : '' %>" />
+          </div>
+          <div class="form-group col-6">
+            <label>Job Title</label>
+            <input type="text" name="jobTitle" class="form-control" placeholder="Software Engineer"
+              value="<%= resume ? resume.personalInfo.jobTitle : '' %>" />
+          </div>
+          <div class="form-group col-6">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control" placeholder="john@example.com"
+              value="<%= resume ? resume.personalInfo.email : '' %>" />
+          </div>
+          <div class="form-group col-6">
+            <label>Phone</label>
+            <input type="text" name="phone" class="form-control" placeholder="+1 555 000 0000"
+              value="<%= resume ? resume.personalInfo.phone : '' %>" />
+          </div>
+          <div class="form-group col-6">
+            <label>City</label>
+            <input type="text" name="city" class="form-control" placeholder="New York"
+              value="<%= resume ? resume.personalInfo.city : '' %>" />
+          </div>
+          <div class="form-group col-6">
+            <label>Country</label>
+            <input type="text" name="country" class="form-control" placeholder="USA"
+              value="<%= resume ? resume.personalInfo.country : '' %>" />
+          </div>
+          <div class="form-group col-6">
+            <label>Website / Portfolio</label>
+            <input type="url" name="website" class="form-control" placeholder="https://yoursite.com"
+              value="<%= resume ? resume.personalInfo.website : '' %>" />
+          </div>
+          <div class="form-group col-6">
+            <label>Address</label>
+            <input type="text" name="address" class="form-control" placeholder="123 Main St"
+              value="<%= resume ? resume.personalInfo.address : '' %>" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-align-left"></i> Professional Summary</h2>
+        <div class="form-group">
+          <textarea name="summary" class="form-control" rows="4"
+            placeholder="A brief summary of your professional background and key strengths..."><%= resume ? resume.summary : '' %></textarea>
+        </div>
+      </div>
+
+      <!-- Skills -->
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-tools"></i> Skills</h2>
+        <div class="form-group">
+          <label>Skills (comma-separated)</label>
+          <input type="text" name="skillsRaw" class="form-control"
+            placeholder="JavaScript, React, Node.js, MongoDB, CSS"
+            value="<%= resume && resume.skills ? resume.skills.join(', ') : '' %>" />
+          <small class="form-hint">Separate each skill with a comma</small>
+        </div>
+      </div>
+
+      <!-- Work Experience -->
+      <div class="form-section" id="workSection">
+        <h2 class="section-heading"><i class="fas fa-briefcase"></i> Work Experience</h2>
+        <div id="workList">
+          <% if (resume && resume.workExperience && resume.workExperience.length > 0) { %>
+            <% resume.workExperience.forEach(function(w, i){ %>
+            <div class="dynamic-item" data-index="<%= i %>">
+              <div class="item-header">
+                <span class="item-title"><%= w.jobTitle || 'Work Experience ' + (i+1) %></span>
+                <button type="button" class="btn-remove-item" onclick="removeItem(this)"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-6"><label>Job Title</label>
+                  <input type="text" name="workExperience[<%= i %>][jobTitle]" class="form-control" value="<%= w.jobTitle %>" /></div>
+                <div class="form-group col-6"><label>Company</label>
+                  <input type="text" name="workExperience[<%= i %>][company]" class="form-control" value="<%= w.company %>" /></div>
+                <div class="form-group col-4"><label>Location</label>
+                  <input type="text" name="workExperience[<%= i %>][location]" class="form-control" value="<%= w.location %>" /></div>
+                <div class="form-group col-4"><label>Start Date</label>
+                  <input type="text" name="workExperience[<%= i %>][startDate]" class="form-control" placeholder="Jan 2020" value="<%= w.startDate %>" /></div>
+                <div class="form-group col-4"><label>End Date</label>
+                  <input type="text" name="workExperience[<%= i %>][endDate]" class="form-control" placeholder="Present" value="<%= w.endDate %>" /></div>
+                <div class="form-group col-12"><label>Description</label>
+                  <textarea name="workExperience[<%= i %>][description]" class="form-control" rows="3"><%= w.description %></textarea></div>
+              </div>
+            </div>
+            <% }) %>
+          <% } %>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addItem('workList','workExperience',['jobTitle','company','location','startDate','endDate','description'])">
+          <i class="fas fa-plus"></i> Add Work Experience
+        </button>
+      </div>
+
+      <!-- Education -->
+      <div class="form-section" id="eduSection">
+        <h2 class="section-heading"><i class="fas fa-graduation-cap"></i> Education</h2>
+        <div id="eduList">
+          <% if (resume && resume.education && resume.education.length > 0) { %>
+            <% resume.education.forEach(function(e, i){ %>
+            <div class="dynamic-item" data-index="<%= i %>">
+              <div class="item-header">
+                <span class="item-title"><%= e.institution || 'Education ' + (i+1) %></span>
+                <button type="button" class="btn-remove-item" onclick="removeItem(this)"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-6"><label>Institution</label>
+                  <input type="text" name="education[<%= i %>][institution]" class="form-control" value="<%= e.institution %>" /></div>
+                <div class="form-group col-6"><label>Degree</label>
+                  <input type="text" name="education[<%= i %>][degree]" class="form-control" value="<%= e.degree %>" /></div>
+                <div class="form-group col-6"><label>Field of Study</label>
+                  <input type="text" name="education[<%= i %>][fieldOfStudy]" class="form-control" value="<%= e.fieldOfStudy %>" /></div>
+                <div class="form-group col-3"><label>Start</label>
+                  <input type="text" name="education[<%= i %>][startDate]" class="form-control" value="<%= e.startDate %>" /></div>
+                <div class="form-group col-3"><label>End</label>
+                  <input type="text" name="education[<%= i %>][endDate]" class="form-control" value="<%= e.endDate %>" /></div>
+                <div class="form-group col-12"><label>Description</label>
+                  <textarea name="education[<%= i %>][description]" class="form-control" rows="2"><%= e.description %></textarea></div>
+              </div>
+            </div>
+            <% }) %>
+          <% } %>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addItem('eduList','education',['institution','degree','fieldOfStudy','startDate','endDate','description'])">
+          <i class="fas fa-plus"></i> Add Education
+        </button>
+      </div>
+
+      <!-- Projects -->
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-code"></i> Projects</h2>
+        <div id="projectList">
+          <% if (resume && resume.projects && resume.projects.length > 0) { %>
+            <% resume.projects.forEach(function(p, i){ %>
+            <div class="dynamic-item" data-index="<%= i %>">
+              <div class="item-header">
+                <span class="item-title"><%= p.name || 'Project ' + (i+1) %></span>
+                <button type="button" class="btn-remove-item" onclick="removeItem(this)"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-6"><label>Project Name</label>
+                  <input type="text" name="projects[<%= i %>][name]" class="form-control" value="<%= p.name %>" /></div>
+                <div class="form-group col-6"><label>Tech Stack</label>
+                  <input type="text" name="projects[<%= i %>][techStack]" class="form-control" value="<%= p.techStack %>" /></div>
+                <div class="form-group col-12"><label>Link</label>
+                  <input type="url" name="projects[<%= i %>][link]" class="form-control" value="<%= p.link %>" /></div>
+                <div class="form-group col-12"><label>Description</label>
+                  <textarea name="projects[<%= i %>][description]" class="form-control" rows="2"><%= p.description %></textarea></div>
+              </div>
+            </div>
+            <% }) %>
+          <% } %>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addItem('projectList','projects',['name','techStack','link','description'])">
+          <i class="fas fa-plus"></i> Add Project
+        </button>
+      </div>
+
+      <!-- Certifications -->
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-certificate"></i> Certifications</h2>
+        <div id="certList">
+          <% if (resume && resume.certifications && resume.certifications.length > 0) { %>
+            <% resume.certifications.forEach(function(c, i){ %>
+            <div class="dynamic-item" data-index="<%= i %>">
+              <div class="item-header">
+                <span class="item-title"><%= c.name || 'Certification ' + (i+1) %></span>
+                <button type="button" class="btn-remove-item" onclick="removeItem(this)"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-6"><label>Name</label>
+                  <input type="text" name="certifications[<%= i %>][name]" class="form-control" value="<%= c.name %>" /></div>
+                <div class="form-group col-6"><label>Issuer</label>
+                  <input type="text" name="certifications[<%= i %>][issuer]" class="form-control" value="<%= c.issuer %>" /></div>
+                <div class="form-group col-6"><label>Issue Date</label>
+                  <input type="text" name="certifications[<%= i %>][issueDate]" class="form-control" value="<%= c.issueDate %>" /></div>
+                <div class="form-group col-6"><label>URL</label>
+                  <input type="url" name="certifications[<%= i %>][url]" class="form-control" value="<%= c.url %>" /></div>
+              </div>
+            </div>
+            <% }) %>
+          <% } %>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addItem('certList','certifications',['name','issuer','issueDate','url'])">
+          <i class="fas fa-plus"></i> Add Certification
+        </button>
+      </div>
+
+      <!-- Languages -->
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-language"></i> Languages</h2>
+        <div id="langList">
+          <% if (resume && resume.languages && resume.languages.length > 0) { %>
+            <% resume.languages.forEach(function(l, i){ %>
+            <div class="dynamic-item" data-index="<%= i %>">
+              <div class="item-header">
+                <span class="item-title"><%= l.language || 'Language ' + (i+1) %></span>
+                <button type="button" class="btn-remove-item" onclick="removeItem(this)"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-6"><label>Language</label>
+                  <input type="text" name="languages[<%= i %>][language]" class="form-control" value="<%= l.language %>" /></div>
+                <div class="form-group col-6"><label>Proficiency</label>
+                  <select name="languages[<%= i %>][proficiency]" class="form-control">
+                    <% ['Beginner','Elementary','Intermediate','Upper-Intermediate','Advanced','Native'].forEach(function(level){ %>
+                    <option value="<%= level %>" <%= l.proficiency===level?'selected':'' %>><%= level %></option>
+                    <% }) %>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <% }) %>
+          <% } %>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addItem('langList','languages',['language','proficiency'])">
+          <i class="fas fa-plus"></i> Add Language
+        </button>
+      </div>
+
+      <!-- Achievements -->
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-trophy"></i> Achievements</h2>
+        <div id="achieveList">
+          <% if (resume && resume.achievements && resume.achievements.length > 0) { %>
+            <% resume.achievements.forEach(function(a, i){ %>
+            <div class="dynamic-item" data-index="<%= i %>">
+              <div class="item-header">
+                <span class="item-title"><%= a.title || 'Achievement ' + (i+1) %></span>
+                <button type="button" class="btn-remove-item" onclick="removeItem(this)"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-8"><label>Title</label>
+                  <input type="text" name="achievements[<%= i %>][title]" class="form-control" value="<%= a.title %>" /></div>
+                <div class="form-group col-4"><label>Date</label>
+                  <input type="text" name="achievements[<%= i %>][date]" class="form-control" value="<%= a.date %>" /></div>
+                <div class="form-group col-12"><label>Description</label>
+                  <textarea name="achievements[<%= i %>][description]" class="form-control" rows="2"><%= a.description %></textarea></div>
+              </div>
+            </div>
+            <% }) %>
+          <% } %>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addItem('achieveList','achievements',['title','date','description'])">
+          <i class="fas fa-plus"></i> Add Achievement
+        </button>
+      </div>
+
+      <!-- Social Links -->
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-share-alt"></i> Social Links</h2>
+        <div id="socialList">
+          <% if (resume && resume.socialLinks && resume.socialLinks.length > 0) { %>
+            <% resume.socialLinks.forEach(function(s, i){ %>
+            <div class="dynamic-item" data-index="<%= i %>">
+              <div class="item-header">
+                <span class="item-title"><%= s.platform || 'Link ' + (i+1) %></span>
+                <button type="button" class="btn-remove-item" onclick="removeItem(this)"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-4"><label>Platform</label>
+                  <input type="text" name="socialLinks[<%= i %>][platform]" class="form-control" placeholder="LinkedIn" value="<%= s.platform %>" /></div>
+                <div class="form-group col-8"><label>URL</label>
+                  <input type="url" name="socialLinks[<%= i %>][url]" class="form-control" placeholder="https://linkedin.com/in/yourname" value="<%= s.url %>" /></div>
+              </div>
+            </div>
+            <% }) %>
+          <% } %>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addItem('socialList','socialLinks',['platform','url'])">
+          <i class="fas fa-plus"></i> Add Social Link
+        </button>
+      </div>
+
+      <!-- Submit -->
+      <div class="form-actions">
+        <a href="/dashboard" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary btn-lg">
+          <i class="fas fa-save"></i>
+          <% if (resume) { %>Save Changes<% } else { %>Create Resume<% } %>
+        </button>
+      </div>
+    </form>
+  </div>
+</main>
+<%- include("../partials/footer") %>

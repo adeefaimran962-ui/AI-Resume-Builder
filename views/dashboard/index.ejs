@@ -1,0 +1,50 @@
+﻿<%- include("../partials/header") %>
+<%- include("../partials/navbar") %>
+<main class="dashboard-page">
+  <div class="container">
+    <%- include("../partials/flash") %>
+    <div class="dashboard-header">
+      <div>
+        <h1>My Resumes</h1>
+        <p>Welcome back, <strong><%= currentUser.name %></strong></p>
+      </div>
+      <a href="/resume/new" class="btn btn-primary"><i class="fas fa-plus"></i> New Resume</a>
+    </div>
+    <% if (resumes.length === 0) { %>
+    <div class="empty-state">
+      <div class="empty-icon"><i class="fas fa-file-alt"></i></div>
+      <h2>No resumes yet</h2>
+      <p>Create your first professional resume in minutes.</p>
+      <a href="/resume/new" class="btn btn-primary btn-lg"><i class="fas fa-plus"></i> Create My First Resume</a>
+    </div>
+    <% } else { %>
+    <div class="resume-grid">
+      <% resumes.forEach(function(resume){ %>
+      <div class="resume-card">
+        <div class="resume-card-header">
+          <span class="resume-template-badge"><%= resume.template %></span>
+          <div class="resume-card-actions">
+            <a href="/resume/<%= resume._id %>/preview" class="btn-icon" title="Preview"><i class="fas fa-eye"></i></a>
+            <a href="/resume/<%= resume._id %>/edit" class="btn-icon" title="Edit"><i class="fas fa-edit"></i></a>
+            <a href="/resume/<%= resume._id %>/download" class="btn-icon" title="PDF"><i class="fas fa-file-pdf"></i></a>
+          </div>
+        </div>
+        <div class="resume-card-body">
+          <h3 class="resume-title"><%= resume.title %></h3>
+          <p class="resume-name"><%= resume.personalInfo.fullName || "Name not set" %></p>
+          <p class="resume-meta"><i class="fas fa-clock"></i> <%= new Date(resume.updatedAt).toLocaleDateString() %></p>
+        </div>
+        <div class="resume-card-footer">
+          <a href="/resume/<%= resume._id %>/preview" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> Preview</a>
+          <a href="/resume/<%= resume._id %>/download" class="btn btn-primary btn-sm"><i class="fas fa-download"></i> PDF</a>
+          <form action="/resume/<%= resume._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Delete?')">
+            <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+          </form>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</main>
+<%- include("../partials/footer") %>

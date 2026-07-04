@@ -1,0 +1,60 @@
+﻿<%- include("partials/header") %>
+<%- include("partials/navbar") %>
+<main>
+  <%- include("partials/flash") %>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container hero-content">
+      <div class="hero-text">
+        <span class="badge-pill">Free &bull; Professional &bull; Fast</span>
+        <h1>Build Your Dream Resume <span class="text-primary">in Minutes</span></h1>
+        <p>Create ATS-friendly, professional resumes with our AI-powered builder. Stand out from the crowd and land your dream job.</p>
+        <div class="hero-actions">
+          <a href="/auth/register" class="btn btn-primary btn-lg">Get Started Free</a>
+          <a href="/auth/login" class="btn btn-outline btn-lg">Sign In</a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <div class="resume-card-preview">
+          <div class="preview-header"></div>
+          <div class="preview-line long"></div>
+          <div class="preview-line medium"></div>
+          <div class="preview-line short"></div>
+          <div class="preview-divider"></div>
+          <div class="preview-line medium"></div>
+          <div class="preview-line long"></div>
+          <div class="preview-line short"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Features -->
+  <section class="features">
+    <div class="container">
+      <h2 class="section-title">Everything You Need to Land the Job</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-magic"></i></div>
+          <h3>Smart Builder</h3>
+          <p>Guided form with all 10 resume sections. Fill in your details and we handle the formatting.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-file-pdf"></i></div>
+          <h3>PDF Download</h3>
+          <p>Download a professionally formatted PDF resume instantly, ready to send to employers.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-edit"></i></div>
+          <h3>Easy Editing</h3>
+          <p>Update your resume anytime. All your resumes are saved securely in your account.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+          <h3>Secure &amp; Private</h3>
+          <p>Your data is protected with bcrypt encryption and secure session management.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<%- include("partials/footer") %>

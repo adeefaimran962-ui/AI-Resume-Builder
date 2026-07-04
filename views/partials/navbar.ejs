@@ -1,0 +1,24 @@
+﻿<nav class="navbar">
+  <div class="container navbar-inner">
+    <a href="/" class="navbar-brand">
+      <i class="fas fa-file-alt"></i>
+      <span>AI Resume Builder</span>
+    </a>
+    <button class="navbar-toggle" id="navToggle" aria-label="Toggle menu">
+      <i class="fas fa-bars"></i>
+    </button>
+    <ul class="navbar-menu" id="navMenu">
+      <% if (currentUser) { %>
+        <li><a href="/dashboard" class="nav-link"><i class="fas fa-th-large"></i> Dashboard</a></li>
+        <li><a href="/resume/new" class="nav-link"><i class="fas fa-plus"></i> New Resume</a></li>
+        <li class="nav-user">
+          <span class="user-name"><i class="fas fa-user-circle"></i> <%= currentUser.name %></span>
+        </li>
+        <li><a href="/auth/logout" class="btn btn-outline btn-sm">Logout</a></li>
+      <% } else { %>
+        <li><a href="/auth/login" class="nav-link">Login</a></li>
+        <li><a href="/auth/register" class="btn btn-primary btn-sm">Get Started</a></li>
+      <% } %>
+    </ul>
+  </div>
+</nav>
