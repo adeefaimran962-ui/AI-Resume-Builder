@@ -1,30 +1,22 @@
 /**
  * routes/dashboard.js
- * ----------------------------------------------------------
- * Dashboard routes (all protected by ensureAuthenticated).
- *   GET /dashboard – Main dashboard
- * ----------------------------------------------------------
  */
-
 const express               = require('express');
 const router                = express.Router();
-const dashboardController   = require('../controllers/dashboardController');
+const dc                    = require('../controllers/dashboardController');
 const { ensureAuthenticated } = require('../middleware/auth');
 const multer = require('multer');
-const path = require('path');
+const path   = require('path');
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'public/uploads/')
-  },
-  filename: function (req, file, cb) {
-    cb(null, req.session.userId + '-' + Date.now() + path.extname(file.originalname))
-  }
+  destination: (req, file, cb) => cb(null, 'public/uploads/'),
+  filename:    (req, file, cb) => cb(null, req.session.userId + '-' + Date.now() + path.extname(file.originalname)),
 });
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
-router.get('/', ensureAuthenticated, dashboardController.index);
-router.get('/profile', ensureAuthenticated, dashboardController.getProfile);
-router.post('/profile', ensureAuthenticated, upload.single('avatar'), dashboardController.updateProfile);
+router.get('/',         ensureAuthenticated, dc.index);
+router.get('/trash',    ensureAuthenticated, dc.trash);
+router.get('/profile',  ensureAuthenticated, dc.getProfile);
+router.post('/profile', ensureAuthenticated, upload.single('avatar'), dc.updateProfile);
 
 module.exports = router;

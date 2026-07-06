@@ -1,0 +1,133 @@
+<%# COMPACT TEMPLATE: ATS-friendly, single column, maximized keyword density %>
+<div class="tpl-compact">
+
+  <%# HEADER %>
+  <div class="tpl-co-header">
+    <h1 class="tpl-co-name"><%= resume.personalInfo.fullName || resume.title %></h1>
+    <% if (resume.personalInfo.jobTitle) { %>
+      <p class="tpl-co-role"><%= resume.personalInfo.jobTitle %></p>
+    <% } %>
+    <div class="tpl-co-contact">
+      <% if (resume.personalInfo.email) { %><span><i class="fas fa-envelope"></i> <%= resume.personalInfo.email %></span><% } %>
+      <% if (resume.personalInfo.phone) { %><span><i class="fas fa-phone"></i> <%= resume.personalInfo.phone %></span><% } %>
+      <% if (resume.personalInfo.city) { %><span><i class="fas fa-map-marker-alt"></i> <%= resume.personalInfo.city %><% if(resume.personalInfo.country){ %>, <%= resume.personalInfo.country %><% } %></span><% } %>
+      <% if (resume.personalInfo.website) { %><span><i class="fas fa-globe"></i> <%= resume.personalInfo.website %></span><% } %>
+      <% if (resume.personalInfo.linkedin) { %><span><i class="fab fa-linkedin"></i> <%= resume.personalInfo.linkedin %></span><% } %>
+    </div>
+  </div>
+
+  <div class="tpl-co-body">
+
+    <% if (resume.summary) { %>
+    <div class="tpl-co-section">
+      <h2 class="tpl-co-section-title">Professional Summary</h2>
+      <p class="tpl-co-summary"><%= resume.summary %></p>
+    </div>
+    <% } %>
+
+    <% if (resume.skills && resume.skills.length) { %>
+    <div class="tpl-co-section">
+      <h2 class="tpl-co-section-title">Core Competencies</h2>
+      <div class="tpl-co-skills-grid">
+        <% resume.skills.forEach(function(s){ %>
+        <span class="tpl-co-skill"><%= s %></span>
+        <% }); %>
+      </div>
+    </div>
+    <% } %>
+
+    <% if (resume.workExperience && resume.workExperience.length) { %>
+    <div class="tpl-co-section">
+      <h2 class="tpl-co-section-title">Professional Experience</h2>
+      <% resume.workExperience.forEach(function(w){ %>
+      <div class="tpl-co-exp-item">
+        <div class="tpl-co-exp-header">
+          <div>
+            <span class="tpl-co-exp-title"><%= w.jobTitle %></span>
+            <span class="tpl-co-exp-sep"> | </span>
+            <span class="tpl-co-exp-company"><%= w.company %><% if(w.location){ %>, <%= w.location %><% } %></span>
+          </div>
+          <span class="tpl-co-exp-dates"><%= w.startDate %> &ndash; <%= w.current ? 'Present' : w.endDate %></span>
+        </div>
+        <% if(w.description){ %><p class="tpl-co-exp-desc"><%= w.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if (resume.education && resume.education.length) { %>
+    <div class="tpl-co-section">
+      <h2 class="tpl-co-section-title">Education</h2>
+      <% resume.education.forEach(function(e){ %>
+      <div class="tpl-co-exp-item">
+        <div class="tpl-co-exp-header">
+          <div>
+            <span class="tpl-co-exp-title"><%= e.degree %><% if(e.fieldOfStudy){ %> in <%= e.fieldOfStudy %><% } %></span>
+            <span class="tpl-co-exp-sep"> | </span>
+            <span class="tpl-co-exp-company"><%= e.institution %></span>
+          </div>
+          <span class="tpl-co-exp-dates"><%= e.startDate %> &ndash; <%= e.endDate %></span>
+        </div>
+        <% if(e.description){ %><p class="tpl-co-exp-desc"><%= e.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if (resume.projects && resume.projects.length) { %>
+    <div class="tpl-co-section">
+      <h2 class="tpl-co-section-title">Projects</h2>
+      <% resume.projects.forEach(function(p){ %>
+      <div class="tpl-co-exp-item">
+        <div class="tpl-co-exp-header">
+          <span class="tpl-co-exp-title"><%= p.name %><% if(p.techStack){ %> &mdash; <em style="font-weight:400;font-size:12px;color:#6B7280"><%= p.techStack %></em><% } %></span>
+          <% if(p.link){ %><a href="<%= p.link %>" class="tpl-co-link" target="_blank">View &rarr;</a><% } %>
+        </div>
+        <% if(p.description){ %><p class="tpl-co-exp-desc"><%= p.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if ((resume.certifications && resume.certifications.length) || (resume.languages && resume.languages.length)) { %>
+    <div class="tpl-co-bottom-grid">
+      <% if (resume.certifications && resume.certifications.length) { %>
+      <div class="tpl-co-section">
+        <h2 class="tpl-co-section-title">Certifications</h2>
+        <% resume.certifications.forEach(function(c){ %>
+        <div style="margin-bottom:6px">
+          <strong style="font-size:12px;color:#111827"><%= c.name %></strong>
+          <% if(c.issuer){ %><span style="font-size:11px;color:#6B7280"> — <%= c.issuer %></span><% } %>
+        </div>
+        <% }); %>
+      </div>
+      <% } %>
+
+      <% if (resume.languages && resume.languages.length) { %>
+      <div class="tpl-co-section">
+        <h2 class="tpl-co-section-title">Languages</h2>
+        <% resume.languages.forEach(function(l){ %>
+        <div style="font-size:12px;color:#374151;margin-bottom:4px"><%= l.language %> <span style="color:#9CA3AF">— <%= l.proficiency %></span></div>
+        <% }); %>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <% if (resume.achievements && resume.achievements.length) { %>
+    <div class="tpl-co-section">
+      <h2 class="tpl-co-section-title">Achievements</h2>
+      <% resume.achievements.forEach(function(a){ %>
+      <div class="tpl-co-exp-item">
+        <div class="tpl-co-exp-header">
+          <span class="tpl-co-exp-title"><%= a.title %></span>
+          <% if(a.date){ %><span class="tpl-co-exp-dates"><%= a.date %></span><% } %>
+        </div>
+        <% if(a.description){ %><p class="tpl-co-exp-desc"><%= a.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+  </div>
+</div>

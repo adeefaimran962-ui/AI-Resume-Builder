@@ -1,41 +1,98 @@
 /**
  * routes/resume.js
- * ─────────────────────────────────────────────────────────
- * FIXES:
- *  - Removed duplicate GET / route (was shadowing GET /new in some cases)
- *  - AI endpoint kept before /:id routes (correct)
- *  - All CRUD routes correctly separated
- * ─────────────────────────────────────────────────────────
  */
 const express                 = require('express');
 const router                  = express.Router();
+const path                    = require('path');
+const multer                  = require('multer');
 const rc                      = require('../controllers/resumeController');
 const { ensureAuthenticated } = require('../middleware/auth');
+
+/* ── Multer: profile photo upload ─────────────────────────────────────── */
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '../public/uploads/photos'));
+  },
+  filename: function (req, file, cb) {
+    const ext  = path.extname(file.originalname).toLowerCase();
+    const name = 'photo_' + Date.now() + '_' + Math.round(Math.random() * 1e6) + ext;
+    cb(null, name);
+  },
+});
+
+const fileFilter = function (req, file, cb) {
+  const allowed = ['.jpg', '.jpeg', '.png', '.webp'];
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (allowed.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only JPG, JPEG, PNG, and WebP images are allowed.'), false);
+  }
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB
+});
+
+// Multer error handler — JSON for AJAX, flash+redirect for regular forms
+function handleUpload(req, res, next) {
+  upload.single('profilePhoto')(req, res, function (err) {
+    if (!err) return next();
+
+    const isAjax = req.xhr ||
+      (req.headers.accept && req.headers.accept.includes('application/json'));
+    let message = 'Upload failed.';
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+      message = 'Profile photo must be 2 MB or smaller.';
+    } else if (err && err.message) {
+      message = err.message;
+    }
+
+    if (isAjax) return res.status(400).json({ success: false, message });
+    req.flash('error', message);
+    return res.redirect('back');
+  });
+}
 
 // All resume routes require login
 router.use(ensureAuthenticated);
 
-// ── AI generation (POST, AJAX – no :id, must be BEFORE /:id) ──
+// ── AI generation ──────────────────────────────────────────────────────
 router.post('/ai/generate', rc.aiGenerate);
 
-// ── Create ─────────────────────────────────────────────────
-router.get('/new', rc.showCreateForm);   // Show blank create form
-router.post('/',   rc.create);           // Submit new resume
+// ── Create ─────────────────────────────────────────────────────────────
+router.get('/new', rc.showCreateForm);
+router.post('/',   rc.create);
 
-// ── Read ───────────────────────────────────────────────────
-router.get('/:id/preview',  rc.preview);     // Preview a resume
-router.get('/:id/download', rc.downloadPDF); // Download as PDF
-router.get('/:id/download-docx', rc.downloadDOCX); // Download as DOCX
-router.get('/:id/score',    rc.score);       // ATS Score Card
-router.get('/:id/match',    rc.renderMatch); // Job Match Page
-router.post('/:id/match',   rc.calculateMatch); // Job Match Calculate
-router.post('/:id/toggle-share', rc.toggleShare); // Toggle Public Sharing
+// ── Read ───────────────────────────────────────────────────────────────
+router.get('/:id/preview',       rc.preview);
+router.get('/:id/download',      rc.downloadPDF);
+router.get('/:id/download-docx', rc.downloadDOCX);
+router.get('/:id/score',         rc.score);
+router.get('/:id/match',         rc.renderMatch);
+router.post('/:id/match',        rc.calculateMatch);
+router.post('/:id/toggle-share', rc.toggleShare);
+router.post('/:id/set-template', rc.setTemplate);
 
-// ── Update ─────────────────────────────────────────────────
-router.get('/:id/edit', rc.showEditForm); // Show pre-filled edit form
-router.put('/:id',      rc.update);       // Submit edit (method-override converts POST -> PUT)
+// ── Update ─────────────────────────────────────────────────────────────
+router.get('/:id/edit', rc.showEditForm);
+router.put('/:id',      rc.update);         // plain urlencoded — no file
 
-// ── Delete ─────────────────────────────────────────────────
-router.delete('/:id', rc.destroy);        // method-override converts POST -> DELETE
+// ── Profile photo (dedicated AJAX multipart endpoints) ─────────────────
+router.post('/:id/upload-photo', handleUpload, rc.uploadPhoto);
+router.post('/:id/remove-photo', rc.removePhoto);
+
+// ── Soft delete → Trash ────────────────────────────────────────────────
+router.delete('/:id', rc.destroy);            // moves to trash
+
+// ── Trash actions ──────────────────────────────────────────────────────
+router.post('/:id/restore',    rc.restore);          // restore from trash
+router.delete('/:id/permanent', rc.destroyPermanent); // permanent delete
+
+// ── Rename & Duplicate ─────────────────────────────────────────────────
+router.post('/:id/duplicate', rc.duplicate);
+router.post('/:id/rename',    rc.rename);
 
 module.exports = router;

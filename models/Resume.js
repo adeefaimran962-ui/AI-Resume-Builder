@@ -1,6 +1,6 @@
 /**
  * models/Resume.js
- * Mongoose schema - expanded to support 10 templates + all sections.
+ * Mongoose schema – 12 templates + soft-delete (Recycle Bin) support.
  */
 const mongoose = require('mongoose');
 
@@ -76,20 +76,22 @@ const ResumeSchema = new mongoose.Schema({
     maxlength: [100, 'Title cannot exceed 100 characters'],
     default: 'My Resume',
   },
-  // 10 ATS-friendly templates
+  // 12 ATS-friendly templates
   template: {
     type: String,
     enum: [
-      'modern',    // Purple gradient sidebar
-      'classic',   // Traditional two-column
-      'minimal',   // Clean single column
-      'executive', // Dark header, serif feel
-      'creative',  // Colourful accent bar
-      'tech',      // Dark theme, code-inspired
-      'elegant',   // Gold accents, premium
-      'bold',      // Strong typography
-      'clean',     // Whitespace-heavy
-      'professional', // LinkedIn-inspired
+      'modern',        // Purple gradient sidebar
+      'classic',       // Traditional two-column
+      'minimal',       // Clean single column
+      'executive',     // Dark header, serif feel
+      'creative',      // Colourful accent bar
+      'tech',          // Dark theme, code-inspired
+      'elegant',       // Gold accents, premium
+      'compact',       // ATS-friendly single column
+      'professional',  // LinkedIn-inspired
+      'minimal-pro',   // ★ NEW – refined minimal with accent line
+      'modern-gradient', // ★ NEW – vibrant gradient header, two-col
+      'sharp',         // ★ NEW – bold typography, executive accent
     ],
     default: 'modern',
   },
@@ -105,6 +107,7 @@ const ResumeSchema = new mongoose.Schema({
     jobTitle: { type: String, trim: true, default: '' },
     linkedin: { type: String, trim: true, default: '' },
     github:   { type: String, trim: true, default: '' },
+    photo:    { type: String, trim: true, default: '' }, // uploaded profile photo path
   },
   summary:        { type: String, trim: true, default: '', maxlength: [2000, 'Summary too long'] },
   education:      [EducationSchema],
@@ -121,6 +124,9 @@ const ResumeSchema = new mongoose.Schema({
   isPublic:       { type: Boolean, default: false },
   // ATS Score
   atsScore:       { type: Number, default: 0 },
+  // ── Recycle Bin (soft-delete) ──────────────────────────────────────────
+  isDeleted:      { type: Boolean, default: false, index: true },
+  deletedAt:      { type: Date,    default: null },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Resume', ResumeSchema);

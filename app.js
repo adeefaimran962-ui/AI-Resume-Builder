@@ -54,6 +54,8 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.static(path.join(__dirname, 'public')));
+// Serve uploaded profile photos
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // ── BODY PARSERS ─────────────────────────────────────────────────────────
 // CRITICAL FIX: extended: false preserves flat bracket-notation keys.

@@ -3,9 +3,25 @@
 <main class="form-page">
   <div class="container">
     <%- include("../partials/flash") %>
-    <div class="form-header">
-      <h1><% if (resume) { %>Edit Resume<% } else { %>Create New Resume<% } %></h1>
-      <p class="text-muted">Fill in your details below. All sections are optional except the title.</p>
+    <div class="form-header" style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h1><% if (resume) { %>Edit Resume<% } else { %>Create New Resume<% } %></h1>
+        <p class="text-muted">Fill in your details below. All sections are optional except the title.</p>
+      </div>
+      <div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="togglePreview()">
+          <i class="fas fa-eye"></i> Live Preview
+        </button>
+      </div>
+    </div>
+    <div class="progress-container" style="margin-bottom: 20px;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+        <span style="font-weight: 600; font-size: 14px; color: var(--dark);">Profile Completion</span>
+        <span id="progressText" style="font-weight: 600; font-size: 14px; color: var(--primary);">0%</span>
+      </div>
+      <div class="progress-bar" style="width: 100%; height: 8px; background: var(--bg-2); border-radius: 4px; overflow: hidden;">
+        <div id="progressFill" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease;"></div>
+      </div>
     </div>
     <% if (errors && errors.length) { %>
       <div class="alert alert-error">
@@ -32,6 +48,9 @@
               <option value="professional" <%= resume && resume.template==='professional' ? 'selected' : '' %>>Professional</option>
               <option value="executive" <%= resume && resume.template==='executive' ? 'selected' : '' %>>Executive</option>
               <option value="creative" <%= resume && resume.template==='creative' ? 'selected' : '' %>>Creative</option>
+              <option value="compact" <%= resume && resume.template==='compact' ? 'selected' : '' %>>Compact (ATS)</option>
+              <option value="tech" <%= resume && resume.template==='tech' ? 'selected' : '' %>>Tech</option>
+              <option value="elegant" <%= resume && resume.template==='elegant' ? 'selected' : '' %>>Elegant</option>
             </select>
           </div>
         </div>
@@ -40,6 +59,46 @@
       <!-- Personal Info -->
       <div class="form-section">
         <h2 class="section-heading"><i class="fas fa-user"></i> Personal Information</h2>
+
+        <!-- Profile Photo Upload -->
+        <div class="form-group" style="margin-bottom:24px;">
+          <label style="font-size:14px;font-weight:600;color:var(--dark-2);display:block;margin-bottom:8px;">
+            <i class="fas fa-camera" style="color:var(--primary);margin-right:6px;"></i> Profile Photo
+            <span style="font-size:12px;font-weight:400;color:var(--muted);margin-left:6px;">(JPG, PNG, WebP — max 2 MB, optional)</span>
+          </label>
+          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+            <!-- Preview circle -->
+            <div id="photoPreviewWrap" style="width:90px;height:90px;border-radius:50%;border:2px dashed var(--border);background:var(--bg-2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer;" onclick="document.getElementById('profilePhotoInput').click()">
+              <% if (resume && resume.personalInfo && resume.personalInfo.photo) { %>
+                <img id="photoPreview" src="<%= resume.personalInfo.photo %>" alt="Profile Photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+              <% } else { %>
+                <img id="photoPreview" src="" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:none;">
+                <i id="photoPlaceholderIcon" class="fas fa-user" style="font-size:32px;color:var(--muted);"></i>
+              <% } %>
+            </div>
+            <!-- Controls -->
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <% if (resume && resume._id) { %>
+                <%# Edit mode: upload via dedicated AJAX endpoint, NOT inside the main form %>
+                <label for="profilePhotoInput" class="btn btn-outline btn-sm" style="cursor:pointer;margin:0;">
+                  <i class="fas fa-upload"></i> Upload Photo
+                </label>
+                <input type="file" id="profilePhotoInput" accept=".jpg,.jpeg,.png,.webp" style="display:none;">
+                <button type="button" id="removePhotoBtn"
+                  style="display:<%= (resume.personalInfo && resume.personalInfo.photo) ? 'flex' : 'none' %>;background:transparent;border:1px solid var(--danger);color:var(--danger);border-radius:50px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;align-items:center;gap:6px;"
+                  onclick="removePhoto()">
+                  <i class="fas fa-trash-alt"></i> Remove
+                </button>
+                <span id="photoStatus" style="font-size:12px;color:var(--muted);display:none;"></span>
+              <% } else { %>
+                <%# Create mode: inline upload also via AJAX after first save, or skip for now %>
+                <span style="font-size:12px;color:var(--muted);">Save the resume first, then add a photo from Edit.</span>
+              <% } %>
+            </div>
+          </div>
+          <div id="photoError" style="color:var(--danger);font-size:12px;margin-top:6px;display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+        </div>
+
         <div class="form-row">
           <div class="form-group col-6">
             <label>Full Name</label>
@@ -90,9 +149,23 @@
         <div class="form-group">
           <textarea id="summaryField" name="summary" class="form-control" rows="4"
             placeholder="A brief summary of your professional background and key strengths..."><%= resume ? resume.summary : '' %></textarea>
-          <button type="button" class="btn btn-sm btn-outline mt-2" style="margin-top: 8px;" data-ai-generate="summary" data-target="summaryField">
-            <i class="fas fa-magic"></i> Improve with AI
-          </button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+            <button type="button" class="btn btn-sm btn-outline" data-ai-generate="summary" data-target="summaryField">
+              <i class="fas fa-magic"></i> Generate Summary
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" data-ai-generate="improve" data-target="summaryField">
+              <i class="fas fa-wand-magic-sparkles"></i> Improve
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" data-ai-generate="rewrite" data-target="summaryField">
+              <i class="fas fa-pen-fancy"></i> Rewrite Professionally
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" data-ai-generate="shorten" data-target="summaryField">
+              <i class="fas fa-compress-alt"></i> Shorten
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" data-ai-generate="expand" data-target="summaryField">
+              <i class="fas fa-expand-alt"></i> Expand
+            </button>
+          </div>
         </div>
       </div>
 
@@ -347,4 +420,253 @@
     </form>
   </div>
 </main>
+
+<!-- Live Preview Panel -->
+<div id="previewPanel" style="display:none; position:fixed; right:0; top:0; width:50%; height:100vh; background:var(--white); z-index:9999; border-left:1px solid var(--border); box-shadow:-4px 0 15px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+  <div style="padding:14px 20px; background:var(--bg-2); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+    <strong style="color:var(--dark);"><i class="fas fa-eye" style="color:var(--primary); margin-right:6px;"></i> Live Preview</strong>
+    <button onclick="togglePreview()" class="btn btn-sm btn-outline"><i class="fas fa-times"></i> Close</button>
+  </div>
+  <iframe id="previewFrame" src="<%= resume ? '/resume/'+resume._id+'/preview' : '' %>" style="width:100%; height:calc(100% - 58px); border:none;"></iframe>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+function togglePreview() {
+  const panel = document.getElementById('previewPanel');
+  const main = document.querySelector('.form-page');
+  if (panel.style.display === 'none' || panel.style.display === '') {
+    panel.style.display = 'block';
+    main.style.marginRight = '50%';
+    main.style.transition = 'margin-right 0.3s ease';
+  } else {
+    panel.style.display = 'none';
+    main.style.marginRight = '0';
+  }
+}
+
+// ── Profile Photo (AJAX – does NOT go through the main resume form) ───────
+(function () {
+  var input = document.getElementById('profilePhotoInput');
+  if (!input) return; // create mode — no photo input rendered
+
+  var RESUME_ID = '<%= resume ? resume._id : "" %>';
+
+  input.addEventListener('change', function () {
+    var file = this.files[0];
+    var errEl  = document.getElementById('photoError');
+    var errMsg = errEl.querySelector('span');
+    errEl.style.display = 'none';
+
+    if (!file) return;
+
+    // Client-side validation
+    var allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      errMsg.textContent = 'Only JPG, PNG, and WebP images are allowed.';
+      errEl.style.display = 'block';
+      this.value = '';
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      errMsg.textContent = 'File is too large. Maximum size is 2 MB.';
+      errEl.style.display = 'block';
+      this.value = '';
+      return;
+    }
+
+    // Show optimistic preview immediately
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var preview = document.getElementById('photoPreview');
+      var icon    = document.getElementById('photoPlaceholderIcon');
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+      if (icon) icon.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+
+    // Upload via dedicated multipart endpoint
+    var status = document.getElementById('photoStatus');
+    if (status) { status.textContent = 'Uploading…'; status.style.display = 'block'; }
+
+    var fd = new FormData();
+    fd.append('profilePhoto', file);
+
+    fetch('/resume/' + RESUME_ID + '/upload-photo', {
+      method: 'POST',
+      body: fd   // browser sets correct multipart Content-Type automatically
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.success) {
+        var preview = document.getElementById('photoPreview');
+        preview.src = data.photoUrl;
+        preview.style.display = 'block';
+        var icon = document.getElementById('photoPlaceholderIcon');
+        if (icon) icon.style.display = 'none';
+        var removeBtn = document.getElementById('removePhotoBtn');
+        if (removeBtn) removeBtn.style.display = 'flex';
+        if (status) { status.textContent = 'Photo saved.'; setTimeout(function(){ status.style.display='none'; }, 2000); }
+        if (window.showToast) window.showToast('Profile photo uploaded!', 'success');
+      } else {
+        if (status) status.style.display = 'none';
+        errMsg.textContent = data.message || 'Upload failed. Please try again.';
+        errEl.style.display = 'block';
+      }
+    })
+    .catch(function () {
+      if (status) status.style.display = 'none';
+      errMsg.textContent = 'Upload failed. Please check your connection.';
+      errEl.style.display = 'block';
+    });
+  });
+
+  window.removePhoto = function () {
+    if (!RESUME_ID) return;
+    fetch('/resume/' + RESUME_ID + '/remove-photo', { method: 'POST' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.success) {
+        var preview = document.getElementById('photoPreview');
+        preview.src = '';
+        preview.style.display = 'none';
+        var icon = document.getElementById('photoPlaceholderIcon');
+        if (icon) icon.style.display = '';
+        var removeBtn = document.getElementById('removePhotoBtn');
+        if (removeBtn) removeBtn.style.display = 'none';
+        input.value = '';
+        if (window.showToast) window.showToast('Photo removed.', 'info');
+      }
+    })
+    .catch(function () {
+      if (window.showToast) window.showToast('Could not remove photo.', 'error');
+    });
+  };
+}());
+// ─────────────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', function() {
+  const resumeForm = document.querySelector('.resume-form');
+  if (!resumeForm) return;
+
+  // 1. Progress Indicator
+  function updateProgress() {
+    const fields = ['fullName', 'email', 'phone', 'summary', 'skillsRaw'];
+    let filled = 0;
+    fields.forEach(f => {
+      const el = document.querySelector(`[name="${f}"]`);
+      if (el && el.value.trim() !== '') filled++;
+    });
+    const lists = ['workList', 'eduList'];
+    lists.forEach(l => {
+      const el = document.getElementById(l);
+      if (el && el.children.length > 0) filled++;
+    });
+    const total = fields.length + lists.length; // 7
+    const percentage = Math.round((filled / total) * 100);
+    const progressText = document.getElementById('progressText');
+    const progressFill = document.getElementById('progressFill');
+    if (progressText) progressText.innerText = `${percentage}%`;
+    if (progressFill) progressFill.style.width = `${percentage}%`;
+  }
+  resumeForm.addEventListener('input', updateProgress);
+  setTimeout(updateProgress, 100);
+
+  // 2. Sortable JS
+  const listsToSort = ['workList', 'eduList', 'projectList', 'certList', 'langList', 'achieveList', 'socialList'];
+  listsToSort.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      new Sortable(el, {
+        animation: 150,
+        handle: '.item-header',
+        onEnd: function() {
+          formChanged = true;
+          reindexList(id);
+          triggerLivePreview();
+        }
+      });
+    }
+  });
+
+  function getSectionName(listId) {
+    const map = {
+      workList: 'workExperience', eduList: 'education', projectList: 'projects',
+      certList: 'certifications', langList: 'languages', achieveList: 'achievements', socialList: 'socialLinks'
+    };
+    return map[listId];
+  }
+
+  function reindexList(listId) {
+    const list = document.getElementById(listId);
+    const items = list.querySelectorAll('.dynamic-item');
+    items.forEach((item, index) => {
+      const inputs = item.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => {
+        const name = input.name;
+        if (name) {
+          input.name = name.replace(/\[\d+\]/, `[${index}]`);
+        }
+      });
+      item.dataset.index = index;
+    });
+  }
+
+  // 3. Unsaved Changes, Auto-save & Live Preview
+  let formChanged = false;
+  let previewDebounce;
+  
+  resumeForm.addEventListener('change', () => { formChanged = true; triggerLivePreview(); });
+  resumeForm.addEventListener('input', () => { formChanged = true; triggerLivePreview(); });
+  
+  window.addEventListener('beforeunload', (e) => {
+    if (formChanged) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  resumeForm.addEventListener('submit', () => {
+    formChanged = false; // prevent warning on intentional submit
+  });
+
+  async function performAutoSave(isLivePreview = false) {
+    if (!formChanged) return;
+    const formData = new FormData(resumeForm);
+    const data = new URLSearchParams(formData);
+    
+    try {
+      const res = await fetch(resumeForm.action, {
+        method: resumeForm.method,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+        body: data
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        formChanged = false;
+        if (!isLivePreview) showToast('Auto-saved successfully!', 'success');
+        if (result.id && resumeForm.action.endsWith('/resume')) {
+           resumeForm.action = `/resume/${result.id}?_method=PUT`;
+           document.getElementById('previewFrame').src = `/resume/${result.id}/preview`;
+        } else if (isLivePreview) {
+           document.getElementById('previewFrame').contentWindow.location.reload();
+        }
+      }
+    } catch (e) {
+      console.error('Auto-save failed', e);
+    }
+  }
+
+  function triggerLivePreview() {
+    if (document.getElementById('previewPanel').style.display === 'block') {
+      clearTimeout(previewDebounce);
+      previewDebounce = setTimeout(() => { performAutoSave(true); }, 1000);
+    }
+  }
+
+  setInterval(() => { performAutoSave(false); }, 30000);
+});
+</script>
+
 <%- include("../partials/footer") %>

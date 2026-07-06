@@ -3,18 +3,24 @@
 
   <%# HEADER %>
   <div class="tpl-m-header">
-    <div class="tpl-m-header-content">
-      <h1 class="tpl-m-name"><%= resume.personalInfo.fullName || resume.title %></h1>
-      <% if (resume.personalInfo.jobTitle) { %>
-        <p class="tpl-m-role"><%= resume.personalInfo.jobTitle %></p>
+    <div class="tpl-m-header-content" style="display:flex;align-items:center;gap:24px;">
+      <% if (resume.personalInfo.photo) { %>
+        <img src="<%= resume.personalInfo.photo %>" alt="Profile Photo"
+          style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.6);flex-shrink:0;">
       <% } %>
-      <div class="tpl-m-contact">
-        <% if (resume.personalInfo.email) { %><span><i class="fas fa-envelope"></i> <%= resume.personalInfo.email %></span><% } %>
-        <% if (resume.personalInfo.phone) { %><span><i class="fas fa-phone"></i> <%= resume.personalInfo.phone %></span><% } %>
-        <% if (resume.personalInfo.city) { %><span><i class="fas fa-map-marker-alt"></i> <%= resume.personalInfo.city %><% if(resume.personalInfo.country){ %>, <%= resume.personalInfo.country %><% } %></span><% } %>
-        <% if (resume.personalInfo.website) { %><span><i class="fas fa-globe"></i> <%= resume.personalInfo.website %></span><% } %>
-        <% if (resume.personalInfo.linkedin) { %><span><i class="fab fa-linkedin"></i> <%= resume.personalInfo.linkedin %></span><% } %>
-        <% if (resume.personalInfo.github) { %><span><i class="fab fa-github"></i> <%= resume.personalInfo.github %></span><% } %>
+      <div>
+        <h1 class="tpl-m-name"><%= resume.personalInfo.fullName || resume.title %></h1>
+        <% if (resume.personalInfo.jobTitle) { %>
+          <p class="tpl-m-role"><%= resume.personalInfo.jobTitle %></p>
+        <% } %>
+        <div class="tpl-m-contact">
+          <% if (resume.personalInfo.email) { %><span><i class="fas fa-envelope"></i> <%= resume.personalInfo.email %></span><% } %>
+          <% if (resume.personalInfo.phone) { %><span><i class="fas fa-phone"></i> <%= resume.personalInfo.phone %></span><% } %>
+          <% if (resume.personalInfo.city) { %><span><i class="fas fa-map-marker-alt"></i> <%= resume.personalInfo.city %><% if(resume.personalInfo.country){ %>, <%= resume.personalInfo.country %><% } %></span><% } %>
+          <% if (resume.personalInfo.website) { %><span><i class="fas fa-globe"></i> <%= resume.personalInfo.website %></span><% } %>
+          <% if (resume.personalInfo.linkedin) { %><span><i class="fab fa-linkedin"></i> <%= resume.personalInfo.linkedin %></span><% } %>
+          <% if (resume.personalInfo.github) { %><span><i class="fab fa-github"></i> <%= resume.personalInfo.github %></span><% } %>
+        </div>
       </div>
     </div>
   </div>

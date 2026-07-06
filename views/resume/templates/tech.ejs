@@ -1,0 +1,136 @@
+<%# TECH TEMPLATE: Developer-focused, dark sidebar, code-aesthetic %>
+<div class="tpl-tech">
+
+  <div class="tpl-tech-sidebar">
+    <div class="tpl-tech-avatar">
+      <%= (resume.personalInfo.fullName || 'U').charAt(0).toUpperCase() %>
+    </div>
+    <h1 class="tpl-tech-name"><%= resume.personalInfo.fullName || resume.title %></h1>
+    <% if (resume.personalInfo.jobTitle) { %>
+      <p class="tpl-tech-role"><%= resume.personalInfo.jobTitle %></p>
+    <% } %>
+
+    <div class="tpl-tech-contact-section">
+      <div class="tpl-tech-section-title">Contact</div>
+      <% if (resume.personalInfo.email) { %><div class="tpl-tech-contact-item"><i class="fas fa-envelope"></i> <%= resume.personalInfo.email %></div><% } %>
+      <% if (resume.personalInfo.phone) { %><div class="tpl-tech-contact-item"><i class="fas fa-phone"></i> <%= resume.personalInfo.phone %></div><% } %>
+      <% if (resume.personalInfo.city) { %><div class="tpl-tech-contact-item"><i class="fas fa-map-marker-alt"></i> <%= resume.personalInfo.city %><% if(resume.personalInfo.country){ %>, <%= resume.personalInfo.country %><% } %></div><% } %>
+      <% if (resume.personalInfo.website) { %><div class="tpl-tech-contact-item"><i class="fas fa-globe"></i> <%= resume.personalInfo.website %></div><% } %>
+      <% if (resume.personalInfo.linkedin) { %><div class="tpl-tech-contact-item"><i class="fab fa-linkedin"></i> <%= resume.personalInfo.linkedin %></div><% } %>
+      <% if (resume.personalInfo.github) { %><div class="tpl-tech-contact-item"><i class="fab fa-github"></i> <%= resume.personalInfo.github %></div><% } %>
+    </div>
+
+    <% if (resume.skills && resume.skills.length) { %>
+    <div class="tpl-tech-sidebar-section">
+      <div class="tpl-tech-section-title">Skills</div>
+      <% resume.skills.forEach(function(s){ %>
+      <div class="tpl-tech-skill-bar">
+        <span class="tpl-tech-skill-name"><%= s %></span>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if (resume.languages && resume.languages.length) { %>
+    <div class="tpl-tech-sidebar-section">
+      <div class="tpl-tech-section-title">Languages</div>
+      <% resume.languages.forEach(function(l){ %>
+      <div class="tpl-tech-lang"><%= l.language %> <span class="tpl-tech-lang-level"><%= l.proficiency %></span></div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if (resume.certifications && resume.certifications.length) { %>
+    <div class="tpl-tech-sidebar-section">
+      <div class="tpl-tech-section-title">Certifications</div>
+      <% resume.certifications.forEach(function(c){ %>
+      <div style="margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;color:#E2E8F0"><%= c.name %></div>
+        <% if(c.issuer){ %><div style="font-size:11px;color:#94A3B8"><%= c.issuer %></div><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+  </div>
+
+  <div class="tpl-tech-main">
+
+    <% if (resume.summary) { %>
+    <div class="tpl-tech-main-section">
+      <h2 class="tpl-tech-main-section-title"><span class="tpl-tech-accent">#</span> About Me</h2>
+      <p class="tpl-tech-summary"><%= resume.summary %></p>
+    </div>
+    <% } %>
+
+    <% if (resume.workExperience && resume.workExperience.length) { %>
+    <div class="tpl-tech-main-section">
+      <h2 class="tpl-tech-main-section-title"><span class="tpl-tech-accent">#</span> Experience</h2>
+      <% resume.workExperience.forEach(function(w){ %>
+      <div class="tpl-tech-exp-item">
+        <div class="tpl-tech-exp-header">
+          <div>
+            <span class="tpl-tech-exp-title"><%= w.jobTitle %></span>
+            <span class="tpl-tech-exp-company"> @ <%= w.company %><% if(w.location){ %>, <%= w.location %><% } %></span>
+          </div>
+          <span class="tpl-tech-exp-dates"><%= w.startDate %> – <%= w.current ? 'Present' : w.endDate %></span>
+        </div>
+        <% if(w.description){ %><p class="tpl-tech-exp-desc"><%= w.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if (resume.projects && resume.projects.length) { %>
+    <div class="tpl-tech-main-section">
+      <h2 class="tpl-tech-main-section-title"><span class="tpl-tech-accent">#</span> Projects</h2>
+      <div class="tpl-tech-proj-grid">
+        <% resume.projects.forEach(function(p){ %>
+        <div class="tpl-tech-proj-card">
+          <div class="tpl-tech-proj-header">
+            <span class="tpl-tech-proj-title"><%= p.name %></span>
+            <% if(p.link){ %><a href="<%= p.link %>" class="tpl-tech-proj-link" target="_blank"><i class="fas fa-external-link-alt"></i></a><% } %>
+          </div>
+          <% if(p.techStack){ %><div class="tpl-tech-proj-tech"><i class="fas fa-code"></i> <%= p.techStack %></div><% } %>
+          <% if(p.description){ %><p class="tpl-tech-proj-desc"><%= p.description %></p><% } %>
+        </div>
+        <% }); %>
+      </div>
+    </div>
+    <% } %>
+
+    <% if (resume.education && resume.education.length) { %>
+    <div class="tpl-tech-main-section">
+      <h2 class="tpl-tech-main-section-title"><span class="tpl-tech-accent">#</span> Education</h2>
+      <% resume.education.forEach(function(e){ %>
+      <div class="tpl-tech-exp-item">
+        <div class="tpl-tech-exp-header">
+          <div>
+            <span class="tpl-tech-exp-title"><%= e.degree %><% if(e.fieldOfStudy){ %> in <%= e.fieldOfStudy %><% } %></span>
+            <span class="tpl-tech-exp-company"> @ <%= e.institution %></span>
+          </div>
+          <span class="tpl-tech-exp-dates"><%= e.startDate %> – <%= e.endDate %></span>
+        </div>
+        <% if(e.description){ %><p class="tpl-tech-exp-desc"><%= e.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if (resume.achievements && resume.achievements.length) { %>
+    <div class="tpl-tech-main-section">
+      <h2 class="tpl-tech-main-section-title"><span class="tpl-tech-accent">#</span> Achievements</h2>
+      <% resume.achievements.forEach(function(a){ %>
+      <div class="tpl-tech-exp-item">
+        <div class="tpl-tech-exp-header">
+          <span class="tpl-tech-exp-title"><%= a.title %></span>
+          <% if(a.date){ %><span class="tpl-tech-exp-dates"><%= a.date %></span><% } %>
+        </div>
+        <% if(a.description){ %><p class="tpl-tech-exp-desc"><%= a.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+  </div>
+</div>

@@ -180,6 +180,7 @@ function addItem(listId, prefix, _fields) {
         var jobTitle = form ? (form.querySelector('[name="jobTitle"]') || {}).value : '';
         var company = form ? (form.querySelector('[name*="workExperience"][name*="company"]') || {}).value : '';
         var skills = form ? (form.querySelector('[name="skillsRaw"]') || {}).value : '';
+        var inputText = inp ? inp.value : '';
         
         var original = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
@@ -188,7 +189,7 @@ function addItem(listId, prefix, _fields) {
         fetch('/resume/ai/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: def.aiGenerate, jobTitle: jobTitle, company: company, skills: skills, years: 3 })
+          body: JSON.stringify({ type: def.aiGenerate, jobTitle: jobTitle, company: company, skills: skills, years: 3, inputText: inputText })
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
@@ -503,6 +504,9 @@ document.addEventListener('DOMContentLoaded', function() {
       var firstCompany = form ? form.querySelector('[name*="workExperience"][name*="company"]') : null;
       if (firstCompany) company = firstCompany.value;
 
+      // Get current input text
+      var inputText = targetEl ? targetEl.value : '';
+
       // Show loading state
       var original = btn.innerHTML;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
@@ -511,7 +515,7 @@ document.addEventListener('DOMContentLoaded', function() {
       fetch('/resume/ai/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: type, jobTitle: jobTitle, company: company, skills: skills, years: 3 })
+        body: JSON.stringify({ type: type, jobTitle: jobTitle, company: company, skills: skills, years: 3, inputText: inputText })
       })
       .then(function(r) { return r.json(); })
       .then(function(data) {
@@ -546,16 +550,87 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   /* ----------------------------------------------------------
-     10. FORM SUBMIT LOADING STATE
+     10. FORM SUBMIT: Loading, Validation, Duplicate Prevention
      ---------------------------------------------------------- */
   var resumeForm = document.querySelector('#resumeWizard, .resume-form');
   if (resumeForm) {
-    resumeForm.addEventListener('submit', function() {
+    var isSubmitting = false;
+
+    // ── Inline validation helpers ───────────────────────────
+    function validateField(input) {
+      var value = input.value.trim();
+      var name = input.name || input.id;
+      var errorEl = input.nextElementSibling;
+      if (errorEl && errorEl.classList.contains('field-error')) {
+        if (input.required && value === '') {
+          input.classList.add('field-invalid');
+          errorEl.textContent = '⚠ This field is required.';
+          errorEl.classList.add('show');
+          return false;
+        } else {
+          input.classList.remove('field-invalid');
+          errorEl.classList.remove('show');
+        }
+      }
+      // XSS: warn on script tags
+      if (/<script/i.test(value)) {
+        input.value = value.replace(/<script.*?>.*?<\/script>/gi, '');
+        showToast('Script tags are not allowed.', 'warning');
+        return false;
+      }
+      return true;
+    }
+
+    // Add error elements after required inputs
+    resumeForm.querySelectorAll('[required]').forEach(function(input) {
+      if (!input.nextElementSibling || !input.nextElementSibling.classList.contains('field-error')) {
+        var err = document.createElement('div');
+        err.className = 'field-error';
+        err.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span></span>';
+        input.parentNode.insertBefore(err, input.nextSibling);
+      }
+      input.addEventListener('blur', function() { validateField(this); });
+      input.addEventListener('input', function() {
+        if (this.classList.contains('field-invalid')) validateField(this);
+      });
+    });
+
+    resumeForm.addEventListener('submit', function(e) {
+      // Prevent duplicate submissions
+      if (isSubmitting) {
+        e.preventDefault();
+        showToast('Already saving, please wait…', 'warning');
+        return;
+      }
+
+      // Run validation
+      var allValid = true;
+      resumeForm.querySelectorAll('[required]').forEach(function(input) {
+        if (!validateField(input)) allValid = false;
+      });
+      if (!allValid) {
+        e.preventDefault();
+        showToast('Please fill in all required fields.', 'error');
+        var firstInvalid = resumeForm.querySelector('.field-invalid');
+        if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      isSubmitting = true;
+
+      // Show spinner overlay
+      var overlay = document.getElementById('spinnerOverlay');
+      if (overlay) overlay.classList.add('active');
+
       var submitBtns = this.querySelectorAll('[type="submit"]');
       submitBtns.forEach(function(b) {
-        b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        b.disabled  = true;
+        b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+        b.classList.add('btn-submitting');
+        b.disabled = true;
       });
+
+      // Re-enable after 10s safety net
+      setTimeout(function() { isSubmitting = false; }, 10000);
     });
   }
 

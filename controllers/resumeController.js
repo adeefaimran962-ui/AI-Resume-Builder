@@ -17,11 +17,14 @@ const { scoreResume } = require('../lib/atsScorer');
 
 /* ── ownership guard ──────────────────────────────────────────────────────
  * Returns the resume lean object if the current user owns it.
+ * Pass allowDeleted=true to also match soft-deleted (trashed) resumes.
  * On any failure it handles the redirect itself and returns null.
  * Callers must check: `if (!resume) return;`
  * ──────────────────────────────────────────────────────────────────────── */
-const ownsResume = async (req, res) => {
-  const resume = await Resume.findById(req.params.id).lean();
+const ownsResume = async (req, res, { allowDeleted = false } = {}) => {
+  const query = { _id: req.params.id };
+  if (!allowDeleted) query.isDeleted = { $ne: true };
+  const resume = await Resume.findOne(query).lean();
   if (!resume) {
     req.flash('error', 'Resume not found.');
     res.redirect('/dashboard');
@@ -64,6 +67,7 @@ const parseResumeBody = (body) => {
     template:  template  || 'modern',
     summary:  (summary  || '').trim(),
     // Flat personalInfo — all fields always present (empty string if not filled)
+    // photo is handled separately from the uploaded file, not from body
     personalInfo: {
       fullName: (fullName || '').trim(),
       email:    (email    || '').trim(),
@@ -142,7 +146,7 @@ exports.create = async (req, res) => {
 
     // Calculate ATS score
     const scoreObj = scoreResume(data);
-    
+
     // ── NEW DOCUMENT – never touches any existing record ────────────────
     const resume = new Resume({
       user: req.session.userId,   // ← always the currently logged-in user
@@ -152,6 +156,9 @@ exports.create = async (req, res) => {
     await resume.save();          // ← creates a fresh _id in MongoDB
     // ────────────────────────────────────────────────────────────────────
 
+    if (req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest') {
+      return res.json({ success: true, id: resume._id });
+    }
 
     console.log('[DEBUG create] saved resume _id:', resume._id);
     req.flash('success', 'Resume created successfully!');
@@ -244,6 +251,10 @@ exports.update = async (req, res) => {
     doc.personalInfo.linkedin = data.personalInfo.linkedin;
     doc.personalInfo.github   = data.personalInfo.github;
 
+    // Photo is managed independently via the /upload-photo and /remove-photo
+    // AJAX endpoints. Do NOT touch doc.personalInfo.photo here — it must be
+    // preserved unchanged across every normal (URL-encoded) form save.
+
     // ── CRITICAL FIX: markModified for nested object + all arrays ────────
     // Mongoose 8 does not always detect mutations on nested plain objects
     // or array replacements. Calling markModified() forces it to include
@@ -279,6 +290,10 @@ exports.update = async (req, res) => {
 
     await doc.save(); // ← now writes ALL paths to MongoDB
 
+    if (req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest') {
+      return res.json({ success: true, id: doc._id });
+    }
+
     console.log('[DEBUG update] saved doc _id:', doc._id, '| template:', doc.template, '| fullName:', doc.personalInfo.fullName);
 
     req.flash('success', 'Resume updated successfully!');
@@ -291,21 +306,121 @@ exports.update = async (req, res) => {
 };
 
 /**
- * DELETE /resume/:id   (method-override: POST + ?_method=DELETE)
- * Permanently deletes the resume identified by :id.
- * Only the owner can delete their resume (enforced by ownsResume).
+ * DELETE /resume/:id  (method-override: POST + ?_method=DELETE)
+ * SOFT DELETE — moves the resume to the Recycle Bin instead of erasing it.
  */
 exports.destroy = async (req, res) => {
   try {
     const resume = await ownsResume(req, res);
-    if (!resume) return; // ownsResume already redirected
+    if (!resume) return;
 
-    await Resume.findByIdAndDelete(req.params.id);
-    req.flash('success', 'Resume deleted.');
+    await Resume.findByIdAndUpdate(req.params.id, {
+      $set: { isDeleted: true, deletedAt: new Date() }
+    });
+    req.flash('success', 'Resume moved to Trash. You can restore it from the Trash section.');
     res.redirect('/dashboard');
   } catch (err) {
     console.error('Delete Resume Error:', err);
     req.flash('error', 'Could not delete resume.');
+    res.redirect('/dashboard');
+  }
+};
+
+/**
+ * POST /resume/:id/restore
+ * Restores a trashed resume back to the active list.
+ */
+exports.restore = async (req, res) => {
+  try {
+    const resume = await ownsResume(req, res, { allowDeleted: true });
+    if (!resume) return;
+
+    await Resume.findByIdAndUpdate(req.params.id, {
+      $set: { isDeleted: false, deletedAt: null }
+    });
+    req.flash('success', 'Resume restored successfully!');
+    res.redirect('/dashboard/trash');
+  } catch (err) {
+    console.error('Restore Resume Error:', err);
+    req.flash('error', 'Could not restore resume.');
+    res.redirect('/dashboard/trash');
+  }
+};
+
+/**
+ * DELETE /resume/:id/permanent  (method-override POST + ?_method=DELETE)
+ * Permanently removes a trashed resume and its uploaded photo.
+ */
+exports.destroyPermanent = async (req, res) => {
+  try {
+    const resume = await ownsResume(req, res, { allowDeleted: true });
+    if (!resume) return;
+
+    // Delete profile photo from disk if present
+    if (resume.personalInfo && resume.personalInfo.photo) {
+      const fs   = require('fs');
+      const path = require('path');
+      const oldPath = path.join(__dirname, '../public', resume.personalInfo.photo);
+      fs.unlink(oldPath, () => {});
+    }
+
+    await Resume.findByIdAndDelete(req.params.id);
+    req.flash('success', 'Resume permanently deleted.');
+    res.redirect('/dashboard/trash');
+  } catch (err) {
+    console.error('Permanent Delete Error:', err);
+    req.flash('error', 'Could not permanently delete resume.');
+    res.redirect('/dashboard/trash');
+  }
+};
+
+/**
+ * POST /resume/:id/duplicate
+ * Duplicates an existing resume.
+ */
+exports.duplicate = async (req, res) => {
+  try {
+    const original = await ownsResume(req, res);
+    if (!original) return;
+    
+    const duplicateData = { ...original };
+    delete duplicateData._id;
+    delete duplicateData.createdAt;
+    delete duplicateData.updatedAt;
+    duplicateData.title = original.title + ' (Copy)';
+    
+    const newResume = new Resume(duplicateData);
+    await newResume.save();
+    
+    req.flash('success', 'Resume duplicated successfully!');
+    res.redirect('/dashboard');
+  } catch (err) {
+    console.error('Duplicate Resume Error:', err);
+    req.flash('error', 'Could not duplicate resume.');
+    res.redirect('/dashboard');
+  }
+};
+
+/**
+ * POST /resume/:id/rename
+ * Renames an existing resume.
+ */
+exports.rename = async (req, res) => {
+  try {
+    const resume = await ownsResume(req, res);
+    if (!resume) return;
+
+    if (!req.body.title || req.body.title.trim() === '') {
+      req.flash('error', 'Title cannot be empty.');
+      return res.redirect('/dashboard');
+    }
+
+    await Resume.findByIdAndUpdate(req.params.id, { $set: { title: req.body.title.trim() } });
+    req.flash('success', 'Resume renamed successfully!');
+    res.redirect('/dashboard');
+  } catch (err) {
+    console.error('Rename Resume Error:', err);
+    req.flash('error', 'Could not rename resume.');
     res.redirect('/dashboard');
   }
 };
@@ -317,7 +432,7 @@ exports.destroy = async (req, res) => {
 exports.preview = async (req, res) => {
   try {
     const resume = await ownsResume(req, res);
-    if (!resume) return; // ownsResume already redirected
+    if (!resume) return;
 
     const pi = resume.personalInfo || {};
     const contact = [];
@@ -326,10 +441,14 @@ exports.preview = async (req, res) => {
     if (pi.website) contact.push(pi.website);
     if (pi.city || pi.country) contact.push([pi.city, pi.country].filter(Boolean).join(', '));
 
+    // ?tpl= allows preview-only switching without saving
+    const VALID_TEMPLATES = ['modern','classic','minimal','professional','executive','creative','compact','tech','elegant','minimal-pro','modern-gradient','sharp'];
+    const tpl = (VALID_TEMPLATES.includes(req.query.tpl) ? req.query.tpl : null) || resume.template || 'modern';
+
     res.render('resume/preview', {
       title: 'Preview – ' + resume.title,
       resume,
-      tpl: resume.template || 'modern',
+      tpl,
       pi,
       contact,
       isShared: false
@@ -562,14 +681,33 @@ exports.downloadPDF = async (req, res) => {
 
 /* ── AI Text Generation (rule-based, zero external dependencies) ── */
 exports.aiGenerate = (req, res) => {
-  const { type, jobTitle, company, skills, years } = req.body;
+  const { type, jobTitle, company, skills, years, inputText } = req.body;
   const jt = (jobTitle||'Professional').trim();
   const co = (company||'the company').trim();
   const yr = parseInt(years)||2;
   const sk = (skills||'').split(',').map(s=>s.trim()).filter(Boolean);
   let result = '';
 
-  if (type === 'summary') {
+  if (type === 'rewrite' || type === 'improve') {
+    if (inputText && inputText.length > 5) {
+      result = inputText.replace(/did|made|worked/gi, 'Led').replace(/good|great/gi, 'exceptional');
+      result = `Spearheaded and ${result.toLowerCase()} to deliver measurable results and drive operational excellence.`;
+    } else {
+      result = `Expertly managed processes and delivered high-quality outcomes leveraging strong analytical and leadership skills.`;
+    }
+  } else if (type === 'shorten') {
+    if (inputText) {
+      result = inputText.split('.')[0] + '.';
+    } else {
+      result = 'Delivered high-quality results.';
+    }
+  } else if (type === 'expand') {
+    if (inputText) {
+      result = `${inputText} Furthermore, consistently drove performance improvements and collaborated with cross-functional teams to exceed goals.`;
+    } else {
+      result = 'Delivered high-quality results. Furthermore, consistently drove performance improvements and collaborated with cross-functional teams to exceed goals.';
+    }
+  } else if (type === 'summary') {
     const opts = [
       `Results-driven ${jt} with ${yr}+ years of experience delivering high-impact solutions. Skilled in ${sk.slice(0,3).join(', ')||'cutting-edge technologies'}, with a proven track record of collaborating cross-functionally to achieve business objectives. Passionate about writing clean, maintainable code and continuously improving technical processes.`,
       `Dynamic ${jt} with ${yr} years of hands-on experience in ${sk.slice(0,2).join(' and ')||'software development'}. Proven ability to lead projects from conception to deployment while maintaining high quality standards. Adept at agile methodologies, problem-solving, and delivering results under tight deadlines.`,
@@ -776,3 +914,93 @@ exports.toggleShare = async (req, res) => {
   }
 };
 
+/**
+ * POST /resume/:id/set-template
+ * Real-time template switch without losing data.
+ */
+exports.setTemplate = async (req, res) => {
+  try {
+    const resume = await Resume.findOne({ _id: req.params.id, user: req.session.userId });
+    if (!resume) return res.status(404).json({ success: false });
+    
+    const VALID = ['modern','classic','minimal','professional','executive','creative','compact','tech','elegant','minimal-pro','modern-gradient','sharp'];
+    const tpl = req.body.template;
+    if (!VALID.includes(tpl)) return res.status(400).json({ success: false, message: 'Invalid template' });
+    
+    resume.template = tpl;
+    await resume.save();
+    res.json({ success: true, template: tpl });
+  } catch (err) {
+    console.error('Set Template Error:', err);
+    res.status(500).json({ success: false });
+  }
+};
+
+
+/**
+ * POST /resume/:id/upload-photo
+ * Dedicated multipart endpoint for profile photo uploads.
+ * Uses multer (configured in routes/resume.js) via handleUpload middleware.
+ * Returns JSON so the form page can update the preview without a page reload.
+ */
+exports.uploadPhoto = async (req, res) => {
+  const fs   = require('fs');
+  const path = require('path');
+  try {
+    const doc = await Resume.findOne({ _id: req.params.id, user: req.session.userId });
+    if (!doc) return res.status(404).json({ success: false, message: 'Resume not found.' });
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded.' });
+    }
+
+    // Delete the old photo file from disk if one existed
+    if (doc.personalInfo.photo) {
+      const oldPath = path.join(__dirname, '../public', doc.personalInfo.photo);
+      fs.unlink(oldPath, () => {}); // ignore if already gone
+    }
+
+    const photoUrl = '/uploads/photos/' + req.file.filename;
+    doc.personalInfo.photo = photoUrl;
+    doc.markModified('personalInfo');
+    await doc.save();
+
+    res.json({ success: true, photoUrl });
+  } catch (err) {
+    console.error('Upload Photo Error:', err);
+    // Clean up the uploaded file if save failed
+    if (req.file) {
+      const path = require('path');
+      fs.unlink(path.join(__dirname, '../public/uploads/photos', req.file.filename), () => {});
+    }
+    res.status(500).json({ success: false, message: 'Could not save photo.' });
+  }
+};
+
+/**
+ * POST /resume/:id/remove-photo
+ * Removes the profile photo from the resume and deletes the file from disk.
+ * Returns JSON.
+ */
+exports.removePhoto = async (req, res) => {
+  const fs   = require('fs');
+  const path = require('path');
+  try {
+    const doc = await Resume.findOne({ _id: req.params.id, user: req.session.userId });
+    if (!doc) return res.status(404).json({ success: false, message: 'Resume not found.' });
+
+    if (doc.personalInfo.photo) {
+      const oldPath = path.join(__dirname, '../public', doc.personalInfo.photo);
+      fs.unlink(oldPath, () => {});
+    }
+
+    doc.personalInfo.photo = '';
+    doc.markModified('personalInfo');
+    await doc.save();
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Remove Photo Error:', err);
+    res.status(500).json({ success: false, message: 'Could not remove photo.' });
+  }
+};
