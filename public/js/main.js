@@ -1,4 +1,4 @@
-﻿/**
+/**
  * public/js/main.js  –  ResumeAI v3.0
  * ============================================================
  * Sections:
@@ -33,7 +33,7 @@ var FIELDS = {
     { name:'location',    label:'Location',     type:'text',     placeholder:'New York, USA',               col:'col-4' },
     { name:'startDate',   label:'Start Date',   type:'text',     placeholder:'Jan 2020',                    col:'col-4' },
     { name:'endDate',     label:'End Date',     type:'text',     placeholder:'Present',                     col:'col-4' },
-    { name:'description', label:'Description',  type:'textarea', placeholder:'Describe key responsibilities and achievements...', col:'col-12' },
+    { name:'description', label:'Description',  type:'textarea', placeholder:'Describe key responsibilities and achievements...', col:'col-12', aiGenerate: 'experience' },
   ],
   education: [
     { name:'institution',  label:'Institution',    type:'text', placeholder:'MIT',              col:'col-6' },
@@ -47,7 +47,7 @@ var FIELDS = {
     { name:'name',        label:'Project Name', type:'text',     placeholder:'My Awesome App',          col:'col-6' },
     { name:'techStack',   label:'Tech Stack',   type:'text',     placeholder:'React, Node.js, MongoDB',  col:'col-6' },
     { name:'link',        label:'Project Link', type:'url',      placeholder:'https://github.com/...',   col:'col-12' },
-    { name:'description', label:'Description',  type:'textarea', placeholder:'What the project does, your role, impact...', col:'col-12' },
+    { name:'description', label:'Description',  type:'textarea', placeholder:'What the project does, your role, impact...', col:'col-12', aiGenerate: 'projects' },
   ],
   certifications: [
     { name:'name',      label:'Certificate Name', type:'text', placeholder:'AWS Certified Developer',         col:'col-6' },
@@ -63,7 +63,7 @@ var FIELDS = {
   achievements: [
     { name:'title',       label:'Title',       type:'text',     placeholder:'1st Place – Hackathon 2023', col:'col-8' },
     { name:'date',        label:'Date',        type:'text',     placeholder:'Oct 2023',                   col:'col-4' },
-    { name:'description', label:'Description', type:'textarea', placeholder:'Describe the achievement...',col:'col-12' },
+    { name:'description', label:'Description', type:'textarea', placeholder:'Describe the achievement...',col:'col-12', aiGenerate: 'achievements' },
   ],
   socialLinks: [
     { name:'platform', label:'Platform', type:'text', placeholder:'LinkedIn',                         col:'col-4' },
@@ -125,18 +125,21 @@ function addItem(listId, prefix, _fields) {
     lbl.textContent = def.label;
 
     var inputName = prefix + '[' + idx + '][' + def.name + ']';
+    var inpId = 'input_' + prefix + '_' + idx + '_' + def.name;
     var inp;
 
     if (def.type === 'textarea') {
       inp = document.createElement('textarea');
       inp.className = 'form-control';
       inp.name = inputName;
+      inp.id = inpId;
       inp.rows = 3;
       inp.placeholder = def.placeholder || '';
     } else if (def.type === 'select') {
       inp = document.createElement('select');
       inp.className = 'form-control';
       inp.name = inputName;
+      inp.id = inpId;
       (def.options || []).forEach(function(opt) {
         var o = document.createElement('option');
         o.value = opt; o.textContent = opt;
@@ -147,6 +150,7 @@ function addItem(listId, prefix, _fields) {
       inp.type = def.type || 'text';
       inp.className = 'form-control';
       inp.name = inputName;
+      inp.id = inpId;
       inp.placeholder = def.placeholder || '';
       inp.autocomplete = 'off';
     }
@@ -160,6 +164,52 @@ function addItem(listId, prefix, _fields) {
 
     grp.appendChild(lbl);
     grp.appendChild(inp);
+
+    if (def.aiGenerate) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-sm btn-outline mt-2';
+      btn.style.marginTop = '8px';
+      btn.dataset.aiGenerate = def.aiGenerate;
+      btn.dataset.target = inpId;
+      btn.innerHTML = '<i class="fas fa-magic"></i> Improve with AI';
+      
+      // We must attach the same event listener logic from DOMContentLoaded
+      btn.addEventListener('click', function() {
+        var form = document.querySelector('#resumeWizard, .resume-form');
+        var jobTitle = form ? (form.querySelector('[name="jobTitle"]') || {}).value : '';
+        var company = form ? (form.querySelector('[name*="workExperience"][name*="company"]') || {}).value : '';
+        var skills = form ? (form.querySelector('[name="skillsRaw"]') || {}).value : '';
+        
+        var original = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        btn.disabled = true;
+
+        fetch('/resume/ai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: def.aiGenerate, jobTitle: jobTitle, company: company, skills: skills, years: 3 })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          btn.innerHTML = original;
+          btn.disabled = false;
+          if (data.success && data.result) {
+            inp.value = data.result;
+            inp.dispatchEvent(new Event('input'));
+            showToast('AI suggestion applied!', 'success');
+          }
+        })
+        .catch(function(err) {
+          btn.innerHTML = original;
+          btn.disabled = false;
+          showToast('AI generation failed.', 'error');
+        });
+      });
+      
+      grp.appendChild(btn);
+    }
+
     row.appendChild(grp);
   });
 
@@ -468,16 +518,21 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.innerHTML = original;
         btn.disabled  = false;
         if (data.success && data.result) {
-          if (targetEl) {
-            targetEl.value = data.result;
-            targetEl.dispatchEvent(new Event('input'));
-            showToast('AI suggestion applied!', 'success');
-          } else {
-            // For skills: fill the skillsRaw field
-            if (type === 'skills' && skillsEl) {
-              skillsEl.value = data.result;
-              showToast('AI skills applied!', 'success');
+          var accept = confirm("AI Suggestion:\n\n" + data.result + "\n\nDo you want to accept this suggestion?");
+          if (accept) {
+            if (targetEl) {
+              targetEl.value = data.result;
+              targetEl.dispatchEvent(new Event('input'));
+              showToast('AI suggestion applied!', 'success');
+            } else {
+              // For skills: fill the skillsRaw field
+              if (type === 'skills' && skillsEl) {
+                skillsEl.value = data.result;
+                showToast('AI skills applied!', 'success');
+              }
             }
+          } else {
+            showToast('AI suggestion declined.', 'info');
           }
         }
       })

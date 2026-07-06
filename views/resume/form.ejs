@@ -1,4 +1,4 @@
-﻿<%- include("../partials/header") %>
+<%- include("../partials/header") %>
 <%- include("../partials/navbar") %>
 <main class="form-page">
   <div class="container">
@@ -29,6 +29,9 @@
               <option value="modern" <%= resume && resume.template==='modern' ? 'selected' : '' %>>Modern</option>
               <option value="classic" <%= resume && resume.template==='classic' ? 'selected' : '' %>>Classic</option>
               <option value="minimal" <%= resume && resume.template==='minimal' ? 'selected' : '' %>>Minimal</option>
+              <option value="professional" <%= resume && resume.template==='professional' ? 'selected' : '' %>>Professional</option>
+              <option value="executive" <%= resume && resume.template==='executive' ? 'selected' : '' %>>Executive</option>
+              <option value="creative" <%= resume && resume.template==='creative' ? 'selected' : '' %>>Creative</option>
             </select>
           </div>
         </div>
@@ -85,8 +88,11 @@
       <div class="form-section">
         <h2 class="section-heading"><i class="fas fa-align-left"></i> Professional Summary</h2>
         <div class="form-group">
-          <textarea name="summary" class="form-control" rows="4"
+          <textarea id="summaryField" name="summary" class="form-control" rows="4"
             placeholder="A brief summary of your professional background and key strengths..."><%= resume ? resume.summary : '' %></textarea>
+          <button type="button" class="btn btn-sm btn-outline mt-2" style="margin-top: 8px;" data-ai-generate="summary" data-target="summaryField">
+            <i class="fas fa-magic"></i> Improve with AI
+          </button>
         </div>
       </div>
 
@@ -95,10 +101,13 @@
         <h2 class="section-heading"><i class="fas fa-tools"></i> Skills</h2>
         <div class="form-group">
           <label>Skills (comma-separated)</label>
-          <input type="text" name="skillsRaw" class="form-control"
+          <input type="text" id="skillsField" name="skillsRaw" class="form-control"
             placeholder="JavaScript, React, Node.js, MongoDB, CSS"
             value="<%= resume && resume.skills ? resume.skills.join(', ') : '' %>" />
           <small class="form-hint">Separate each skill with a comma</small>
+          <button type="button" class="btn btn-sm btn-outline mt-2" style="margin-top: 8px;" data-ai-generate="skills" data-target="skillsField">
+            <i class="fas fa-magic"></i> Auto-Generate Skills
+          </button>
         </div>
       </div>
 
@@ -125,7 +134,11 @@
                 <div class="form-group col-4"><label>End Date</label>
                   <input type="text" name="workExperience[<%= i %>][endDate]" class="form-control" placeholder="Present" value="<%= w.endDate %>" /></div>
                 <div class="form-group col-12"><label>Description</label>
-                  <textarea name="workExperience[<%= i %>][description]" class="form-control" rows="3"><%= w.description %></textarea></div>
+                  <textarea id="expDesc_<%= i %>" name="workExperience[<%= i %>][description]" class="form-control" rows="3"><%= w.description %></textarea>
+                  <button type="button" class="btn btn-sm btn-outline mt-2" style="margin-top: 8px;" data-ai-generate="experience" data-target="expDesc_<%= i %>">
+                    <i class="fas fa-magic"></i> Improve with AI
+                  </button>
+                </div>
               </div>
             </div>
             <% }) %>
@@ -189,7 +202,11 @@
                 <div class="form-group col-12"><label>Link</label>
                   <input type="url" name="projects[<%= i %>][link]" class="form-control" value="<%= p.link %>" /></div>
                 <div class="form-group col-12"><label>Description</label>
-                  <textarea name="projects[<%= i %>][description]" class="form-control" rows="2"><%= p.description %></textarea></div>
+                  <textarea id="projDesc_<%= i %>" name="projects[<%= i %>][description]" class="form-control" rows="2"><%= p.description %></textarea>
+                  <button type="button" class="btn btn-sm btn-outline mt-2" style="margin-top: 8px;" data-ai-generate="projects" data-target="projDesc_<%= i %>">
+                    <i class="fas fa-magic"></i> Improve with AI
+                  </button>
+                </div>
               </div>
             </div>
             <% }) %>
@@ -278,7 +295,11 @@
                 <div class="form-group col-4"><label>Date</label>
                   <input type="text" name="achievements[<%= i %>][date]" class="form-control" value="<%= a.date %>" /></div>
                 <div class="form-group col-12"><label>Description</label>
-                  <textarea name="achievements[<%= i %>][description]" class="form-control" rows="2"><%= a.description %></textarea></div>
+                  <textarea id="achDesc_<%= i %>" name="achievements[<%= i %>][description]" class="form-control" rows="2"><%= a.description %></textarea>
+                  <button type="button" class="btn btn-sm btn-outline mt-2" style="margin-top: 8px;" data-ai-generate="achievements" data-target="achDesc_<%= i %>">
+                    <i class="fas fa-magic"></i> Improve with AI
+                  </button>
+                </div>
               </div>
             </div>
             <% }) %>

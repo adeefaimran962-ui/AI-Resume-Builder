@@ -13,6 +13,7 @@
  */
 const Resume      = require('../models/Resume');
 const PDFDocument = require('pdfkit');
+const { scoreResume } = require('../lib/atsScorer');
 
 /* ── ownership guard ──────────────────────────────────────────────────────
  * Returns the resume lean object if the current user owns it.
@@ -139,13 +140,18 @@ exports.create = async (req, res) => {
       });
     }
 
+    // Calculate ATS score
+    const scoreObj = scoreResume(data);
+    
     // ── NEW DOCUMENT – never touches any existing record ────────────────
     const resume = new Resume({
       user: req.session.userId,   // ← always the currently logged-in user
       ...data,
+      atsScore: scoreObj.score
     });
     await resume.save();          // ← creates a fresh _id in MongoDB
     // ────────────────────────────────────────────────────────────────────
+
 
     console.log('[DEBUG create] saved resume _id:', resume._id);
     req.flash('success', 'Resume created successfully!');
@@ -267,6 +273,10 @@ exports.update = async (req, res) => {
     doc.markModified('socialLinks');
     // ─────────────────────────────────────────────────────────────────────
 
+    // Calculate ATS score on update
+    const scoreObj = scoreResume(doc);
+    doc.atsScore = scoreObj.score;
+
     await doc.save(); // ← now writes ALL paths to MongoDB
 
     console.log('[DEBUG update] saved doc _id:', doc._id, '| template:', doc.template, '| fullName:', doc.personalInfo.fullName);
@@ -309,10 +319,47 @@ exports.preview = async (req, res) => {
     const resume = await ownsResume(req, res);
     if (!resume) return; // ownsResume already redirected
 
-    res.render('resume/preview', { title: 'Preview – ' + resume.title, resume });
+    const pi = resume.personalInfo || {};
+    const contact = [];
+    if (pi.email) contact.push(pi.email);
+    if (pi.phone) contact.push(pi.phone);
+    if (pi.website) contact.push(pi.website);
+    if (pi.city || pi.country) contact.push([pi.city, pi.country].filter(Boolean).join(', '));
+
+    res.render('resume/preview', {
+      title: 'Preview – ' + resume.title,
+      resume,
+      tpl: resume.template || 'modern',
+      pi,
+      contact,
+      isShared: false
+    });
   } catch (err) {
     console.error('Preview Error:', err);
     req.flash('error', 'Could not load resume preview.');
+    res.redirect('/dashboard');
+  }
+};
+
+/**
+ * GET /resume/:id/score
+ * Renders the ATS Score Card for the resume.
+ */
+exports.score = async (req, res) => {
+  try {
+    const resume = await ownsResume(req, res);
+    if (!resume) return; // ownsResume already redirected
+
+    const atsResult = scoreResume(resume);
+
+    res.render('resume/score', {
+      title: 'ATS Score – ' + resume.title,
+      resume,
+      score: atsResult
+    });
+  } catch (err) {
+    console.error('Score Error:', err);
+    req.flash('error', 'Could not calculate ATS score.');
     res.redirect('/dashboard');
   }
 };
@@ -564,7 +611,168 @@ exports.aiGenerate = (req, res) => {
       `Implemented automated testing suite achieving 90%+ code coverage and reducing production bugs by 40%`,
     ];
     result = lines.slice(0,4).join('\n');
+  } else if (type === 'projects') {
+    const lines = [
+      `Engineered a robust full-stack application using ${sk[0]||'modern frameworks'}, driving a 40% increase in user engagement.`,
+      `Developed a real-time data processing pipeline capable of handling 50k+ events per second with sub-second latency.`,
+      `Designed and launched an intuitive user interface that improved accessibility compliance and boosted retention by 25%.`,
+      `Created an automated deployment system that reduced infrastructure costs by 20% and eliminated manual configuration errors.`
+    ];
+    result = lines[Math.floor(Math.random()*lines.length)];
+  } else if (type === 'achievements') {
+    const lines = [
+      `Awarded Employee of the Month for successfully leading the delivery of a critical enterprise feature ahead of schedule.`,
+      `Recognized for optimizing database queries that reduced server load by 50% during peak traffic hours.`,
+      `Winner of the internal company hackathon for prototyping an AI-driven workflow automation tool.`,
+      `Received outstanding performance review for resolving 100+ critical customer issues within a single quarter.`
+    ];
+    result = lines[Math.floor(Math.random()*lines.length)];
   }
 
   res.json({ success: true, result });
 };
+
+/* ── Job Description Match ── */
+exports.renderMatch = async (req, res) => {
+  try {
+    const resume = await ownsResume(req, res);
+    if (!resume) return; // ownsResume already redirected
+    res.render('resume/match', { resume, title: 'Job Description Match' });
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Failed to load job match page.');
+    res.redirect('/dashboard');
+  }
+};
+
+exports.calculateMatch = async (req, res) => {
+  try {
+    const resume = await ownsResume(req, res);
+    if (!resume) return res.status(404).json({ success: false, message: 'Resume not found' });
+    const { jobDescription } = req.body;
+    if (!jobDescription) return res.json({ success: false, message: 'Job description required' });
+
+    const jdText = jobDescription.toLowerCase();
+    const resumeText = [
+      resume.summary || '',
+      resume.skills ? resume.skills.join(' ') : '',
+      resume.workExperience ? resume.workExperience.map(w => w.description || '').join(' ') : '',
+      resume.projects ? resume.projects.map(p => p.description || '').join(' ') : ''
+    ].join(' ').toLowerCase();
+
+    const stopWords = ['about', 'their', 'there', 'which', 'would', 'could', 'should', 'these', 'those', 'please', 'required', 'experience', 'years', 'working', 'knowledge', 'understanding', 'ability', 'strong', 'excellent', 'skills'];
+    const rawWords = jdText.match(/[a-z]+/g) || [];
+    const uniqueWords = [...new Set(rawWords)].filter(w => w.length > 3 && !stopWords.includes(w));
+
+    const found = [];
+    const missing = [];
+
+    uniqueWords.forEach(w => {
+      if (resumeText.includes(w)) found.push(w);
+      else missing.push(w);
+    });
+
+    const totalKeywords = found.length + missing.length;
+    const matchPercentage = totalKeywords > 0 ? Math.round((found.length / totalKeywords) * 100) : 0;
+    const topMissing = missing.slice(0, 15);
+
+    res.json({
+      success: true,
+      matchPercentage,
+      foundKeywords: found.slice(0, 15),
+      missingKeywords: topMissing,
+      tips: [
+        `You match ${matchPercentage}% of the keywords extracted from the job description.`,
+        topMissing.length > 0 ? `Consider adding these keywords if you have the experience: ${topMissing.slice(0, 5).join(', ')}.` : 'Great job! You have all the key terms.',
+        'Ensure your work experience explicitly demonstrates the required skills in action.'
+      ]
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error during matching' });
+  }
+};
+
+/* ── Export to DOCX ── */
+exports.downloadDOCX = async (req, res) => {
+  try {
+    const resume = await ownsResume(req, res);
+    if (!resume) return;
+    // Since building a full DOCX via the "docx" package requires hundreds of lines of code,
+    // we use a simplified HTML-based DOC export trick which opens perfectly in MS Word.
+    // Word reads HTML with .doc/.docx extension and renders it.
+    
+    // Increment download count
+    Resume.findByIdAndUpdate(req.params.id, { $inc: { downloadCount: 1 } }).catch(() => {});
+
+    let html = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head><meta charset='utf-8'><title>${resume.title}</title>
+      <style>
+        body { font-family: Arial, sans-serif; font-size: 11pt; color: #000; }
+        h1 { font-size: 24pt; margin-bottom: 5px; }
+        h2 { font-size: 14pt; border-bottom: 1px solid #ccc; margin-top: 15px; margin-bottom: 5px; }
+        p { margin: 0 0 5px 0; }
+        .contact { font-size: 10pt; color: #555; margin-bottom: 15px; }
+      </style>
+      </head><body>
+      <h1>${resume.personalInfo.fullName || resume.title}</h1>
+      <div class="contact">
+        ${resume.personalInfo.email} | ${resume.personalInfo.phone} | ${resume.personalInfo.city}
+      </div>
+    `;
+
+    if (resume.summary) {
+      html += `<h2>Professional Summary</h2><p>${resume.summary}</p>`;
+    }
+    if (resume.skills && resume.skills.length) {
+      html += `<h2>Skills</h2><p>${resume.skills.join(', ')}</p>`;
+    }
+    if (resume.workExperience && resume.workExperience.length) {
+      html += `<h2>Work Experience</h2>`;
+      resume.workExperience.forEach(w => {
+        html += `<p><strong>${w.jobTitle}</strong> at <em>${w.company}</em> (${w.startDate} - ${w.endDate || 'Present'})<br/>${w.description ? w.description.replace(/\\n/g, '<br/>') : ''}</p>`;
+      });
+    }
+    if (resume.education && resume.education.length) {
+      html += `<h2>Education</h2>`;
+      resume.education.forEach(e => {
+        html += `<p><strong>${e.degree}</strong> in ${e.fieldOfStudy} - <em>${e.institution}</em> (${e.startDate} - ${e.endDate})</p>`;
+      });
+    }
+    
+    html += `</body></html>`;
+
+    res.setHeader('Content-Type', 'application/vnd.ms-word');
+    res.setHeader('Content-Disposition', `attachment; filename=${resume.title.replace(/\s+/g, '_')}.doc`);
+    res.send(html);
+
+  } catch (err) {
+    console.error('DOCX Export Error:', err);
+    req.flash('error', 'Could not generate DOCX.');
+    res.redirect('/dashboard');
+  }
+};
+
+exports.toggleShare = async (req, res) => {
+  try {
+    const resume = await Resume.findOne({ _id: req.params.id, user: req.session.userId });
+    if (!resume) {
+      return res.status(404).json({ success: false, message: 'Resume not found' });
+    }
+    
+    resume.isPublic = !resume.isPublic;
+    await resume.save();
+
+    res.json({
+      success: true,
+      isPublic: resume.isPublic,
+      message: `Sharing is now ${resume.isPublic ? 'enabled' : 'disabled'}`
+    });
+  } catch (err) {
+    console.error('Toggle Share Error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+

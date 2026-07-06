@@ -4,19 +4,57 @@
   <div class="container">
     <%- include("../partials/flash") %>
 
+    <% if (!locals.isShared) { %>
     <div class="preview-toolbar">
       <a href="/dashboard" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Dashboard</a>
       <div class="preview-actions">
-        <div class="tpl-switcher">
-          <span class="tpl-switcher-label"><i class="fas fa-layer-group"></i> Template:</span>
-          <a href="/resume/<%= resume._id %>/edit" class="tpl-chip <%= resume.template === 'modern'  ? 'active' : '' %>">Modern</a>
-          <a href="/resume/<%= resume._id %>/edit" class="tpl-chip <%= resume.template === 'classic' ? 'active' : '' %>">Classic</a>
-          <a href="/resume/<%= resume._id %>/edit" class="tpl-chip <%= resume.template === 'minimal' ? 'active' : '' %>">Minimal</a>
+        <a href="/resume/<%= resume._id %>/match" class="btn btn-outline"><i class="fas fa-bullseye"></i> Job Match</a>
+        <a href="/resume/<%= resume._id %>/score" class="btn btn-outline" style="color:var(--accent);border-color:var(--accent)"><i class="fas fa-chart-pie"></i> ATS Score</a>
+        <a href="/resume/<%= resume._id %>/edit" class="btn btn-outline"><i class="fas fa-edit"></i> Edit</a>
+        
+        <div class="dropdown-wrapper" style="position:relative;display:inline-block;">
+          <button class="btn btn-primary" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'"><i class="fas fa-download"></i> Download <i class="fas fa-caret-down"></i></button>
+          <div style="display:none;position:absolute;top:100%;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-card);z-index:100;min-width:150px;margin-top:4px;">
+            <a href="/resume/<%= resume._id %>/download" style="display:block;padding:10px 16px;color:var(--dark);text-decoration:none;"><i class="fas fa-file-pdf"></i> PDF</a>
+            <a href="/resume/<%= resume._id %>/download-docx" style="display:block;padding:10px 16px;color:var(--dark);text-decoration:none;"><i class="fas fa-file-word"></i> DOCX</a>
+          </div>
         </div>
-        <a href="/resume/<%= resume._id %>/edit"     class="btn btn-outline"><i class="fas fa-edit"></i> Edit</a>
-        <a href="/resume/<%= resume._id %>/download" class="btn btn-primary"><i class="fas fa-download"></i> Download PDF</a>
+
+        <button class="btn btn-outline" id="shareBtn" onclick="toggleShare('<%= resume._id %>')">
+          <i class="fas <%= resume.isPublic ? 'fa-share-alt' : 'fa-lock' %>"></i>
+          <span id="shareBtnText"><%= resume.isPublic ? 'Public' : 'Private' %></span>
+        </button>
       </div>
     </div>
+    <script>
+      function toggleShare(id) {
+        fetch('/resume/' + id + '/toggle-share', { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              const btn = document.getElementById('shareBtn');
+              if (data.isPublic) {
+                btn.innerHTML = '<i class="fas fa-share-alt"></i> <span id="shareBtnText">Public</span>';
+                const url = window.location.origin + '/shared/' + id;
+                navigator.clipboard.writeText(url).then(() => {
+                  if (window.showToast) window.showToast('Sharing enabled! Link copied.', 'success');
+                  else alert('Sharing enabled! Link copied: ' + url);
+                });
+              } else {
+                btn.innerHTML = '<i class="fas fa-lock"></i> <span id="shareBtnText">Private</span>';
+                if (window.showToast) window.showToast('Sharing disabled.', 'info');
+                else alert('Sharing disabled.');
+              }
+            }
+          });
+      }
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown-wrapper')) {
+          document.querySelectorAll('.dropdown-wrapper > div').forEach(function(d){ d.style.display='none'; });
+        }
+      });
+    </script>
+    <% } %>
 
     <div class="preview-template-badge">
       <i class="fas fa-palette"></i>
@@ -28,6 +66,12 @@
         <%- include("templates/classic") %>
       <% } else if (resume.template === 'minimal') { %>
         <%- include("templates/minimal") %>
+      <% } else if (resume.template === 'professional') { %>
+        <%- include("templates/professional") %>
+      <% } else if (resume.template === 'executive') { %>
+        <%- include("templates/executive") %>
+      <% } else if (resume.template === 'creative') { %>
+        <%- include("templates/creative") %>
       <% } else { %>
         <%- include("templates/modern") %>
       <% } %>

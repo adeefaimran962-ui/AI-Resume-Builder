@@ -1,34 +1,34 @@
 ﻿/**
  * app.js
- * ─────────────────────────────────────────────────────────────────────────
- * ROOT CAUSE FIX:
+ * =========================================================
+ * ROOT CAUSE OF CRUD BUG — FIXED HERE
+ * =========================================================
  *
- * The critical bug was: express.urlencoded({ extended: true }) uses the "qs"
- * library which AUTOMATICALLY parses bracket notation like
- *   workExperience[0][jobTitle]=Engineer
- * into a nested JavaScript object:
- *   req.body.workExperience = [{ jobTitle: 'Engineer' }]
+ * The critical bug: express.urlencoded({ extended: true })
+ * uses the "qs" library which automatically parses bracket-
+ * notation form fields into nested objects BEFORE the
+ * controller receives req.body.
  *
- * However, parseResumeBody() in the controller used a regex that searched
- * for FLAT keys like "workExperience[0][jobTitle]" in Object.keys(req.body).
- * Since qs had already converted those flat keys into a nested structure,
- * Object.keys(req.body) only contained "workExperience" (as a key pointing
- * to an array), so the regex NEVER matched and extract() returned [] for
- * every dynamic section.
+ * Example — what the browser sends (flat):
+ *   workExperience[0][jobTitle]=Engineer&workExperience[0][company]=Google
  *
- * This meant every save() replaced workExperience, education, projects, etc.
- * with EMPTY arrays — only scalar top-level fields (title, template, summary,
- * fullName, email…) were saved correctly because they are flat keys that
- * don't go through the regex extraction.
+ * What qs produces in req.body (nested):
+ *   { workExperience: [{ jobTitle: 'Engineer', company: 'Google' }] }
  *
- * FIX: Change extended: true → extended: false.
- * With extended: false, Express uses Node's built-in querystring module which
- * does NOT parse bracket notation — it keeps keys literally flat:
+ * parseResumeBody() in the controller uses a regex that looks
+ * for FLAT string keys like "workExperience[0][jobTitle]" in
+ * Object.keys(req.body).  With qs pre-parsing, Object.keys()
+ * only returns ["workExperience"], so the regex NEVER matches
+ * and extract() returns [] for every dynamic section.
+ *
+ * FIX: extended: false  — uses Node's built-in querystring
+ * module which keeps keys flat:
  *   req.body["workExperience[0][jobTitle]"] = "Engineer"
- * This is exactly the format parseResumeBody()'s regex was written to handle.
+ * This is exactly the format the controller expects.
  *
- * No other files need to change for this fix.
- * ─────────────────────────────────────────────────────────────────────────
+ * No other files need changing for the CRUD fix; this single
+ * change makes Create, Edit, and all dynamic sections work.
+ * =========================================================
  */
 require('dotenv').config();
 
@@ -53,28 +53,21 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Static files (no body parsing needed)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ── BODY PARSERS ──────────────────────────────────────────────────────────
-//
-// CRITICAL: extended: false
-// Keeps bracket-notation form fields as flat string keys in req.body, e.g.:
-//   "workExperience[0][jobTitle]" → "Engineer"
-// This is required so parseResumeBody()'s regex extraction works correctly.
-//
-// With extended: true, qs would convert those keys to nested objects BEFORE
-// the controller sees them, breaking the regex entirely.
-//
+// ── BODY PARSERS ─────────────────────────────────────────────────────────
+// CRITICAL FIX: extended: false preserves flat bracket-notation keys.
+// extended: true (qs) was converting them to nested objects and breaking
+// parseResumeBody()'s regex extraction in the controller.
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(express.json({ limit: '10mb' }));
 
-// ── METHOD OVERRIDE ───────────────────────────────────────────────────────
-// Supports ?_method=PUT and ?_method=DELETE in the query string.
-// Must come AFTER body parsers so req.body is already populated.
+// ── METHOD OVERRIDE ──────────────────────────────────────────────────────
+// Reads ?_method=PUT or ?_method=DELETE from the query string.
+// Must come AFTER body parsers.
 app.use(methodOverride('_method'));
 
-// ── SESSION ───────────────────────────────────────────────────────────────
+// ── SESSION ──────────────────────────────────────────────────────────────
 app.use(session({
   secret:            process.env.SESSION_SECRET || 'fallback_dev_secret',
   resave:            false,
@@ -82,28 +75,25 @@ app.use(session({
   cookie: {
     httpOnly: true,
     secure:   process.env.NODE_ENV === 'production',
-    maxAge:   1000 * 60 * 60 * 24, // 24 hours
+    maxAge:   1000 * 60 * 60 * 24,
   },
 }));
 
-// ── FLASH ─────────────────────────────────────────────────────────────────
 app.use(flash());
-
-// ── GLOBAL TEMPLATE LOCALS ────────────────────────────────────────────────
 app.use(setLocals);
 
-// ── ROUTES ────────────────────────────────────────────────────────────────
+// ── ROUTES ───────────────────────────────────────────────────────────────
 app.use('/',          indexRouter);
 app.use('/auth',      authRouter);
 app.use('/dashboard', dashboardRouter);
 app.use('/resume',    resumeRouter);
 
-// ── 404 ───────────────────────────────────────────────────────────────────
+// ── 404 ──────────────────────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).render('404', { title: '404 – Page Not Found' });
 });
 
-// ── GLOBAL ERROR HANDLER ──────────────────────────────────────────────────
+// ── GLOBAL ERROR HANDLER ─────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error('Unhandled Error:', err.stack);
   res.status(500).render('error', {
@@ -116,6 +106,6 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`AI Resume Builder running on http://localhost:${PORT}`);
+  console.log(`ResumeAI running on http://localhost:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });

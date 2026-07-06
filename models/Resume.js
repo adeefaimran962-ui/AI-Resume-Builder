@@ -1,4 +1,4 @@
-﻿/**
+/**
  * models/Resume.js
  * Mongoose schema - expanded to support 10 templates + all sections.
  */
@@ -117,6 +117,10 @@ const ResumeSchema = new mongoose.Schema({
   socialLinks:    [SocialLinkSchema],
   // Track downloads
   downloadCount:  { type: Number, default: 0 },
+  // Public sharing
+  isPublic:       { type: Boolean, default: false },
+  // ATS Score
+  atsScore:       { type: Number, default: 0 },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Resume', ResumeSchema);

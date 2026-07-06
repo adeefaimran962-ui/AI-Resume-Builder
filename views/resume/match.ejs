@@ -1,0 +1,167 @@
+<%- include("../partials/header") %>
+<%- include("../partials/navbar") %>
+
+<style>
+.match-page {
+  padding: 40px 0;
+  background-color: var(--bg-2);
+  min-height: calc(100vh - 140px);
+}
+.match-header {
+  margin-bottom: 30px;
+}
+.match-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.match-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: var(--shadow-card);
+}
+.match-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 992px) {
+  .match-grid { grid-template-columns: 1fr; }
+}
+.results-container {
+  display: none; /* hidden until generated */
+}
+.score-circle {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  font-weight: 800;
+  color: white;
+  margin: 0 auto 20px;
+  background: var(--gradient);
+}
+.kw-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-block;
+  margin: 4px;
+}
+.kw-found { background: #D1FAE5; color: #065F46; border: 1px solid #34D399; }
+.kw-missing { background: #FEE2E2; color: #991B1B; border: 1px solid #F87171; }
+</style>
+
+<main class="match-page">
+  <div class="container">
+    <div class="match-header">
+      <h1 class="match-title">
+        <i class="fas fa-bullseye" style="color:var(--accent)"></i> 
+        Job Description Match
+      </h1>
+      <p class="text-muted">Compare your resume against a specific job posting to see how well you match.</p>
+    </div>
+
+    <div class="match-grid">
+      <!-- Input Section -->
+      <div class="match-card">
+        <h2 style="font-size:18px;font-weight:600;margin-bottom:16px;">Paste Job Description</h2>
+        <div class="form-group">
+          <textarea id="jdText" class="form-control" rows="12" placeholder="Paste the full job description here..."></textarea>
+        </div>
+        <button id="btnMatch" class="btn btn-primary btn-block">
+          <i class="fas fa-search"></i> Analyze Match
+        </button>
+      </div>
+
+      <!-- Results Section -->
+      <div class="match-card results-container" id="resultsSection">
+        <div style="text-align:center;">
+          <div class="score-circle" id="matchScore">0%</div>
+          <h3 style="font-size:20px;font-weight:700;margin-bottom:24px;">Match Score</h3>
+        </div>
+        
+        <h4 style="font-size:15px;font-weight:600;margin-bottom:8px;"><i class="fas fa-check-circle" style="color:var(--success)"></i> Keywords Found</h4>
+        <div id="foundKeywords" style="margin-bottom:20px;"></div>
+        
+        <h4 style="font-size:15px;font-weight:600;margin-bottom:8px;"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i> Missing Keywords</h4>
+        <div id="missingKeywords" style="margin-bottom:20px;"></div>
+
+        <h4 style="font-size:15px;font-weight:600;margin-bottom:8px;"><i class="fas fa-lightbulb" style="color:var(--warning)"></i> Tips</h4>
+        <ul id="tipsList" style="font-size:14px;color:var(--dark);padding-left:20px;line-height:1.6;"></ul>
+        
+        <div style="margin-top:24px;text-align:center;">
+          <a href="/resume/<%= resume._id %>/edit" class="btn btn-outline"><i class="fas fa-edit"></i> Edit Resume to Improve</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const btnMatch = document.getElementById('btnMatch');
+  const jdText = document.getElementById('jdText');
+  const resultsSection = document.getElementById('resultsSection');
+  
+  btnMatch.addEventListener('click', function() {
+    if (!jdText.value.trim()) {
+      showToast('Please paste a job description first.', 'error');
+      return;
+    }
+    
+    const originalText = btnMatch.innerHTML;
+    btnMatch.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+    btnMatch.disabled = true;
+    
+    fetch('/resume/<%= resume._id %>/match', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobDescription: jdText.value })
+    })
+    .then(r => r.json())
+    .then(data => {
+      btnMatch.innerHTML = originalText;
+      btnMatch.disabled = false;
+      
+      if (data.success) {
+        resultsSection.style.display = 'block';
+        
+        const scoreCircle = document.getElementById('matchScore');
+        scoreCircle.textContent = data.matchPercentage + '%';
+        if (data.matchPercentage >= 80) scoreCircle.style.background = 'var(--success)';
+        else if (data.matchPercentage >= 50) scoreCircle.style.background = 'var(--warning)';
+        else scoreCircle.style.background = 'var(--danger)';
+        
+        document.getElementById('foundKeywords').innerHTML = data.foundKeywords.length 
+          ? data.foundKeywords.map(k => `<span class="kw-badge kw-found">${k}</span>`).join('') 
+          : '<em style="font-size:13px;color:var(--muted)">No keywords matched.</em>';
+          
+        document.getElementById('missingKeywords').innerHTML = data.missingKeywords.length 
+          ? data.missingKeywords.map(k => `<span class="kw-badge kw-missing">${k}</span>`).join('') 
+          : '<em style="font-size:13px;color:var(--muted)">You have all the key terms!</em>';
+          
+        document.getElementById('tipsList').innerHTML = data.tips.map(t => `<li>${t}</li>`).join('');
+      } else {
+        showToast(data.message || 'Analysis failed', 'error');
+      }
+    })
+    .catch(err => {
+      btnMatch.innerHTML = originalText;
+      btnMatch.disabled = false;
+      showToast('Error connecting to server', 'error');
+    });
+  });
+});
+</script>
+
+<%- include("../partials/footer") %>

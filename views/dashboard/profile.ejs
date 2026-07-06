@@ -1,0 +1,98 @@
+<%- include("../partials/header") %>
+<%- include("../partials/navbar") %>
+
+<style>
+.profile-page {
+  padding: 40px 0;
+  background-color: var(--bg-2);
+  min-height: calc(100vh - 140px);
+}
+.profile-header {
+  margin-bottom: 30px;
+}
+.profile-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dark);
+}
+.profile-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: var(--shadow-card);
+  max-width: 600px;
+  margin: 0 auto;
+}
+.avatar-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--primary);
+  margin-bottom: 20px;
+  background-color: var(--bg-1);
+}
+.avatar-container {
+  text-align: center;
+  margin-bottom: 30px;
+}
+</style>
+
+<main class="profile-page">
+  <div class="container">
+    <div class="profile-header text-center">
+      <h1 class="profile-title">My Profile</h1>
+      <p class="text-muted">Manage your personal information and avatar.</p>
+    </div>
+
+    <div class="profile-card">
+      <form action="/dashboard/profile" method="POST" enctype="multipart/form-data">
+        
+        <div class="avatar-container">
+          <img src="<%= user.avatar || '/images/default-avatar.png' %>" alt="Avatar" class="avatar-preview" id="avatarPreview">
+          <div class="form-group">
+            <label for="avatarInput" class="btn btn-outline btn-sm">
+              <i class="fas fa-camera"></i> Change Avatar
+            </label>
+            <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display: none;">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" name="name" class="form-control" value="<%= user.name %>" required>
+        </div>
+
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" name="email" class="form-control" value="<%= user.email %>" required>
+        </div>
+
+        <div class="form-group">
+          <label>New Password (leave blank to keep current)</label>
+          <input type="password" name="password" class="form-control" minlength="6">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 20px;">
+          <i class="fas fa-save"></i> Save Profile
+        </button>
+
+      </form>
+    </div>
+  </div>
+</main>
+
+<script>
+document.getElementById('avatarInput').addEventListener('change', function(e) {
+  if (e.target.files && e.target.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('avatarPreview').src = e.target.result;
+    }
+    reader.readAsDataURL(e.target.files[0]);
+  }
+});
+</script>
+
+<%- include("../partials/footer") %>

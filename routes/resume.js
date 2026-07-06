@@ -1,4 +1,4 @@
-﻿/**
+/**
  * routes/resume.js
  * ─────────────────────────────────────────────────────────
  * FIXES:
@@ -25,6 +25,11 @@ router.post('/',   rc.create);           // Submit new resume
 // ── Read ───────────────────────────────────────────────────
 router.get('/:id/preview',  rc.preview);     // Preview a resume
 router.get('/:id/download', rc.downloadPDF); // Download as PDF
+router.get('/:id/download-docx', rc.downloadDOCX); // Download as DOCX
+router.get('/:id/score',    rc.score);       // ATS Score Card
+router.get('/:id/match',    rc.renderMatch); // Job Match Page
+router.post('/:id/match',   rc.calculateMatch); // Job Match Calculate
+router.post('/:id/toggle-share', rc.toggleShare); // Toggle Public Sharing
 
 // ── Update ─────────────────────────────────────────────────
 router.get('/:id/edit', rc.showEditForm); // Show pre-filled edit form

@@ -1,4 +1,4 @@
-﻿<%- include("../partials/header") %>
+<%- include("../partials/header") %>
 
 <div class="dashboard-layout">
 
@@ -29,17 +29,21 @@
       </a>
 
       <span class="sidebar-nav-section" style="margin-top:12px">Account</span>
-      <a href="#" class="sidebar-nav-item">
+      <a href="/dashboard/profile" class="sidebar-nav-item">
         <i class="fas fa-user-circle"></i> Profile
       </a>
-      <a href="#" class="sidebar-nav-item">
+      <a href="/dashboard/profile" class="sidebar-nav-item">
         <i class="fas fa-cog"></i> Settings
       </a>
     </nav>
 
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <div class="sidebar-user-avatar"><%= currentUser.name.charAt(0).toUpperCase() %></div>
+        <% if (currentUser.avatar) { %>
+          <img src="<%= currentUser.avatar %>" alt="Avatar" class="sidebar-user-avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+        <% } else { %>
+          <div class="sidebar-user-avatar"><%= currentUser.name.charAt(0).toUpperCase() %></div>
+        <% } %>
         <div style="overflow:hidden">
           <div class="sidebar-user-name"><%= currentUser.name %></div>
           <div class="sidebar-user-email"><%= currentUser.email %></div>
@@ -66,9 +70,15 @@
         <a href="/resume/new" class="btn btn-primary btn-sm">
           <i class="fas fa-plus"></i> New Resume
         </a>
-        <div class="nav-avatar" title="<%= currentUser.name %>">
-          <%= currentUser.name.charAt(0).toUpperCase() %>
-        </div>
+        <a href="/dashboard/profile">
+          <% if (currentUser.avatar) { %>
+            <img src="<%= currentUser.avatar %>" alt="Avatar" class="nav-avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" title="<%= currentUser.name %>">
+          <% } else { %>
+            <div class="nav-avatar" title="<%= currentUser.name %>">
+              <%= currentUser.name.charAt(0).toUpperCase() %>
+            </div>
+          <% } %>
+        </a>
       </div>
     </header>
 
@@ -80,8 +90,8 @@
       <div class="welcome-card">
         <div class="welcome-card-text">
           <h2>Welcome back, <%= currentUser.name.split(' ')[0] %>! 👋</h2>
-          <p>You have <strong><%= resumes.length %></strong> resume<%= resumes.length !== 1 ? 's' : '' %> in your account.
-          <% if (resumes.length === 0) { %>Start building your first one today.<% } else { %>Keep them updated to stay competitive.<% } %>
+          <p>You have <strong><%= stats.totalResumes %></strong> resume<%= stats.totalResumes !== 1 ? 's' : '' %> in your account.
+          <% if (stats.totalResumes === 0) { %>Start building your first one today.<% } else { %>Keep them updated to stay competitive.<% } %>
           </p>
           <a href="/resume/new" class="btn btn-white btn-sm" style="margin-top:14px">
             <i class="fas fa-plus"></i> Create New Resume
@@ -93,13 +103,13 @@
       </div>
 
       <!-- STATS ROW -->
-      <div class="stats-row">
+      <div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <div class="stat-card-dash">
           <div class="icon-box" style="background:linear-gradient(135deg,#6C63FF,#A855F7)">
             <i class="fas fa-file-alt" style="color:white"></i>
           </div>
           <div>
-            <div class="stat-value"><%= resumes.length %></div>
+            <div class="stat-value"><%= stats.totalResumes %></div>
             <div class="stat-label-dash">Total Resumes</div>
           </div>
         </div>
@@ -108,19 +118,17 @@
             <i class="fas fa-download" style="color:white"></i>
           </div>
           <div>
-            <div class="stat-value"><%= resumes.length > 0 ? resumes.length * 2 : 0 %></div>
+            <div class="stat-value"><%= stats.totalDownloads %></div>
             <div class="stat-label-dash">Downloads</div>
           </div>
         </div>
         <div class="stat-card-dash">
-          <div class="icon-box" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)">
-            <i class="fas fa-layer-group" style="color:white"></i>
+          <div class="icon-box" style="background:linear-gradient(135deg,#3B82F6,#60A5FA)">
+            <i class="fas fa-chart-pie" style="color:white"></i>
           </div>
           <div>
-            <div class="stat-value">
-              <%= resumes.length > 0 ? [...new Set(resumes.map(function(r){ return r.template; }))].length : 0 %>
-            </div>
-            <div class="stat-label-dash">Templates Used</div>
+            <div class="stat-value"><%= stats.avgAtsScore %>%</div>
+            <div class="stat-label-dash">Avg ATS Score</div>
           </div>
         </div>
         <div class="stat-card-dash">
@@ -128,15 +136,50 @@
             <i class="fas fa-clock" style="color:white"></i>
           </div>
           <div>
-            <div class="stat-value" style="font-size:15px">
-              <% if (resumes.length > 0) { %>
-                <%= new Date(resumes[0].updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'}) %>
-              <% } else { %>
-                N/A
-              <% } %>
-            </div>
+            <div class="stat-value" style="font-size:15px"><%= stats.lastUpdated %></div>
             <div class="stat-label-dash">Last Updated</div>
           </div>
+        </div>
+      </div>
+
+      <!-- RECENT ACTIVITY & FILTERS -->
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px;">
+        <div>
+          <form action="/dashboard" method="GET" class="filter-form" style="display:flex;flex-wrap:wrap;gap:12px;background:var(--white);padding:16px;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow-card);">
+            <input type="text" name="search" placeholder="Search resumes..." class="form-control" style="flex:1;min-width:180px;" value="<%= filters.search %>">
+            <select name="template" class="form-control" style="width:150px;">
+              <option value="">All Templates</option>
+              <option value="modern" <%= filters.template === 'modern' ? 'selected' : '' %>>Modern</option>
+              <option value="classic" <%= filters.template === 'classic' ? 'selected' : '' %>>Classic</option>
+              <option value="minimal" <%= filters.template === 'minimal' ? 'selected' : '' %>>Minimal</option>
+              <option value="professional" <%= filters.template === 'professional' ? 'selected' : '' %>>Professional</option>
+              <option value="executive" <%= filters.template === 'executive' ? 'selected' : '' %>>Executive</option>
+              <option value="creative" <%= filters.template === 'creative' ? 'selected' : '' %>>Creative</option>
+            </select>
+            <select name="sort" class="form-control" style="width:150px;">
+              <option value="latest" <%= filters.sort === 'latest' ? 'selected' : '' %>>Latest Updated</option>
+              <option value="oldest" <%= filters.sort === 'oldest' ? 'selected' : '' %>>Oldest Created</option>
+              <option value="score" <%= filters.sort === 'score' ? 'selected' : '' %>>ATS Score</option>
+            </select>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Filter</button>
+            <a href="/dashboard" class="btn btn-outline" style="line-height: 2.2;">Reset</a>
+          </form>
+        </div>
+
+        <div style="background:var(--white);padding:16px;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow-card);">
+          <h4 style="margin-top:0;margin-bottom:12px;font-size:14px;color:var(--dark);"><i class="fas fa-history" style="color:var(--primary);"></i> Recent Activity</h4>
+          <% if (recentActivity.length === 0) { %>
+            <p style="font-size:12px;color:var(--muted);margin:0;">No recent activity.</p>
+          <% } else { %>
+            <ul style="list-style:none;padding:0;margin:0;font-size:13px;">
+              <% recentActivity.forEach(function(act) { %>
+                <li style="display:flex;justify-content:between;margin-bottom:8px;border-bottom:1px solid var(--bg-2);padding-bottom:4px;">
+                  <span style="color:var(--dark);"><%= act.text %></span>
+                  <span style="color:var(--muted);margin-left:auto;"><%= act.time %></span>
+                </li>
+              <% }) %>
+            </ul>
+          <% } %>
         </div>
       </div>
 
@@ -168,22 +211,47 @@
           <div class="resume-card animate-on-scroll" style="animation-delay: <%= idx * 60 %>ms">
 
             <!-- Card Top Bar (colour-coded by template) -->
-            <div class="resume-card-bar
-              <% if(resume.template==='modern'){ %>bar-modern<% } else if(resume.template==='classic'){ %>bar-classic<% } else { %>bar-minimal<% } %>
-            "></div>
+            <div class="resume-card-bar" style="height: 4px; background: <%= 
+              resume.template === 'modern' ? 'linear-gradient(135deg,#6C63FF,#A855F7)' :
+              resume.template === 'classic' ? '#1F2937' :
+              resume.template === 'minimal' ? '#9CA3AF' :
+              resume.template === 'professional' ? '#2563EB' :
+              resume.template === 'executive' ? '#111827' :
+              resume.template === 'creative' ? '#10B981' : 'var(--primary)'
+            %>"></div>
 
             <div class="resume-card-inner">
               <!-- Header -->
               <div class="resume-card-header">
-                <span class="resume-template-badge badge-<%= resume.template %>">
-                  <i class="fas
-                    <% if(resume.template==='modern'){ %> fa-magic
-                    <% } else if(resume.template==='classic'){ %> fa-crown
-                    <% } else { %> fa-feather<% } %>
-                  "></i>
+                <span class="resume-template-badge" style="background: <%= 
+                  resume.template === 'modern' ? 'rgba(108,99,255,0.1)' :
+                  resume.template === 'classic' ? 'rgba(31,41,55,0.1)' :
+                  resume.template === 'minimal' ? 'rgba(156,163,175,0.1)' :
+                  resume.template === 'professional' ? 'rgba(37,99,235,0.1)' :
+                  resume.template === 'executive' ? 'rgba(17,24,39,0.1)' :
+                  resume.template === 'creative' ? 'rgba(16,185,129,0.1)' : 'rgba(0,0,0,0.05)'
+                %>; color: <%= 
+                  resume.template === 'modern' ? '#6C63FF' :
+                  resume.template === 'classic' ? '#1F2937' :
+                  resume.template === 'minimal' ? '#4B5563' :
+                  resume.template === 'professional' ? '#2563EB' :
+                  resume.template === 'executive' ? '#111827' :
+                  resume.template === 'creative' ? '#10B981' : 'var(--dark)'
+                %>; font-size:12px; font-weight:600; padding:4px 8px; border-radius:4px; display:inline-flex; align-items:center; gap:6px;">
+                  <i class="fas <%= 
+                    resume.template === 'modern' ? 'fa-magic' :
+                    resume.template === 'classic' ? 'fa-crown' :
+                    resume.template === 'minimal' ? 'fa-feather' :
+                    resume.template === 'professional' ? 'fa-briefcase' :
+                    resume.template === 'executive' ? 'fa-user-tie' :
+                    resume.template === 'creative' ? 'fa-palette' : 'fa-file-alt'
+                  %>"></i>
                   <%= resume.template.charAt(0).toUpperCase() + resume.template.slice(1) %>
                 </span>
                 <div class="resume-card-actions">
+                  <a href="/resume/<%= resume._id %>/score" class="btn-icon" title="ATS Score" style="color:var(--accent)">
+                    <i class="fas fa-chart-pie"></i>
+                  </a>
                   <a href="/resume/<%= resume._id %>/preview" class="btn-icon" title="Preview">
                     <i class="fas fa-eye"></i>
                   </a>
@@ -216,6 +284,9 @@
 
               <!-- Footer Actions -->
               <div class="resume-card-footer">
+                <a href="/resume/<%= resume._id %>/score" class="btn btn-outline btn-sm" style="color:var(--accent);border-color:var(--accent)">
+                  <i class="fas fa-chart-pie"></i> Score
+                </a>
                 <a href="/resume/<%= resume._id %>/preview" class="btn btn-outline btn-sm">
                   <i class="fas fa-eye"></i> Preview
                 </a>
@@ -234,6 +305,23 @@
           </div>
           <% }) %>
         </div>
+
+        <!-- PAGINATION -->
+        <% if (pagination.totalPages > 1) { %>
+          <div class="pagination-row" style="display:flex;justify-content:center;align-items:center;gap:12px;margin:24px 0;">
+            <% if (pagination.hasPrev) { %>
+              <a href="/dashboard?page=<%= pagination.page - 1 %>&search=<%= filters.search %>&template=<%= filters.template %>&sort=<%= filters.sort %>" class="btn btn-outline btn-sm"><i class="fas fa-chevron-left"></i> Prev</a>
+            <% } else { %>
+              <button class="btn btn-outline btn-sm" disabled><i class="fas fa-chevron-left"></i> Prev</button>
+            <% } %>
+            <span style="font-size:14px;color:var(--muted)">Page <%= pagination.page %> of <%= pagination.totalPages %></span>
+            <% if (pagination.hasNext) { %>
+              <a href="/dashboard?page=<%= pagination.page + 1 %>&search=<%= filters.search %>&template=<%= filters.template %>&sort=<%= filters.sort %>" class="btn btn-outline btn-sm">Next <i class="fas fa-chevron-right"></i></a>
+            <% } else { %>
+              <button class="btn btn-outline btn-sm" disabled>Next <i class="fas fa-chevron-right"></i></button>
+            <% } %>
+          </div>
+        <% } %>
 
         <!-- QUICK TIPS -->
         <div class="quick-tips">

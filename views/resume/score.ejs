@@ -1,0 +1,433 @@
+<%- include("../partials/header") %>
+<%- include("../partials/navbar") %>
+
+<style>
+.score-page {
+  padding: 40px 0;
+  background-color: var(--bg-2);
+  min-height: calc(100vh - 140px);
+}
+.score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+.score-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.score-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+}
+@media (max-width: 992px) {
+  .score-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.score-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.score-circle-wrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin-bottom: 20px;
+}
+.score-circle {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.score-circle-bg {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 12;
+}
+.score-circle-progress {
+  fill: none;
+  stroke: <%= score.gradeColor %>;
+  stroke-width: 12;
+  stroke-linecap: round;
+  stroke-dasharray: 565.48;
+  stroke-dashoffset: calc(565.48 - (565.48 * <%= score.score %>) / 100);
+  transition: stroke-dashoffset 1.5s ease-out;
+  animation: progressFill 1.5s ease-out forwards;
+}
+@keyframes progressFill {
+  from { stroke-dashoffset: 565.48; }
+  to { stroke-dashoffset: calc(565.48 - (565.48 * <%= score.score %>) / 100); }
+}
+.score-circle-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.score-number {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--dark);
+  line-height: 1;
+}
+.score-out-of {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.score-grade {
+  display: inline-block;
+  padding: 6px 16px;
+  background: <%= score.gradeColor %>20;
+  color: <%= score.gradeColor %>;
+  font-size: 24px;
+  font-weight: 700;
+  border-radius: 30px;
+  margin-top: 10px;
+}
+.score-card p {
+  color: var(--muted);
+  font-size: 15px;
+  margin-top: 16px;
+  line-height: 1.5;
+}
+
+.details-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: var(--shadow-card);
+}
+.details-section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.categories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 30px;
+}
+.category-item {
+  background: var(--bg-2);
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.category-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.category-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  color: var(--dark);
+  font-size: 16px;
+}
+.category-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+}
+.category-score-text {
+  font-weight: 700;
+  font-size: 16px;
+}
+.progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s ease-in-out;
+}
+.category-tips {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+  padding-left: 44px;
+  line-height: 1.5;
+}
+
+.feedback-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+@media (max-width: 768px) {
+  .feedback-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.feedback-box {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.feedback-box-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.feedback-box-title.success { color: var(--success); }
+.feedback-box-title.warning { color: var(--warning); }
+.feedback-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.feedback-list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+  color: var(--dark);
+  line-height: 1.4;
+}
+.feedback-list li i {
+  margin-top: 3px;
+  font-size: 12px;
+}
+.feedback-list .success i { color: var(--success); }
+.feedback-list .warning i { color: var(--warning); }
+
+.keywords-section {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.keywords-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kw-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.kw-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.kw-badge.found {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.kw-badge.missing {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.empty-msg {
+  color: var(--muted);
+  font-size: 14px;
+  font-style: italic;
+}
+</style>
+
+<main class="score-page">
+  <div class="container">
+    <%- include("../partials/flash") %>
+
+    <div class="score-header">
+      <h1 class="score-title">
+        <i class="fas fa-chart-pie" style="color:var(--accent)"></i> 
+        ATS Resume Analysis
+      </h1>
+      <div style="display:flex;gap:12px">
+        <a href="/resume/<%= resume._id %>/preview" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back to Preview</a>
+        <a href="/resume/<%= resume._id %>/edit" class="btn btn-primary"><i class="fas fa-edit"></i> Improve Resume</a>
+      </div>
+    </div>
+
+    <div class="score-grid">
+      <!-- Left Column: Overall Score -->
+      <div>
+        <div class="score-card">
+          <h2 style="font-size:20px;font-weight:600;margin-bottom:24px;color:var(--dark)">Overall ATS Score</h2>
+          
+          <div class="score-circle-wrapper">
+            <svg class="score-circle" viewBox="0 0 200 200">
+              <circle class="score-circle-bg" cx="100" cy="100" r="90"></circle>
+              <circle class="score-circle-progress" cx="100" cy="100" r="90"></circle>
+            </svg>
+            <div class="score-circle-text">
+              <span class="score-number"><%= score.score %></span>
+              <span class="score-out-of">out of 100</span>
+            </div>
+          </div>
+          
+          <div class="score-grade"><%= score.grade %> Grade</div>
+          
+          <p>
+            <% if (score.score >= 80) { %>
+              Excellent! Your resume is highly optimized for Applicant Tracking Systems. It's ready to land interviews!
+            <% } else if (score.score >= 60) { %>
+              Good start. Your resume passes basic checks, but there's room for improvement to stand out.
+            <% } else { %>
+              Needs work. Your resume may be filtered out by ATS. Follow the suggestions below to improve it.
+            <% } %>
+          </p>
+        </div>
+      </div>
+
+      <!-- Right Column: Details & Feedback -->
+      <div class="details-card">
+        <h3 class="details-section-title"><i class="fas fa-list-check" style="color:var(--accent)"></i> Category Breakdown</h3>
+        
+        <div class="categories-list">
+          <% score.categories.forEach(function(cat) { %>
+            <div class="category-item">
+              <div class="category-header">
+                <div class="category-name">
+                  <div class="category-icon" style="background:<%= cat.color %>">
+                    <i class="<%= cat.icon %>"></i>
+                  </div>
+                  <%= cat.name %>
+                </div>
+                <div class="category-score-text" style="color:<%= cat.color %>">
+                  <%= cat.score %> / <%= cat.max %>
+                </div>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: <%= cat.pct %>%; background:<%= cat.color %>"></div>
+              </div>
+              <% if (cat.tips && cat.tips.length > 0) { %>
+                <div class="category-tips">
+                  <% cat.tips.forEach(function(tip) { %>
+                    <div>• <%= tip %></div>
+                  <% }) %>
+                </div>
+              <% } %>
+            </div>
+          <% }) %>
+        </div>
+
+        <div class="feedback-grid">
+          <div class="feedback-box">
+            <div class="feedback-box-title success">
+              <i class="fas fa-check-circle"></i> Strengths
+            </div>
+            <% if (score.strengths.length > 0) { %>
+              <ul class="feedback-list">
+                <% score.strengths.forEach(function(s) { %>
+                  <li class="success"><i class="fas fa-check"></i> <span><%= s %></span></li>
+                <% }) %>
+              </ul>
+            <% } else { %>
+              <p class="empty-msg">Add more content to your resume to build strengths.</p>
+            <% } %>
+          </div>
+          
+          <div class="feedback-box">
+            <div class="feedback-box-title warning">
+              <i class="fas fa-exclamation-triangle"></i> To Improve
+            </div>
+            <% if (score.improvements.length > 0) { %>
+              <ul class="feedback-list">
+                <% score.improvements.forEach(function(i) { %>
+                  <li class="warning"><i class="fas fa-arrow-right"></i> <span><%= i %></span></li>
+                <% }) %>
+              </ul>
+            <% } else { %>
+              <p class="empty-msg">Great job! No major improvements needed.</p>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="keywords-section">
+          <div class="keywords-title">
+            <i class="fas fa-search" style="color:var(--accent)"></i> ATS Power Keywords
+          </div>
+          <div style="margin-bottom:8px;font-size:14px;color:var(--dark)">Action verbs found in your resume:</div>
+          <div class="kw-badges">
+            <% if (score.keywords.found.length > 0) { %>
+              <% score.keywords.found.forEach(function(kw) { %>
+                <span class="kw-badge found"><%= kw %></span>
+              <% }) %>
+            <% } else { %>
+              <span class="empty-msg">No common action verbs found.</span>
+            <% } %>
+          </div>
+          
+          <div style="margin-bottom:8px;font-size:14px;color:var(--dark);margin-top:16px;">Suggested keywords to add:</div>
+          <div class="kw-badges">
+            <% if (score.keywords.missing.length > 0) { %>
+              <% score.keywords.missing.forEach(function(kw) { %>
+                <span class="kw-badge missing">+ <%= kw %></span>
+              <% }) %>
+            <% } else { %>
+              <span class="empty-msg">You've used all our recommended keywords!</span>
+            <% } %>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include("../partials/footer") %>
