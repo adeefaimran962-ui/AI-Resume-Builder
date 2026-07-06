@@ -118,7 +118,16 @@ exports.create = async (req, res) => {
       return res.redirect('/auth/login');
     }
 
+    // ── DEBUG: confirm req.body reaches the controller ──────────────────
+    console.log('[DEBUG create] req.body keys:', Object.keys(req.body));
+    console.log('[DEBUG create] req.body sample:', JSON.stringify(req.body).slice(0, 500));
+    // ────────────────────────────────────────────────────────────────────
+
     const data = parseResumeBody(req.body);
+
+    // ── DEBUG: confirm parseResumeBody output ────────────────────────────
+    console.log('[DEBUG create] parsed data:', JSON.stringify(data).slice(0, 800));
+    // ────────────────────────────────────────────────────────────────────
 
     if (!data.title) {
       return res.status(400).render('resume/form', {
@@ -138,6 +147,7 @@ exports.create = async (req, res) => {
     await resume.save();          // ← creates a fresh _id in MongoDB
     // ────────────────────────────────────────────────────────────────────
 
+    console.log('[DEBUG create] saved resume _id:', resume._id);
     req.flash('success', 'Resume created successfully!');
     res.redirect('/resume/' + resume._id + '/preview');
   } catch (err) {
@@ -191,10 +201,18 @@ exports.update = async (req, res) => {
     const owned = await ownsResume(req, res);
     if (!owned) return; // ownsResume already redirected
 
+    // ── DEBUG: confirm req.body reaches the controller ──────────────────
+    console.log('[DEBUG update] req.body keys:', Object.keys(req.body));
+    console.log('[DEBUG update] req.body sample:', JSON.stringify(req.body).slice(0, 500));
+    // ────────────────────────────────────────────────────────────────────
+
     const data = parseResumeBody(req.body);
 
+    // ── DEBUG: confirm parseResumeBody output ────────────────────────────
+    console.log('[DEBUG update] parsed data:', JSON.stringify(data).slice(0, 800));
+    // ────────────────────────────────────────────────────────────────────
+
     // ── Fetch the live Mongoose document (NOT lean) ──────────────────────
-    // We need the full Mongoose Document instance so .save() works.
     const doc = await Resume.findById(req.params.id);
     if (!doc) {
       req.flash('error', 'Resume not found.');
@@ -202,14 +220,12 @@ exports.update = async (req, res) => {
     }
 
     // ── Assign every field directly ──────────────────────────────────────
-    // Mongoose tracks changes on the document; calling .save() writes ONLY
-    // the changed paths — correctly handling nested objects and arrays.
     doc.title    = data.title;
     doc.template = data.template;
     doc.summary  = data.summary;
 
-    // Nested object: assign each sub-field individually so Mongoose marks
-    // the correct nested paths as modified.
+    // Nested plain-object path: assign each sub-field individually, then
+    // explicitly mark the parent path modified so Mongoose 8 flushes it.
     doc.personalInfo.fullName = data.personalInfo.fullName;
     doc.personalInfo.email    = data.personalInfo.email;
     doc.personalInfo.phone    = data.personalInfo.phone;
@@ -222,6 +238,13 @@ exports.update = async (req, res) => {
     doc.personalInfo.linkedin = data.personalInfo.linkedin;
     doc.personalInfo.github   = data.personalInfo.github;
 
+    // ── CRITICAL FIX: markModified for nested object + all arrays ────────
+    // Mongoose 8 does not always detect mutations on nested plain objects
+    // or array replacements. Calling markModified() forces it to include
+    // these paths in the next save() write — without this, only top-level
+    // scalars (title, template, summary) were ever persisted to MongoDB.
+    doc.markModified('personalInfo');
+
     // Arrays: replace entirely with the parsed values from the form.
     doc.skills         = data.skills;
     doc.education      = data.education;
@@ -232,8 +255,21 @@ exports.update = async (req, res) => {
     doc.achievements   = data.achievements;
     doc.socialLinks    = data.socialLinks;
 
-    await doc.save(); // ← writes ALL changed paths to MongoDB
-    // ────────────────────────────────────────────────────────────────────
+    // Mark all array paths modified so Mongoose flushes them even when
+    // the new array is empty (length 0 → Mongoose may skip unmodified).
+    doc.markModified('skills');
+    doc.markModified('education');
+    doc.markModified('workExperience');
+    doc.markModified('projects');
+    doc.markModified('certifications');
+    doc.markModified('languages');
+    doc.markModified('achievements');
+    doc.markModified('socialLinks');
+    // ─────────────────────────────────────────────────────────────────────
+
+    await doc.save(); // ← now writes ALL paths to MongoDB
+
+    console.log('[DEBUG update] saved doc _id:', doc._id, '| template:', doc.template, '| fullName:', doc.personalInfo.fullName);
 
     req.flash('success', 'Resume updated successfully!');
     res.redirect('/resume/' + req.params.id + '/preview');

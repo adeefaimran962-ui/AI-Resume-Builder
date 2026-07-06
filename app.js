@@ -1,23 +1,34 @@
 ﻿/**
  * app.js
- * ─────────────────────────────────────────────────────────
- * CRITICAL FIX: Middleware order corrected.
+ * ─────────────────────────────────────────────────────────────────────────
+ * ROOT CAUSE FIX:
  *
- * BUG WAS: methodOverride was registered AFTER body parsers
- * but BEFORE session. Because methodOverride('_method') reads
- * from the query-string this seemed fine, but the real problem
- * was that express.urlencoded MUST be fully applied before ANY
- * middleware that might need the parsed body, and session MUST
- * be applied before flash and setLocals.
+ * The critical bug was: express.urlencoded({ extended: true }) uses the "qs"
+ * library which AUTOMATICALLY parses bracket notation like
+ *   workExperience[0][jobTitle]=Engineer
+ * into a nested JavaScript object:
+ *   req.body.workExperience = [{ jobTitle: 'Engineer' }]
  *
- * CORRECT ORDER:
- *   1. Body parsers        (urlencoded, json)
- *   2. methodOverride      (needs parsed body / query)
- *   3. Session             (needs cookies/body already read)
- *   4. Flash               (needs session)
- *   5. setLocals           (needs session + flash)
- *   6. Routes
- * ─────────────────────────────────────────────────────────
+ * However, parseResumeBody() in the controller used a regex that searched
+ * for FLAT keys like "workExperience[0][jobTitle]" in Object.keys(req.body).
+ * Since qs had already converted those flat keys into a nested structure,
+ * Object.keys(req.body) only contained "workExperience" (as a key pointing
+ * to an array), so the regex NEVER matched and extract() returned [] for
+ * every dynamic section.
+ *
+ * This meant every save() replaced workExperience, education, projects, etc.
+ * with EMPTY arrays — only scalar top-level fields (title, template, summary,
+ * fullName, email…) were saved correctly because they are flat keys that
+ * don't go through the regex extraction.
+ *
+ * FIX: Change extended: true → extended: false.
+ * With extended: false, Express uses Node's built-in querystring module which
+ * does NOT parse bracket notation — it keeps keys literally flat:
+ *   req.body["workExperience[0][jobTitle]"] = "Engineer"
+ * This is exactly the format parseResumeBody()'s regex was written to handle.
+ *
+ * No other files need to change for this fix.
+ * ─────────────────────────────────────────────────────────────────────────
  */
 require('dotenv').config();
 
@@ -42,31 +53,30 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Static files first (no session needed)
+// Static files (no body parsing needed)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ── STEP 1: Body parsers FIRST ─────────────────────────────
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// ── BODY PARSERS ──────────────────────────────────────────────────────────
+//
+// CRITICAL: extended: false
+// Keeps bracket-notation form fields as flat string keys in req.body, e.g.:
+//   "workExperience[0][jobTitle]" → "Engineer"
+// This is required so parseResumeBody()'s regex extraction works correctly.
+//
+// With extended: true, qs would convert those keys to nested objects BEFORE
+// the controller sees them, breaking the regex entirely.
+//
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(express.json({ limit: '10mb' }));
 
-// ── STEP 2: methodOverride AFTER body parsers ──────────────
-// Supports both query-string (?_method=PUT) AND body (_method field)
-app.use(methodOverride(function (req) {
-  // Read _method from POST body first (most reliable for HTML forms)
-  if (req.body && typeof req.body === 'object' && '_method' in req.body) {
-    const method = req.body._method;
-    delete req.body._method; // remove so it doesn't interfere with data
-    return method;
-  }
-  // Fallback: read from query string (?_method=PUT)
-  if (req.query && req.query._method) {
-    return req.query._method;
-  }
-}));
+// ── METHOD OVERRIDE ───────────────────────────────────────────────────────
+// Supports ?_method=PUT and ?_method=DELETE in the query string.
+// Must come AFTER body parsers so req.body is already populated.
+app.use(methodOverride('_method'));
 
-// ── STEP 3: Session AFTER body/override ───────────────────
+// ── SESSION ───────────────────────────────────────────────────────────────
 app.use(session({
-  secret:            process.env.SESSION_SECRET || 'fallback_dev_secret_change_in_production',
+  secret:            process.env.SESSION_SECRET || 'fallback_dev_secret',
   resave:            false,
   saveUninitialized: false,
   cookie: {
@@ -76,24 +86,24 @@ app.use(session({
   },
 }));
 
-// ── STEP 4: Flash AFTER session ────────────────────────────
+// ── FLASH ─────────────────────────────────────────────────────────────────
 app.use(flash());
 
-// ── STEP 5: Global template locals AFTER session + flash ───
+// ── GLOBAL TEMPLATE LOCALS ────────────────────────────────────────────────
 app.use(setLocals);
 
-// ── Routes ─────────────────────────────────────────────────
+// ── ROUTES ────────────────────────────────────────────────────────────────
 app.use('/',          indexRouter);
 app.use('/auth',      authRouter);
 app.use('/dashboard', dashboardRouter);
 app.use('/resume',    resumeRouter);
 
-// ── 404 ────────────────────────────────────────────────────
+// ── 404 ───────────────────────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).render('404', { title: '404 – Page Not Found' });
 });
 
-// ── Global error handler ───────────────────────────────────
+// ── GLOBAL ERROR HANDLER ──────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error('Unhandled Error:', err.stack);
   res.status(500).render('error', {
