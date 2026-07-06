@@ -9,22 +9,46 @@
       <a href="/dashboard" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Dashboard</a>
       <div class="preview-actions">
 
+        <!-- ATS Score Badge -->
+        <a href="/resume/<%= resume._id %>/score" class="ats-score-badge" title="View ATS Score Analysis" style="text-decoration:none">
+          <% const sc = resume.atsScore || 0; %>
+          <% const scoreColor = sc >= 80 ? '#10B981' : sc >= 60 ? '#F59E0B' : sc >= 40 ? '#EF4444' : '#DC2626'; %>
+          <i class="fas fa-chart-pie" style="color:<%= scoreColor %>"></i>
+          <span style="font-weight:700;color:<%= scoreColor %>"><%= sc %></span>
+          <span style="color:var(--muted);font-size:12px">/100 ATS</span>
+        </a>
+
         <!-- Template Switcher -->
         <div class="tpl-switcher" id="tplSwitcher">
-          <span class="tpl-switcher-label"><i class="fas fa-palette"></i></span>
-          <% ['modern','classic','minimal','professional','executive','creative','compact','tech','elegant'].forEach(function(t){ %>
-          <a href="/resume/<%= resume._id %>/preview?tpl=<%= t %>"
-             class="tpl-chip <%= (tpl===t)?'active':'' %>"
-             title="<%= t.charAt(0).toUpperCase()+t.slice(1) %>"
-             data-tpl="<%= t %>">
-            <%= t.charAt(0).toUpperCase()+t.slice(1) %>
+          <span class="tpl-switcher-label"><i class="fas fa-palette"></i> Template</span>
+          <% const allTemplates = [
+            {key:'modern', label:'Modern'},
+            {key:'classic', label:'Classic'},
+            {key:'minimal', label:'Minimal'},
+            {key:'professional', label:'Professional'},
+            {key:'executive', label:'Executive'},
+            {key:'creative', label:'Creative'},
+            {key:'compact', label:'Compact'},
+            {key:'tech', label:'Tech'},
+            {key:'elegant', label:'Elegant'},
+            {key:'ats-professional', label:'ATS Pro'},
+            {key:'minimal-pro', label:'Minimal Pro'},
+            {key:'modern-gradient', label:'Gradient'},
+            {key:'sharp', label:'Sharp'},
+          ]; %>
+          <% allTemplates.forEach(function(t){ %>
+          <a href="/resume/<%= resume._id %>/preview?tpl=<%= t.key %>"
+             class="tpl-chip <%= (tpl===t.key)?'active':'' %>"
+             title="<%= t.label %>"
+             data-tpl="<%= t.key %>">
+            <%= t.label %>
           </a>
           <% }); %>
         </div>
 
         <a href="/resume/<%= resume._id %>/match" class="btn btn-outline"><i class="fas fa-bullseye"></i> Job Match</a>
-        <a href="/resume/<%= resume._id %>/score" class="btn btn-outline" style="color:var(--accent);border-color:var(--accent)"><i class="fas fa-chart-pie"></i> ATS Score</a>
         <a href="/resume/<%= resume._id %>/edit" class="btn btn-outline"><i class="fas fa-edit"></i> Edit</a>
+        <a href="/cover-letter/new?resumeId=<%= resume._id %>" class="btn btn-outline" style="color:#EC4899;border-color:#EC4899;"><i class="fas fa-envelope"></i> Cover Letter</a>
 
         <div class="dropdown-wrapper" style="position:relative;display:inline-block;">
           <button class="btn btn-primary" id="dlBtn"><i class="fas fa-download"></i> Download <i class="fas fa-caret-down"></i></button>
@@ -34,10 +58,19 @@
           </div>
         </div>
 
-        <button class="btn btn-outline" id="shareBtn" onclick="toggleShare('<%= resume._id %>')">
-          <i class="fas <%= resume.isPublic ? 'fa-share-alt' : 'fa-lock' %>"></i>
-          <span id="shareBtnText"><%= resume.isPublic ? 'Public' : 'Private' %></span>
-        </button>
+        <!-- Share Button + Copy Link -->
+        <div style="position:relative;display:inline-flex;gap:6px;align-items:center;">
+          <button class="btn btn-outline" id="shareBtn" onclick="toggleShare('<%= resume._id %>')">
+            <i class="fas <%= resume.isPublic ? 'fa-share-alt' : 'fa-lock' %>"></i>
+            <span id="shareBtnText"><%= resume.isPublic ? 'Public' : 'Private' %></span>
+          </button>
+          <% if (resume.isPublic) { %>
+          <button class="btn btn-outline btn-sm" id="copyLinkBtn" onclick="copyShareLink('<%= resume._id %>')" title="Copy share link" style="padding:8px 12px;">
+            <i class="fas fa-copy"></i>
+          </button>
+          <% } %>
+        </div>
+
       </div>
     </div>
     <script>
@@ -68,16 +101,37 @@
               const btn = document.getElementById('shareBtn');
               if (data.isPublic) {
                 btn.innerHTML = '<i class="fas fa-share-alt"></i> <span id="shareBtnText">Public</span>';
-                const url = window.location.origin + '/shared/' + id;
-                navigator.clipboard.writeText(url).then(() => {
-                  if (window.showToast) window.showToast('Sharing enabled! Link copied.', 'success');
-                });
+                copyShareLink(id);
+                // Show copy button
+                const existingCopyBtn = document.getElementById('copyLinkBtn');
+                if (!existingCopyBtn) {
+                  const copyBtn = document.createElement('button');
+                  copyBtn.id = 'copyLinkBtn';
+                  copyBtn.className = 'btn btn-outline btn-sm';
+                  copyBtn.onclick = function(){ copyShareLink(id); };
+                  copyBtn.title = 'Copy share link';
+                  copyBtn.style.cssText = 'padding:8px 12px;';
+                  copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                  btn.parentNode.appendChild(copyBtn);
+                }
               } else {
                 btn.innerHTML = '<i class="fas fa-lock"></i> <span id="shareBtnText">Private</span>';
+                const copyBtn = document.getElementById('copyLinkBtn');
+                if (copyBtn) copyBtn.remove();
                 if (window.showToast) window.showToast('Sharing disabled.', 'info');
               }
             }
-          });
+          })
+          .catch(() => { if (window.showToast) window.showToast('Error toggling share.', 'error'); });
+      }
+
+      function copyShareLink(id) {
+        const url = window.location.origin + '/shared/' + id;
+        navigator.clipboard.writeText(url).then(() => {
+          if (window.showToast) window.showToast('Share link copied to clipboard!', 'success');
+        }).catch(() => {
+          prompt('Copy this link:', url);
+        });
       }
 
       // Template switching with loading indicator
@@ -103,12 +157,18 @@
     </script>
     <% } %>
 
+    <% if (!locals.isShared) { %>
     <div class="preview-template-badge">
       <i class="fas fa-palette"></i>
       Using: <strong><%= tpl.charAt(0).toUpperCase() + tpl.slice(1) %></strong> template
+      &nbsp;·&nbsp;
+      <% const sc2 = resume.atsScore || 0; %>
+      ATS Score: <strong style="color:<%= sc2 >= 80 ? '#10B981' : sc2 >= 60 ? '#F59E0B' : '#EF4444' %>"><%= sc2 %>/100</strong>
     </div>
+    <% } %>
 
-    <div class="resume-preview-wrapper tpl-canvas-<%= tpl %>">
+    <!-- Multi-page resume support: each template is wrapped in page-aware div -->
+    <div class="resume-preview-wrapper tpl-canvas-<%= tpl %> resume-multipage">
       <% if (tpl === 'classic') { %>
         <%- include("templates/classic") %>
       <% } else if (tpl === 'minimal') { %>
@@ -125,6 +185,14 @@
         <%- include("templates/tech") %>
       <% } else if (tpl === 'elegant') { %>
         <%- include("templates/elegant") %>
+      <% } else if (tpl === 'ats-professional') { %>
+        <%- include("templates/ats-professional") %>
+      <% } else if (tpl === 'minimal-pro') { %>
+        <%- include("templates/minimal-pro") %>
+      <% } else if (tpl === 'modern-gradient') { %>
+        <%- include("templates/modern-gradient") %>
+      <% } else if (tpl === 'sharp') { %>
+        <%- include("templates/sharp") %>
       <% } else { %>
         <%- include("templates/modern") %>
       <% } %>
@@ -132,5 +200,55 @@
 
   </div>
 </main>
-<%- include("../partials/footer") %>
 
+<style>
+/* ATS Score Badge in Preview Toolbar */
+.ats-score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ats-score-badge:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+}
+
+/* Multi-page resume: allow content to naturally flow and page-break nicely */
+.resume-multipage {
+  page-break-inside: auto;
+}
+.resume-multipage section,
+.resume-multipage .tpl-m-section,
+.resume-multipage .tpl-c-section,
+.resume-multipage .tpl-co-section,
+.resume-multipage .tpl-ap-section,
+.resume-multipage .tpl-e-section,
+.resume-multipage .tpl-cr-section {
+  page-break-inside: avoid;
+}
+
+/* Template switcher scrollable on small screens */
+.tpl-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  max-width: 600px;
+}
+.tpl-switcher-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+</style>
+
+<%- include("../partials/footer") %>

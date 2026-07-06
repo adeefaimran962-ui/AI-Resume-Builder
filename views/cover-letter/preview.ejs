@@ -1,0 +1,60 @@
+<%- include("../partials/header") %>
+<%- include("../partials/navbar") %>
+<main class="preview-page">
+  <div class="container">
+    <%- include("../partials/flash") %>
+
+    <div class="preview-toolbar">
+      <a href="/dashboard" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Dashboard</a>
+      <div class="preview-actions">
+        <% if (linkedResume) { %>
+          <a href="/resume/<%= letter.resume %>/preview" class="btn btn-outline">
+            <i class="fas fa-file-alt"></i> Linked Resume
+          </a>
+        <% } %>
+        <a href="/cover-letter/<%= letter._id %>/edit" class="btn btn-outline">
+          <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="/cover-letter/<%= letter._id %>/download" class="btn btn-primary">
+          <i class="fas fa-file-pdf"></i> Download PDF
+        </a>
+        <form action="/cover-letter/<%= letter._id %>?_method=DELETE" method="POST" style="margin:0;display:inline;"
+          onsubmit="return confirm('Delete this cover letter?')">
+          <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></button>
+        </form>
+      </div>
+    </div>
+
+    <div class="cover-letter-preview" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:48px 56px;max-width:800px;margin:24px auto;box-shadow:var(--shadow-card);font-family:'Times New Roman',Times,serif;line-height:1.7;color:#1a1a1a;">
+      <% const pi = letter.personalInfo || {}; %>
+      <% const ei = letter.employerInfo || {}; %>
+
+      <div style="margin-bottom:24px;font-size:14px;">
+        <% if (pi.fullName) { %><div style="font-weight:700;"><%= pi.fullName %></div><% } %>
+        <% if (pi.address) { %><div><%= pi.address %></div><% } %>
+        <% if (pi.email || pi.phone) { %>
+          <div><%= [pi.email, pi.phone].filter(Boolean).join(' · ') %></div>
+        <% } %>
+      </div>
+
+      <% if (letter.date) { %>
+        <div style="margin-bottom:24px;font-size:14px;"><%= letter.date %></div>
+      <% } %>
+
+      <div style="margin-bottom:24px;font-size:14px;">
+        <% if (ei.hiringManager) { %><div><%= ei.hiringManager %></div><% } %>
+        <% if (ei.companyName) { %><div><%= ei.companyName %></div><% } %>
+        <% if (ei.address) { %><div><%= ei.address %></div><% } %>
+      </div>
+
+      <% if (letter.jobTitle) { %>
+        <div style="margin-bottom:16px;font-size:14px;font-weight:700;">
+          Re: <%= letter.jobTitle %>
+        </div>
+      <% } %>
+
+      <div style="font-size:14px;white-space:pre-wrap;"><%= letter.content || 'No content yet. Click Edit to write your cover letter.' %></div>
+    </div>
+  </div>
+</main>
+<%- include("../partials/footer") %>

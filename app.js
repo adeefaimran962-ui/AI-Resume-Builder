@@ -41,10 +41,11 @@ const methodOverride = require('method-override');
 const connectDB  = require('./config/db');
 const setLocals  = require('./middleware/locals');
 
-const indexRouter     = require('./routes/index');
-const authRouter      = require('./routes/auth');
-const dashboardRouter = require('./routes/dashboard');
-const resumeRouter    = require('./routes/resume');
+const indexRouter        = require('./routes/index');
+const authRouter         = require('./routes/auth');
+const dashboardRouter    = require('./routes/dashboard');
+const resumeRouter       = require('./routes/resume');
+const coverLetterRouter  = require('./routes/coverLetter');
 
 connectDB();
 
@@ -89,6 +90,7 @@ app.use('/',          indexRouter);
 app.use('/auth',      authRouter);
 app.use('/dashboard', dashboardRouter);
 app.use('/resume',    resumeRouter);
+app.use('/cover-letter', coverLetterRouter);
 
 // ── 404 ──────────────────────────────────────────────────────────────────
 app.use((req, res) => {

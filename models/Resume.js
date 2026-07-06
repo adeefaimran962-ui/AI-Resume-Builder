@@ -80,18 +80,19 @@ const ResumeSchema = new mongoose.Schema({
   template: {
     type: String,
     enum: [
-      'modern',        // Purple gradient sidebar
-      'classic',       // Traditional two-column
-      'minimal',       // Clean single column
-      'executive',     // Dark header, serif feel
-      'creative',      // Colourful accent bar
-      'tech',          // Dark theme, code-inspired
-      'elegant',       // Gold accents, premium
-      'compact',       // ATS-friendly single column
-      'professional',  // LinkedIn-inspired
-      'minimal-pro',   // ★ NEW – refined minimal with accent line
-      'modern-gradient', // ★ NEW – vibrant gradient header, two-col
-      'sharp',         // ★ NEW – bold typography, executive accent
+      'modern',           // Purple gradient sidebar
+      'classic',          // Traditional two-column
+      'minimal',          // Clean single column
+      'executive',        // Dark header, serif feel
+      'creative',         // Colourful accent bar
+      'tech',             // Dark theme, code-inspired
+      'elegant',          // Gold accents, premium
+      'compact',          // ATS-friendly single column
+      'professional',     // LinkedIn-inspired
+      'ats-professional', // ★ NEW – clean ATS-optimized with teal accent
+      'minimal-pro',      // Refined minimal with accent line
+      'modern-gradient',  // Vibrant gradient header, two-col
+      'sharp',            // Bold typography, executive accent
     ],
     default: 'modern',
   },

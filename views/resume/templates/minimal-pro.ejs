@@ -1,0 +1,144 @@
+<%#
+  MINIMAL PRO TEMPLATE
+  Refined single-column layout with a teal accent line, generous
+  whitespace, and clean Inter typography. Profile photo supported.
+%>
+<div class="tpl-minpro">
+
+  <%# ── HEADER ── %>
+  <div class="tpl-mp-header">
+    <div class="tpl-mp-header-inner">
+      <% if (resume.personalInfo.photo) { %>
+        <img src="<%= resume.personalInfo.photo %>" alt="Profile"
+          class="tpl-mp-photo">
+      <% } %>
+      <div class="tpl-mp-header-text">
+        <h1 class="tpl-mp-name"><%= resume.personalInfo.fullName || resume.title %></h1>
+        <% if (resume.personalInfo.jobTitle) { %>
+          <p class="tpl-mp-role"><%= resume.personalInfo.jobTitle %></p>
+        <% } %>
+        <div class="tpl-mp-contact">
+          <% if (resume.personalInfo.email)   { %><span><i class="fas fa-envelope"></i> <%= resume.personalInfo.email %></span><% } %>
+          <% if (resume.personalInfo.phone)   { %><span><i class="fas fa-phone"></i> <%= resume.personalInfo.phone %></span><% } %>
+          <% if (resume.personalInfo.city)    { %><span><i class="fas fa-map-marker-alt"></i> <%= resume.personalInfo.city %><% if(resume.personalInfo.country){ %>, <%= resume.personalInfo.country %><% } %></span><% } %>
+          <% if (resume.personalInfo.linkedin){ %><span><i class="fab fa-linkedin"></i> <%= resume.personalInfo.linkedin %></span><% } %>
+          <% if (resume.personalInfo.website) { %><span><i class="fas fa-globe"></i> <%= resume.personalInfo.website %></span><% } %>
+          <% if (resume.personalInfo.github)  { %><span><i class="fab fa-github"></i> <%= resume.personalInfo.github %></span><% } %>
+        </div>
+      </div>
+    </div>
+    <div class="tpl-mp-accent-bar"></div>
+  </div>
+
+  <div class="tpl-mp-body">
+
+    <% if (resume.summary) { %>
+    <div class="tpl-mp-section">
+      <h2 class="tpl-mp-section-title">About</h2>
+      <p class="tpl-mp-summary"><%= resume.summary %></p>
+    </div>
+    <% } %>
+
+    <% if (resume.skills && resume.skills.length) { %>
+    <div class="tpl-mp-section">
+      <h2 class="tpl-mp-section-title">Skills</h2>
+      <div class="tpl-mp-skills">
+        <% resume.skills.forEach(function(s){ %><span class="tpl-mp-skill"><%= s %></span><% }); %>
+      </div>
+    </div>
+    <% } %>
+
+    <% if (resume.workExperience && resume.workExperience.length) { %>
+    <div class="tpl-mp-section">
+      <h2 class="tpl-mp-section-title">Experience</h2>
+      <% resume.workExperience.forEach(function(w){ %>
+      <div class="tpl-mp-exp-item">
+        <div class="tpl-mp-exp-row">
+          <div>
+            <span class="tpl-mp-exp-title"><%= w.jobTitle %></span>
+            <span class="tpl-mp-exp-company"> · <%= w.company %><% if(w.location){ %>, <%= w.location %><% } %></span>
+          </div>
+          <span class="tpl-mp-exp-dates"><%= w.startDate %> – <%= w.current ? 'Present' : w.endDate %></span>
+        </div>
+        <% if(w.description){ %><p class="tpl-mp-exp-desc"><%= w.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if (resume.education && resume.education.length) { %>
+    <div class="tpl-mp-section">
+      <h2 class="tpl-mp-section-title">Education</h2>
+      <% resume.education.forEach(function(e){ %>
+      <div class="tpl-mp-exp-item">
+        <div class="tpl-mp-exp-row">
+          <div>
+            <span class="tpl-mp-exp-title"><%= e.degree %><% if(e.fieldOfStudy){ %> in <%= e.fieldOfStudy %><% } %></span>
+            <span class="tpl-mp-exp-company"> · <%= e.institution %></span>
+          </div>
+          <span class="tpl-mp-exp-dates"><%= e.startDate %> – <%= e.endDate %></span>
+        </div>
+        <% if(e.description){ %><p class="tpl-mp-exp-desc"><%= e.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if (resume.projects && resume.projects.length) { %>
+    <div class="tpl-mp-section">
+      <h2 class="tpl-mp-section-title">Projects</h2>
+      <% resume.projects.forEach(function(p){ %>
+      <div class="tpl-mp-exp-item">
+        <div class="tpl-mp-exp-row">
+          <span class="tpl-mp-exp-title"><%= p.name %><% if(p.techStack){ %> <em style="font-weight:400;font-size:12px;color:#6B7280">– <%= p.techStack %></em><% } %></span>
+          <% if(p.link){ %><a href="<%= p.link %>" class="tpl-mp-link" target="_blank">View →</a><% } %>
+        </div>
+        <% if(p.description){ %><p class="tpl-mp-exp-desc"><%= p.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <div class="tpl-mp-bottom-grid">
+      <% if (resume.certifications && resume.certifications.length) { %>
+      <div class="tpl-mp-section">
+        <h2 class="tpl-mp-section-title">Certifications</h2>
+        <% resume.certifications.forEach(function(c){ %>
+        <div style="margin-bottom:8px;">
+          <strong style="font-size:13px;color:#111827;display:block"><%= c.name %></strong>
+          <% if(c.issuer){ %><span style="font-size:12px;color:#6B7280"><%= c.issuer %><% if(c.issueDate){ %> · <%= c.issueDate %><% } %></span><% } %>
+        </div>
+        <% }); %>
+      </div>
+      <% } %>
+
+      <% if (resume.languages && resume.languages.length) { %>
+      <div class="tpl-mp-section">
+        <h2 class="tpl-mp-section-title">Languages</h2>
+        <% resume.languages.forEach(function(l){ %>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;">
+          <span style="color:#111827"><%= l.language %></span>
+          <span style="color:#6B7280"><%= l.proficiency %></span>
+        </div>
+        <% }); %>
+      </div>
+      <% } %>
+    </div>
+
+    <% if (resume.achievements && resume.achievements.length) { %>
+    <div class="tpl-mp-section">
+      <h2 class="tpl-mp-section-title">Achievements</h2>
+      <% resume.achievements.forEach(function(a){ %>
+      <div class="tpl-mp-exp-item">
+        <div class="tpl-mp-exp-row">
+          <span class="tpl-mp-exp-title"><%= a.title %></span>
+          <% if(a.date){ %><span class="tpl-mp-exp-dates"><%= a.date %></span><% } %>
+        </div>
+        <% if(a.description){ %><p class="tpl-mp-exp-desc"><%= a.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+  </div>
+</div>

@@ -24,6 +24,9 @@
       <a href="/dashboard" class="sidebar-nav-item">
         <i class="fas fa-folder-open"></i> My Resumes
       </a>
+      <a href="/cover-letter/new" class="sidebar-nav-item">
+        <i class="fas fa-envelope"></i> Cover Letters
+      </a>
       <a href="/resume/new" class="sidebar-nav-item">
         <i class="fas fa-layer-group"></i> Templates
       </a>
@@ -259,6 +262,12 @@
                   <%= resume.template.charAt(0).toUpperCase() + resume.template.slice(1) %>
                 </span>
                 <div class="resume-card-actions">
+                  <a href="/cover-letter/new?resumeId=<%= resume._id %>" class="btn-icon" title="Create Cover Letter" style="color:#EC4899">
+                    <i class="fas fa-envelope"></i>
+                  </a>
+                  <a href="/resume/<%= resume._id %>/versions" class="btn-icon" title="Version History" style="color:var(--accent)">
+                    <i class="fas fa-history"></i>
+                  </a>
                   <a href="/resume/<%= resume._id %>/score" class="btn-icon" title="ATS Score" style="color:var(--accent)">
                     <i class="fas fa-chart-pie"></i>
                   </a>
@@ -284,16 +293,35 @@
 
               <!-- Body -->
               <div class="resume-card-body">
-                <h3 class="resume-title"><%= resume.title %></h3>
-                <p class="resume-person-name">
-                  <i class="fas fa-user"></i>
-                  <%= resume.personalInfo && resume.personalInfo.fullName ? resume.personalInfo.fullName : 'Name not set' %>
-                </p>
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                  <% if (resume.personalInfo && resume.personalInfo.photo) { %>
+                    <img src="<%= resume.personalInfo.photo %>" alt="Profile" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">
+                  <% } else { %>
+                    <div style="width:48px;height:48px;border-radius:50%;background:var(--bg-2);display:flex;align-items:center;justify-content:center;border:2px solid var(--border);">
+                      <i class="fas fa-user" style="color:var(--muted);font-size:18px;"></i>
+                    </div>
+                  <% } %>
+                  <div style="flex:1;min-width:0;">
+                    <h3 class="resume-title" style="margin:0;"><%= resume.title %></h3>
+                    <p class="resume-person-name" style="margin:0;">
+                      <%= resume.personalInfo && resume.personalInfo.fullName ? resume.personalInfo.fullName : 'Name not set' %>
+                    </p>
+                  </div>
+                </div>
                 <% if (resume.personalInfo && resume.personalInfo.jobTitle) { %>
                   <p class="resume-job-title">
                     <i class="fas fa-briefcase"></i> <%= resume.personalInfo.jobTitle %>
                   </p>
                 <% } %>
+                <!-- ATS Score inline badge -->
+                <% const cardScore = resume.atsScore || 0; %>
+                <% const cardScoreColor = cardScore >= 80 ? '#10B981' : cardScore >= 60 ? '#F59E0B' : cardScore >= 40 ? '#EF4444' : '#DC2626'; %>
+                <div class="resume-ats-badge" style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                  <div style="flex:1;height:5px;background:var(--border);border-radius:10px;overflow:hidden;">
+                    <div style="width:<%= cardScore %>%;height:100%;background:<%= cardScoreColor %>;border-radius:10px;transition:width 0.8s ease;"></div>
+                  </div>
+                  <span style="font-size:12px;font-weight:700;color:<%= cardScoreColor %>;white-space:nowrap">ATS <%= cardScore %>/100</span>
+                </div>
                 <p class="resume-meta">
                   <i class="fas fa-clock"></i>
                   Updated <%= new Date(resume.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %>
@@ -340,26 +368,109 @@
             <% } %>
           </div>
         <% } %>
+      <% } %>
 
-        <!-- QUICK TIPS -->
-        <div class="quick-tips">
-          <h4 class="quick-tips-title"><i class="fas fa-lightbulb"></i> Quick Tips</h4>
-          <div class="tips-grid">
-            <div class="tip-item">
-              <i class="fas fa-check-circle"></i>
-              <span>Keep your resume to 1-2 pages for best results</span>
-            </div>
-            <div class="tip-item">
-              <i class="fas fa-check-circle"></i>
-              <span>Use keywords from the job description to pass ATS filters</span>
-            </div>
-            <div class="tip-item">
-              <i class="fas fa-check-circle"></i>
-              <span>Quantify your achievements with numbers where possible</span>
+      <!-- COVER LETTERS SECTION -->
+      <div class="dash-section-header" style="margin-top:32px;">
+        <h3 class="dash-section-title">Cover Letters</h3>
+        <a href="/cover-letter/new" class="btn btn-outline btn-sm"><i class="fas fa-plus"></i> Create New</a>
+      </div>
+
+      <% if (typeof coverLetters === 'undefined' || coverLetters.length === 0) { %>
+        <!-- EMPTY STATE -->
+        <div class="empty-state" style="padding:32px;">
+          <div class="empty-state-icon">
+            <i class="fas fa-envelope"></i>
+          </div>
+          <h3>No cover letters yet</h3>
+          <p>Create professional cover letters tailored to your resumes.</p>
+          <a href="/cover-letter/new" class="btn btn-primary btn-sm" style="margin-top:8px">
+            <i class="fas fa-plus"></i> Create Cover Letter
+          </a>
+        </div>
+      <% } else { %>
+        <!-- COVER LETTERS GRID -->
+        <div class="resume-grid">
+          <% coverLetters.forEach(function(letter, idx){ %>
+          <div class="resume-card animate-on-scroll" style="animation-delay: <%= idx * 60 %>ms">
+            <div class="resume-card-bar" style="height: 4px; background: linear-gradient(135deg,#EC4899,#F472B6);"></div>
+            <div class="resume-card-inner">
+              <div class="resume-card-header">
+                <span class="resume-template-badge" style="background:rgba(236,72,153,0.1);color:#EC4899;font-size:12px;font-weight:600;padding:4px 8px;border-radius:4px;display:inline-flex;align-items:center;gap:6px;">
+                  <i class="fas fa-envelope"></i> Cover Letter
+                </span>
+                <div class="resume-card-actions">
+                  <a href="/cover-letter/<%= letter._id %>/preview" class="btn-icon" title="Preview">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <a href="/cover-letter/<%= letter._id %>/edit" class="btn-icon" title="Edit">
+                    <i class="fas fa-pencil-alt"></i>
+                  </a>
+                  <a href="/cover-letter/<%= letter._id %>/download" class="btn-icon" title="Download PDF">
+                    <i class="fas fa-file-pdf"></i>
+                  </a>
+                </div>
+              </div>
+              <div class="resume-card-body">
+                <h3 class="resume-title"><%= letter.title %></h3>
+                <p class="resume-person-name">
+                  <i class="fas fa-user"></i>
+                  <%= letter.personalInfo && letter.personalInfo.fullName ? letter.personalInfo.fullName : 'Name not set' %>
+                </p>
+                <% if (letter.jobTitle) { %>
+                  <p class="resume-job-title">
+                    <i class="fas fa-briefcase"></i> <%= letter.jobTitle %>
+                  </p>
+                <% } %>
+                <% if (letter.employerInfo && letter.employerInfo.companyName) { %>
+                  <p class="resume-job-title">
+                    <i class="fas fa-building"></i> <%= letter.employerInfo.companyName %>
+                  </p>
+                <% } %>
+                <p class="resume-meta">
+                  <i class="fas fa-clock"></i>
+                  Updated <%= new Date(letter.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %>
+                </p>
+              </div>
+              <div class="resume-card-footer">
+                <a href="/cover-letter/<%= letter._id %>/preview" class="btn btn-outline btn-sm">
+                  <i class="fas fa-eye"></i> Preview
+                </a>
+                <a href="/cover-letter/<%= letter._id %>/download" class="btn btn-primary btn-sm">
+                  <i class="fas fa-download"></i> PDF
+                </a>
+                <form action="/cover-letter/<%= letter._id %>?_method=DELETE" method="POST"
+                  onsubmit="return confirm('Are you sure you want to delete this cover letter?')"
+                  style="margin:0">
+                  <button type="submit" class="btn btn-danger btn-sm" title="Delete">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
+          <% }) %>
         </div>
       <% } %>
+
+      <!-- QUICK TIPS -->
+      <div class="quick-tips">
+        <h4 class="quick-tips-title"><i class="fas fa-lightbulb"></i> Quick Tips</h4>
+        <div class="tips-grid">
+          <div class="tip-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Keep your resume to 1-2 pages for best results</span>
+          </div>
+          <div class="tip-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Use keywords from the job description to pass ATS filters</span>
+          </div>
+          <div class="tip-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Quantify your achievements with numbers where possible</span>
+          </div>
+        </div>
+      </div>
 
     </div><!-- /.page-content -->
   </div><!-- /.dashboard-main -->

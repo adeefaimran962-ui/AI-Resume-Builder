@@ -42,15 +42,31 @@
           <div class="form-group col-4">
             <label for="template">Template</label>
             <select id="template" name="template" class="form-control">
+              <optgroup label="Modern">
               <option value="modern" <%= resume && resume.template==='modern' ? 'selected' : '' %>>Modern</option>
+              <option value="modern-gradient" <%= resume && resume.template==='modern-gradient' ? 'selected' : '' %>>Modern Gradient</option>
+              </optgroup>
+              <optgroup label="Classic">
               <option value="classic" <%= resume && resume.template==='classic' ? 'selected' : '' %>>Classic</option>
-              <option value="minimal" <%= resume && resume.template==='minimal' ? 'selected' : '' %>>Minimal</option>
-              <option value="professional" <%= resume && resume.template==='professional' ? 'selected' : '' %>>Professional</option>
               <option value="executive" <%= resume && resume.template==='executive' ? 'selected' : '' %>>Executive</option>
-              <option value="creative" <%= resume && resume.template==='creative' ? 'selected' : '' %>>Creative</option>
-              <option value="compact" <%= resume && resume.template==='compact' ? 'selected' : '' %>>Compact (ATS)</option>
-              <option value="tech" <%= resume && resume.template==='tech' ? 'selected' : '' %>>Tech</option>
+              <option value="sharp" <%= resume && resume.template==='sharp' ? 'selected' : '' %>>Sharp</option>
+              </optgroup>
+              <optgroup label="Minimal">
+              <option value="minimal" <%= resume && resume.template==='minimal' ? 'selected' : '' %>>Minimal</option>
+              <option value="minimal-pro" <%= resume && resume.template==='minimal-pro' ? 'selected' : '' %>>Minimal Pro</option>
+              </optgroup>
+              <optgroup label="Professional">
+              <option value="professional" <%= resume && resume.template==='professional' ? 'selected' : '' %>>Professional</option>
               <option value="elegant" <%= resume && resume.template==='elegant' ? 'selected' : '' %>>Elegant</option>
+              </optgroup>
+              <optgroup label="ATS Optimized">
+              <option value="compact" <%= resume && resume.template==='compact' ? 'selected' : '' %>>Compact (ATS)</option>
+              <option value="ats-professional" <%= resume && resume.template==='ats-professional' ? 'selected' : '' %>>ATS Professional ⭐</option>
+              </optgroup>
+              <optgroup label="Creative">
+              <option value="creative" <%= resume && resume.template==='creative' ? 'selected' : '' %>>Creative</option>
+              <option value="tech" <%= resume && resume.template==='tech' ? 'selected' : '' %>>Tech</option>
+              </optgroup>
             </select>
           </div>
         </div>
@@ -60,28 +76,32 @@
       <div class="form-section">
         <h2 class="section-heading"><i class="fas fa-user"></i> Personal Information</h2>
 
-        <!-- Profile Photo Upload -->
+        <!-- Profile Photo Upload (Drag & Drop Enhanced) -->
         <div class="form-group" style="margin-bottom:24px;">
           <label style="font-size:14px;font-weight:600;color:var(--dark-2);display:block;margin-bottom:8px;">
             <i class="fas fa-camera" style="color:var(--primary);margin-right:6px;"></i> Profile Photo
             <span style="font-size:12px;font-weight:400;color:var(--muted);margin-left:6px;">(JPG, PNG, WebP — max 2 MB, optional)</span>
           </label>
-          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-            <!-- Preview circle -->
-            <div id="photoPreviewWrap" style="width:90px;height:90px;border-radius:50%;border:2px dashed var(--border);background:var(--bg-2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer;" onclick="document.getElementById('profilePhotoInput').click()">
+          <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+            <!-- Drag & Drop Zone -->
+            <div id="photoDragZone" style="width:120px;height:120px;border-radius:12px;border:2px dashed var(--border);background:var(--bg-2);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer;transition:all 0.2s;position:relative;" onclick="document.getElementById('profilePhotoInput').click()">
               <% if (resume && resume.personalInfo && resume.personalInfo.photo) { %>
-                <img id="photoPreview" src="<%= resume.personalInfo.photo %>" alt="Profile Photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                <img id="photoPreview" src="<%= resume.personalInfo.photo %>" alt="Profile Photo" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
               <% } else { %>
-                <img id="photoPreview" src="" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:none;">
-                <i id="photoPlaceholderIcon" class="fas fa-user" style="font-size:32px;color:var(--muted);"></i>
+                <img id="photoPreview" src="" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px;display:none;">
+                <i id="photoPlaceholderIcon" class="fas fa-camera" style="font-size:28px;color:var(--muted);margin-bottom:6px;"></i>
+                <span id="photoPlaceholderText" style="font-size:11px;color:var(--muted);text-align:center;padding:0 8px;">Drop photo<br>or click</span>
               <% } %>
+              <div id="photoDragOverlay" style="display:none;position:absolute;inset:0;background:rgba(108,99,255,0.15);border-radius:10px;border:2px solid var(--primary);align-items:center;justify-content:center;flex-direction:column;">
+                <i class="fas fa-cloud-upload-alt" style="font-size:28px;color:var(--primary);"></i>
+                <span style="font-size:11px;color:var(--primary);margin-top:4px;">Drop here!</span>
+              </div>
             </div>
             <!-- Controls -->
-            <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px;">
               <% if (resume && resume._id) { %>
-                <%# Edit mode: upload via dedicated AJAX endpoint, NOT inside the main form %>
                 <label for="profilePhotoInput" class="btn btn-outline btn-sm" style="cursor:pointer;margin:0;">
-                  <i class="fas fa-upload"></i> Upload Photo
+                  <i class="fas fa-upload"></i> Choose Photo
                 </label>
                 <input type="file" id="profilePhotoInput" accept=".jpg,.jpeg,.png,.webp" style="display:none;">
                 <button type="button" id="removePhotoBtn"
@@ -90,9 +110,12 @@
                   <i class="fas fa-trash-alt"></i> Remove
                 </button>
                 <span id="photoStatus" style="font-size:12px;color:var(--muted);display:none;"></span>
+                <span style="font-size:11px;color:var(--muted);">JPG, PNG, WebP · max 2MB</span>
               <% } else { %>
-                <%# Create mode: inline upload also via AJAX after first save, or skip for now %>
-                <span style="font-size:12px;color:var(--muted);">Save the resume first, then add a photo from Edit.</span>
+                <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;">
+                  <i class="fas fa-info-circle" style="color:var(--primary);"></i>
+                  <span style="font-size:12px;color:var(--muted);margin-left:6px;">Save the resume first, then upload a photo.</span>
+                </div>
               <% } %>
             </div>
           </div>
@@ -409,10 +432,58 @@
         </button>
       </div>
 
+      <!-- Cover Letter Section -->
+      <% if (resume && resume._id) { %>
+      <div class="form-section" style="background:linear-gradient(135deg,rgba(236,72,153,0.05),rgba(236,72,153,0.02));border:1px solid rgba(236,72,153,0.2);border-radius:12px;padding:20px;">
+        <h2 class="section-heading" style="color:#EC4899;"><i class="fas fa-envelope"></i> Cover Letter</h2>
+        <div id="coverLetterSection">
+          <div style="background:#fff;padding:16px;border-radius:8px;border:1px solid var(--border);">
+            <p style="margin:0 0 12px 0;color:var(--muted);font-size:14px;">
+              <i class="fas fa-info-circle" style="color:#EC4899;margin-right:6px;"></i>
+              Create a professional cover letter tailored to this resume.
+            </p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <a href="/cover-letter/new?resumeId=<%= resume._id %>" class="btn btn-sm" style="background:#EC4899;color:white;border:none;">
+                <i class="fas fa-plus"></i> Create Cover Letter
+              </a>
+              <button type="button" class="btn btn-sm btn-outline" onclick="loadExistingCoverLetter()">
+                <i class="fas fa-search"></i> Load Existing
+              </button>
+            </div>
+            <div id="existingCoverLetter" style="margin-top:16px;display:none;">
+              <div style="padding:12px;background:var(--bg-2);border-radius:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <strong id="clTitle" style="color:var(--dark);"></strong>
+                  <div style="display:flex;gap:8px;">
+                    <a id="clEditLink" href="" class="btn btn-sm btn-outline" style="padding:4px 10px;">
+                      <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a id="clPreviewLink" href="" class="btn btn-sm btn-outline" style="padding:4px 10px;">
+                      <i class="fas fa-eye"></i> Preview
+                    </a>
+                  </div>
+                </div>
+                <p id="clJobTitle" style="margin:0;font-size:13px;color:var(--muted);"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- Auto-save Status Bar -->
+      <% if (resume && resume._id) { %>
+      <div id="autoSaveBar" style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;font-size:13px;color:var(--muted);">
+        <i class="fas fa-cloud" id="autoSaveIcon" style="color:var(--muted)"></i>
+        <span id="autoSaveStatus">Changes will be auto-saved every 30 seconds</span>
+        <span id="autoSaveTime" style="margin-left:auto;font-size:12px;"></span>
+      </div>
+      <% } %>
+
       <!-- Submit -->
       <div class="form-actions">
         <a href="/dashboard" class="btn btn-outline">Cancel</a>
-        <button type="submit" class="btn btn-primary btn-lg">
+        <button type="submit" class="btn btn-primary btn-lg" id="mainSubmitBtn">
           <i class="fas fa-save"></i>
           <% if (resume) { %>Save Changes<% } else { %>Create Resume<% } %>
         </button>
@@ -445,33 +516,88 @@ function togglePreview() {
   }
 }
 
-// ── Profile Photo (AJAX – does NOT go through the main resume form) ───────
+// ── Auto-save status helpers ─────────────────────────────────────────────────
+function setAutoSaveStatus(state, time) {
+  const icon = document.getElementById('autoSaveIcon');
+  const statusEl = document.getElementById('autoSaveStatus');
+  const timeEl = document.getElementById('autoSaveTime');
+  if (!statusEl) return;
+  if (state === 'saving') {
+    if(icon) { icon.className = 'fas fa-spinner fa-spin'; icon.style.color = 'var(--primary)'; }
+    statusEl.textContent = 'Saving…';
+    statusEl.style.color = 'var(--primary)';
+  } else if (state === 'saved') {
+    if(icon) { icon.className = 'fas fa-check-circle'; icon.style.color = 'var(--success)'; }
+    statusEl.textContent = 'Saved successfully';
+    statusEl.style.color = 'var(--success)';
+    if (time && timeEl) timeEl.textContent = 'Last saved: ' + time;
+    setTimeout(() => {
+      if(icon) { icon.className = 'fas fa-cloud'; icon.style.color = 'var(--muted)'; }
+      statusEl.textContent = 'Changes will be auto-saved every 30 seconds';
+      statusEl.style.color = 'var(--muted)';
+    }, 3000);
+  } else if (state === 'error') {
+    if(icon) { icon.className = 'fas fa-exclamation-triangle'; icon.style.color = 'var(--danger)'; }
+    statusEl.textContent = 'Auto-save failed. Your changes are not lost — save manually.';
+    statusEl.style.color = 'var(--danger)';
+  }
+}
+
+// ── Profile Photo: Drag & Drop + Click Upload ────────────────────────────────
 (function () {
   var input = document.getElementById('profilePhotoInput');
   if (!input) return; // create mode — no photo input rendered
 
   var RESUME_ID = '<%= resume ? resume._id : "" %>';
+  var dragZone = document.getElementById('photoDragZone');
+  var overlay = document.getElementById('photoDragOverlay');
+
+  // Drag & Drop events on the zone
+  if (dragZone) {
+    ['dragenter','dragover'].forEach(function(ev) {
+      dragZone.addEventListener(ev, function(e) {
+        e.preventDefault();
+        if (overlay) overlay.style.display = 'flex';
+        dragZone.style.borderColor = 'var(--primary)';
+      });
+    });
+    ['dragleave','dragend'].forEach(function(ev) {
+      dragZone.addEventListener(ev, function(e) {
+        if (overlay) overlay.style.display = 'none';
+        dragZone.style.borderColor = 'var(--border)';
+      });
+    });
+    dragZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      if (overlay) overlay.style.display = 'none';
+      dragZone.style.borderColor = 'var(--border)';
+      const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) handlePhotoFile(file);
+    });
+  }
+
+  // Also handle the page-wide drop (if user drops outside zone)
+  document.addEventListener('dragover', function(e) { e.preventDefault(); });
 
   input.addEventListener('change', function () {
-    var file = this.files[0];
-    var errEl  = document.getElementById('photoError');
-    var errMsg = errEl.querySelector('span');
-    errEl.style.display = 'none';
+    if (this.files[0]) handlePhotoFile(this.files[0]);
+  });
 
-    if (!file) return;
+  function handlePhotoFile(file) {
+    var errEl  = document.getElementById('photoError');
+    var errMsg = errEl ? errEl.querySelector('span') : null;
+    if (errEl) errEl.style.display = 'none';
 
     // Client-side validation
     var allowed = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowed.includes(file.type)) {
-      errMsg.textContent = 'Only JPG, PNG, and WebP images are allowed.';
-      errEl.style.display = 'block';
-      this.value = '';
+      if (errMsg) errMsg.textContent = 'Only JPG, PNG, and WebP images are allowed.';
+      if (errEl) errEl.style.display = 'block';
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      errMsg.textContent = 'File is too large. Maximum size is 2 MB.';
-      errEl.style.display = 'block';
-      this.value = '';
+      if (errMsg) errMsg.textContent = 'File is too large. Maximum size is 2 MB.';
+      if (errEl) errEl.style.display = 'block';
       return;
     }
 
@@ -479,48 +605,47 @@ function togglePreview() {
     var reader = new FileReader();
     reader.onload = function (e) {
       var preview = document.getElementById('photoPreview');
-      var icon    = document.getElementById('photoPlaceholderIcon');
-      preview.src = e.target.result;
-      preview.style.display = 'block';
+      var icon = document.getElementById('photoPlaceholderIcon');
+      var text = document.getElementById('photoPlaceholderText');
+      if (preview) { preview.src = e.target.result; preview.style.display = 'block'; }
       if (icon) icon.style.display = 'none';
+      if (text) text.style.display = 'none';
     };
     reader.readAsDataURL(file);
 
     // Upload via dedicated multipart endpoint
     var status = document.getElementById('photoStatus');
-    if (status) { status.textContent = 'Uploading…'; status.style.display = 'block'; }
+    if (status) { status.textContent = 'Uploading…'; status.style.display = 'block'; status.style.color = 'var(--primary)'; }
 
     var fd = new FormData();
     fd.append('profilePhoto', file);
 
-    fetch('/resume/' + RESUME_ID + '/upload-photo', {
-      method: 'POST',
-      body: fd   // browser sets correct multipart Content-Type automatically
-    })
+    fetch('/resume/' + RESUME_ID + '/upload-photo', { method: 'POST', body: fd })
     .then(function (r) { return r.json(); })
     .then(function (data) {
       if (data.success) {
         var preview = document.getElementById('photoPreview');
-        preview.src = data.photoUrl;
-        preview.style.display = 'block';
+        if (preview) { preview.src = data.photoUrl; preview.style.display = 'block'; }
         var icon = document.getElementById('photoPlaceholderIcon');
+        var text = document.getElementById('photoPlaceholderText');
         if (icon) icon.style.display = 'none';
+        if (text) text.style.display = 'none';
         var removeBtn = document.getElementById('removePhotoBtn');
         if (removeBtn) removeBtn.style.display = 'flex';
-        if (status) { status.textContent = 'Photo saved.'; setTimeout(function(){ status.style.display='none'; }, 2000); }
+        if (status) { status.textContent = '✓ Photo saved.'; status.style.color = 'var(--success)'; setTimeout(function(){ status.style.display='none'; }, 2500); }
         if (window.showToast) window.showToast('Profile photo uploaded!', 'success');
       } else {
         if (status) status.style.display = 'none';
-        errMsg.textContent = data.message || 'Upload failed. Please try again.';
-        errEl.style.display = 'block';
+        if (errMsg) errMsg.textContent = data.message || 'Upload failed. Please try again.';
+        if (errEl) errEl.style.display = 'block';
       }
     })
     .catch(function () {
       if (status) status.style.display = 'none';
-      errMsg.textContent = 'Upload failed. Please check your connection.';
-      errEl.style.display = 'block';
+      if (errMsg) errMsg.textContent = 'Upload failed. Please check your connection.';
+      if (errEl) errEl.style.display = 'block';
     });
-  });
+  }
 
   window.removePhoto = function () {
     if (!RESUME_ID) return;
@@ -529,10 +654,11 @@ function togglePreview() {
     .then(function (data) {
       if (data.success) {
         var preview = document.getElementById('photoPreview');
-        preview.src = '';
-        preview.style.display = 'none';
+        if (preview) { preview.src = ''; preview.style.display = 'none'; }
         var icon = document.getElementById('photoPlaceholderIcon');
-        if (icon) icon.style.display = '';
+        var text = document.getElementById('photoPlaceholderText');
+        if (icon) { icon.style.display = ''; }
+        if (text) { text.style.display = ''; }
         var removeBtn = document.getElementById('removePhotoBtn');
         if (removeBtn) removeBtn.style.display = 'none';
         input.value = '';
@@ -543,8 +669,38 @@ function togglePreview() {
       if (window.showToast) window.showToast('Could not remove photo.', 'error');
     });
   };
+
+  // ── Load Existing Cover Letter ─────────────────────────────────────────────
+  window.loadExistingCoverLetter = function () {
+    if (!RESUME_ID) return;
+    fetch('/cover-letter/by-resume/' + RESUME_ID)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.success && data.coverLetter) {
+          var clDiv = document.getElementById('existingCoverLetter');
+          var clTitle = document.getElementById('clTitle');
+          var clJobTitle = document.getElementById('clJobTitle');
+          var clEditLink = document.getElementById('clEditLink');
+          var clPreviewLink = document.getElementById('clPreviewLink');
+          
+          if (clDiv) clDiv.style.display = 'block';
+          if (clTitle) clTitle.textContent = data.coverLetter.title;
+          if (clJobTitle) clJobTitle.textContent = data.coverLetter.jobTitle ? 'Position: ' + data.coverLetter.jobTitle : '';
+          if (clEditLink) clEditLink.href = '/cover-letter/' + data.coverLetter._id + '/edit';
+          if (clPreviewLink) clPreviewLink.href = '/cover-letter/' + data.coverLetter._id + '/preview';
+          
+          if (window.showToast) window.showToast('Cover letter loaded!', 'success');
+        } else {
+          if (window.showToast) window.showToast('No cover letter found for this resume.', 'info');
+        }
+      })
+      .catch(function (e) {
+        console.error('Error loading cover letter:', e);
+        if (window.showToast) window.showToast('Error loading cover letter.', 'error');
+      });
+  };
 }());
-// ─────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', function() {
   const resumeForm = document.querySelector('.resume-form');
@@ -590,14 +746,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  function getSectionName(listId) {
-    const map = {
-      workList: 'workExperience', eduList: 'education', projectList: 'projects',
-      certList: 'certifications', langList: 'languages', achieveList: 'achievements', socialList: 'socialLinks'
-    };
-    return map[listId];
-  }
-
   function reindexList(listId) {
     const list = document.getElementById(listId);
     const items = list.querySelectorAll('.dynamic-item');
@@ -618,7 +766,7 @@ document.addEventListener('DOMContentLoaded', function() {
   let previewDebounce;
   
   resumeForm.addEventListener('change', () => { formChanged = true; triggerLivePreview(); });
-  resumeForm.addEventListener('input', () => { formChanged = true; triggerLivePreview(); });
+  resumeForm.addEventListener('input',  () => { formChanged = true; triggerLivePreview(); });
   
   window.addEventListener('beforeunload', (e) => {
     if (formChanged) {
@@ -633,6 +781,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   async function performAutoSave(isLivePreview = false) {
     if (!formChanged) return;
+    if (!resumeForm.action.includes('/resume/')) return; // only auto-save in edit mode
+    
+    setAutoSaveStatus('saving');
     const formData = new FormData(resumeForm);
     const data = new URLSearchParams(formData);
     
@@ -642,30 +793,85 @@ document.addEventListener('DOMContentLoaded', function() {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
         body: data
       });
+      if (!res.ok) throw new Error('Server error ' + res.status);
       const result = await res.json();
-      if (res.ok && result.success) {
+      if (result.success) {
         formChanged = false;
-        if (!isLivePreview) showToast('Auto-saved successfully!', 'success');
+        const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        setAutoSaveStatus('saved', now);
+        if (!isLivePreview && window.showToast) window.showToast('Auto-saved ✓', 'success');
         if (result.id && resumeForm.action.endsWith('/resume')) {
            resumeForm.action = `/resume/${result.id}?_method=PUT`;
-           document.getElementById('previewFrame').src = `/resume/${result.id}/preview`;
+           const pf = document.getElementById('previewFrame');
+           if (pf) pf.src = `/resume/${result.id}/preview`;
         } else if (isLivePreview) {
-           document.getElementById('previewFrame').contentWindow.location.reload();
+           const pf = document.getElementById('previewFrame');
+           if (pf && pf.contentWindow) pf.contentWindow.location.reload();
         }
+      } else {
+        setAutoSaveStatus('error');
       }
     } catch (e) {
       console.error('Auto-save failed', e);
+      setAutoSaveStatus('error');
     }
   }
 
   function triggerLivePreview() {
-    if (document.getElementById('previewPanel').style.display === 'block') {
+    const panel = document.getElementById('previewPanel');
+    if (panel && panel.style.display === 'block') {
       clearTimeout(previewDebounce);
       previewDebounce = setTimeout(() => { performAutoSave(true); }, 1000);
     }
   }
 
+  // Auto-save every 30 seconds if there are unsaved changes
   setInterval(() => { performAutoSave(false); }, 30000);
+
+  // 4. AI Generate buttons — with loading + error states
+  document.querySelectorAll('[data-ai-generate]').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      const type   = this.getAttribute('data-ai-generate');
+      const target = this.getAttribute('data-target');
+      const field  = target ? document.getElementById(target) : null;
+      if (!field) { if(window.showToast) window.showToast('Target field not found.', 'error'); return; }
+
+      // Read context from the form
+      const jobTitle = (document.querySelector('[name="jobTitle"]') || {}).value || '';
+      const company  = (document.querySelector('[name="company"]')  || {}).value || '';
+      const skillsEl = document.querySelector('[name="skillsRaw"]');
+      const skills   = skillsEl ? skillsEl.value : '';
+
+      // Loading state
+      const origHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating…';
+
+      try {
+        const res = await fetch('/resume/ai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type, jobTitle, company, skills, inputText: field.value, years: 3 })
+        });
+        if (!res.ok) throw new Error('Server error');
+        const data = await res.json();
+        if (data.success && data.result) {
+          field.value = data.result;
+          field.dispatchEvent(new Event('input', { bubbles: true }));
+          formChanged = true;
+          if (window.showToast) window.showToast('AI content generated!', 'success');
+        } else {
+          if (window.showToast) window.showToast('AI generation failed. Try again.', 'error');
+        }
+      } catch(e) {
+        console.error('AI generate error:', e);
+        if (window.showToast) window.showToast('Error connecting to AI service.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHTML;
+      }
+    });
+  });
 });
 </script>
 

@@ -11,9 +11,11 @@
  *  4. userId guard – create() validates session.userId is present before
  *                    inserting to avoid orphaned documents.
  */
-const Resume      = require('../models/Resume');
-const PDFDocument = require('pdfkit');
+const Resume        = require('../models/Resume');
+const ResumeVersion = require('../models/ResumeVersion');
+const PDFDocument   = require('pdfkit');
 const { scoreResume } = require('../lib/atsScorer');
+const { generateContent } = require('../lib/aiService');
 
 /* ── ownership guard ──────────────────────────────────────────────────────
  * Returns the resume lean object if the current user owns it.
@@ -232,6 +234,40 @@ exports.update = async (req, res) => {
       return res.redirect('/dashboard');
     }
 
+    // ── Save version snapshot before updating ───────────────────────────
+    try {
+      const lastVersion = await ResumeVersion.findOne({ resumeId: req.params.id })
+        .sort({ versionNumber: -1 })
+        .lean();
+      const nextVersionNumber = lastVersion ? lastVersion.versionNumber + 1 : 1;
+      
+      const snapshot = {
+        title: doc.title,
+        template: doc.template,
+        summary: doc.summary,
+        personalInfo: doc.personalInfo,
+        skills: doc.skills,
+        education: doc.education,
+        workExperience: doc.workExperience,
+        projects: doc.projects,
+        certifications: doc.certifications,
+        languages: doc.languages,
+        achievements: doc.achievements,
+        socialLinks: doc.socialLinks,
+        atsScore: doc.atsScore,
+      };
+      
+      await ResumeVersion.create({
+        resumeId: req.params.id,
+        versionNumber: nextVersionNumber,
+        snapshot,
+      });
+    } catch (versionErr) {
+      console.error('Version save error (non-critical):', versionErr);
+      // Continue with update even if version save fails
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     // ── Assign every field directly ──────────────────────────────────────
     doc.title    = data.title;
     doc.template = data.template;
@@ -442,7 +478,7 @@ exports.preview = async (req, res) => {
     if (pi.city || pi.country) contact.push([pi.city, pi.country].filter(Boolean).join(', '));
 
     // ?tpl= allows preview-only switching without saving
-    const VALID_TEMPLATES = ['modern','classic','minimal','professional','executive','creative','compact','tech','elegant','minimal-pro','modern-gradient','sharp'];
+    const VALID_TEMPLATES = ['modern','classic','minimal','professional','executive','creative','compact','tech','elegant','ats-professional','minimal-pro','modern-gradient','sharp'];
     const tpl = (VALID_TEMPLATES.includes(req.query.tpl) ? req.query.tpl : null) || resume.template || 'modern';
 
     res.render('resume/preview', {
@@ -521,13 +557,29 @@ exports.downloadPDF = async (req, res) => {
       doc.rect(0,0,doc.page.width,headerH).fill(CP);
       if (tpl==='classic') doc.rect(0,headerH-6,doc.page.width,6).fill('#F6AD55');
 
+      // Profile photo in header
+      let photoX = 60;
+      if (pi.photo) {
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const photoPath = path.join(__dirname, '../public', pi.photo);
+          if (fs.existsSync(photoPath)) {
+            doc.image(photoPath, 60, 30, { width: 80, height: 80 });
+            photoX = 160;
+          }
+        } catch (photoErr) {
+          console.error('Error loading photo for PDF:', photoErr);
+        }
+      }
+
       doc.fillColor('#fff').fontSize(26).font('Helvetica-Bold')
-         .text(pi.fullName||resume.title,60,38,{width:PW});
+         .text(pi.fullName||resume.title,photoX,38,{width:PW-photoX-20});
       if(pi.jobTitle) doc.fontSize(13).font('Helvetica')
          .fillColor(tpl==='classic'?'#F6AD55':'rgba(255,255,255,0.88)')
-         .text(pi.jobTitle,60,70,{width:PW});
+         .text(pi.jobTitle,photoX,70,{width:PW-photoX-20});
       if(contact.length) doc.fontSize(9).fillColor(hdrSub)
-         .text(contact.join('  |  '),60,98,{width:PW});
+         .text(contact.join('  |  '),photoX,98,{width:PW-photoX-20});
 
       doc.rect(0,headerH,60+CW,doc.page.height-headerH).fill(CL);
 
@@ -619,11 +671,28 @@ exports.downloadPDF = async (req, res) => {
     } else {
       doc.rect(0,0,doc.page.width,4).fill('#111827');
       let y=50;
-      doc.fillColor(CD).fontSize(28).font('Helvetica-Bold').text(pi.fullName||resume.title,60,y,{width:PW});
+      
+      // Profile photo for minimal template
+      let textX = 60;
+      if (pi.photo) {
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const photoPath = path.join(__dirname, '../public', pi.photo);
+          if (fs.existsSync(photoPath)) {
+            doc.image(photoPath, 60, 45, { width: 70, height: 70 });
+            textX = 150;
+          }
+        } catch (photoErr) {
+          console.error('Error loading photo for PDF:', photoErr);
+        }
+      }
+      
+      doc.fillColor(CD).fontSize(28).font('Helvetica-Bold').text(pi.fullName||resume.title,textX,y,{width:PW-textX-20});
       y=doc.y+4;
-      if(pi.jobTitle){doc.fillColor(CM).fontSize(13).font('Helvetica').text(pi.jobTitle,60,y,{width:PW});y=doc.y+4;}
-      if(contact.length){doc.fillColor(CM).fontSize(9).font('Helvetica').text(contact.join('  ·  '),60,y,{width:PW});y=doc.y+8;}
-      doc.moveTo(60,y).lineTo(doc.page.width-60,y).strokeColor('#D1D5DB').lineWidth(0.5).stroke(); y+=14;
+      if(pi.jobTitle){doc.fillColor(CM).fontSize(13).font('Helvetica').text(pi.jobTitle,textX,y,{width:PW-textX-20});y=doc.y+4;}
+      if(contact.length){doc.fillColor(CM).fontSize(9).font('Helvetica').text(contact.join('  ·  '),textX,y,{width:PW-textX-20});y=doc.y+8;}
+      doc.moveTo(textX,y).lineTo(doc.page.width-60,y).strokeColor('#D1D5DB').lineWidth(0.5).stroke(); y+=14;
 
       const sMin=(t)=>{
         doc.fillColor(CD).fontSize(10).font('Helvetica-Bold').text(t.toUpperCase(),60,y,{width:PW,characterSpacing:1.5});
@@ -679,95 +748,27 @@ exports.downloadPDF = async (req, res) => {
   } catch(err){ console.error('PDF Error:',err); req.flash('error','Could not generate PDF.'); res.redirect('/dashboard'); }
 };
 
-/* ── AI Text Generation (rule-based, zero external dependencies) ── */
-exports.aiGenerate = (req, res) => {
-  const { type, jobTitle, company, skills, years, inputText } = req.body;
-  const jt = (jobTitle||'Professional').trim();
-  const co = (company||'the company').trim();
-  const yr = parseInt(years)||2;
-  const sk = (skills||'').split(',').map(s=>s.trim()).filter(Boolean);
-  let result = '';
-
-  if (type === 'rewrite' || type === 'improve') {
-    if (inputText && inputText.length > 5) {
-      result = inputText.replace(/did|made|worked/gi, 'Led').replace(/good|great/gi, 'exceptional');
-      result = `Spearheaded and ${result.toLowerCase()} to deliver measurable results and drive operational excellence.`;
-    } else {
-      result = `Expertly managed processes and delivered high-quality outcomes leveraging strong analytical and leadership skills.`;
-    }
-  } else if (type === 'shorten') {
-    if (inputText) {
-      result = inputText.split('.')[0] + '.';
-    } else {
-      result = 'Delivered high-quality results.';
-    }
-  } else if (type === 'expand') {
-    if (inputText) {
-      result = `${inputText} Furthermore, consistently drove performance improvements and collaborated with cross-functional teams to exceed goals.`;
-    } else {
-      result = 'Delivered high-quality results. Furthermore, consistently drove performance improvements and collaborated with cross-functional teams to exceed goals.';
-    }
-  } else if (type === 'summary') {
-    const opts = [
-      `Results-driven ${jt} with ${yr}+ years of experience delivering high-impact solutions. Skilled in ${sk.slice(0,3).join(', ')||'cutting-edge technologies'}, with a proven track record of collaborating cross-functionally to achieve business objectives. Passionate about writing clean, maintainable code and continuously improving technical processes.`,
-      `Dynamic ${jt} with ${yr} years of hands-on experience in ${sk.slice(0,2).join(' and ')||'software development'}. Proven ability to lead projects from conception to deployment while maintaining high quality standards. Adept at agile methodologies, problem-solving, and delivering results under tight deadlines.`,
-      `Highly motivated ${jt} bringing ${yr}+ years of experience building scalable ${sk[0]||'software'} solutions. Strong communicator and team player with a history of working in fast-paced startup and enterprise environments. Committed to delivering exceptional user experiences and measurable business value.`,
-    ];
-    result = opts[Math.floor(Math.random()*opts.length)];
-
-  } else if (type === 'skills') {
-    const map = {
-      frontend:  'HTML5, CSS3, JavaScript ES6+, TypeScript, React.js, Vue.js, Next.js, Tailwind CSS, Webpack, Git',
-      backend:   'Node.js, Express.js, Python, Django, FastAPI, REST APIs, GraphQL, PostgreSQL, MongoDB, Docker',
-      fullstack: 'React.js, Node.js, Express.js, MongoDB, PostgreSQL, TypeScript, REST APIs, Docker, AWS, Git',
-      data:      'Python, Pandas, NumPy, TensorFlow, PyTorch, SQL, Tableau, Power BI, Scikit-learn, Jupyter',
-      devops:    'Docker, Kubernetes, CI/CD, Jenkins, GitHub Actions, AWS, Azure, Terraform, Linux, Shell Scripting',
-      mobile:    'React Native, Flutter, Swift, Kotlin, Firebase, Expo, App Store Connect, REST APIs, SQLite',
-      design:    'Figma, Adobe XD, Sketch, Photoshop, Illustrator, UX Research, Prototyping, Design Systems, CSS',
-      security:  'Penetration Testing, OWASP, Burp Suite, Wireshark, Python, Linux, Network Security, SIEM, Kali Linux',
-    };
-    const kw = jt.toLowerCase();
-    let pool = map.fullstack;
-    if (kw.includes('front'))                             pool = map.frontend;
-    else if (kw.includes('back'))                         pool = map.backend;
-    else if (kw.includes('data')||kw.includes('analyst')) pool = map.data;
-    else if (kw.includes('devops')||kw.includes('cloud')) pool = map.devops;
-    else if (kw.includes('mobile')||kw.includes('ios')||kw.includes('android')) pool = map.mobile;
-    else if (kw.includes('design')||kw.includes('ux'))    pool = map.design;
-    else if (kw.includes('security')||kw.includes('cyber')) pool = map.security;
-    result = pool;
-
-  } else if (type === 'experience') {
-    const n = Math.floor(Math.random()*6)+2;
-    const lines = [
-      `Led development of critical ${sk[0]||'software'} features at ${co}, reducing system latency by 35% through architectural improvements`,
-      `Collaborated with a cross-functional team of ${n} engineers and ${Math.floor(Math.random()*3)+1} designers to ship ${Math.floor(Math.random()*4)+2} major product releases`,
-      `Designed and implemented RESTful APIs handling ${(Math.floor(Math.random()*9)+1)*100}k+ daily requests with 99.9% uptime SLA`,
-      `Mentored ${Math.floor(Math.random()*3)+1} junior developers through code reviews, improving overall team velocity by 25%`,
-      `Migrated legacy monolith to ${sk[1]||'microservices'} architecture, cutting deployment time from 2 hours to under 8 minutes`,
-      `Worked closely with product and design teams to translate business requirements into scalable technical solutions`,
-      `Implemented automated testing suite achieving 90%+ code coverage and reducing production bugs by 40%`,
-    ];
-    result = lines.slice(0,4).join('\n');
-  } else if (type === 'projects') {
-    const lines = [
-      `Engineered a robust full-stack application using ${sk[0]||'modern frameworks'}, driving a 40% increase in user engagement.`,
-      `Developed a real-time data processing pipeline capable of handling 50k+ events per second with sub-second latency.`,
-      `Designed and launched an intuitive user interface that improved accessibility compliance and boosted retention by 25%.`,
-      `Created an automated deployment system that reduced infrastructure costs by 20% and eliminated manual configuration errors.`
-    ];
-    result = lines[Math.floor(Math.random()*lines.length)];
-  } else if (type === 'achievements') {
-    const lines = [
-      `Awarded Employee of the Month for successfully leading the delivery of a critical enterprise feature ahead of schedule.`,
-      `Recognized for optimizing database queries that reduced server load by 50% during peak traffic hours.`,
-      `Winner of the internal company hackathon for prototyping an AI-driven workflow automation tool.`,
-      `Received outstanding performance review for resolving 100+ critical customer issues within a single quarter.`
-    ];
-    result = lines[Math.floor(Math.random()*lines.length)];
+/* ── AI Text Generation (uses aiService for professional ATS-friendly content) ── */
+exports.aiGenerate = async (req, res) => {
+  try {
+    const { type, jobTitle, company, skills, years, inputText, education, experienceSummary, projectName } = req.body;
+    
+    const result = await generateContent(type, {
+      jobTitle,
+      company,
+      skills,
+      years,
+      inputText,
+      education,
+      experienceSummary,
+      projectName,
+    });
+    
+    res.json({ success: true, result });
+  } catch (err) {
+    console.error('AI Generation Error:', err);
+    res.status(500).json({ success: false, message: 'AI generation failed.' });
   }
-
-  res.json({ success: true, result });
 };
 
 /* ── Job Description Match ── */
@@ -923,7 +924,7 @@ exports.setTemplate = async (req, res) => {
     const resume = await Resume.findOne({ _id: req.params.id, user: req.session.userId });
     if (!resume) return res.status(404).json({ success: false });
     
-    const VALID = ['modern','classic','minimal','professional','executive','creative','compact','tech','elegant','minimal-pro','modern-gradient','sharp'];
+    const VALID = ['modern','classic','minimal','professional','executive','creative','compact','tech','elegant','ats-professional','minimal-pro','modern-gradient','sharp'];
     const tpl = req.body.template;
     if (!VALID.includes(tpl)) return res.status(400).json({ success: false, message: 'Invalid template' });
     
@@ -1002,5 +1003,164 @@ exports.removePhoto = async (req, res) => {
   } catch (err) {
     console.error('Remove Photo Error:', err);
     res.status(500).json({ success: false, message: 'Could not remove photo.' });
+  }
+};
+
+/* ── Version History ── */
+exports.listVersions = async (req, res) => {
+  try {
+    const resume = await ownsResume(req, res);
+    if (!resume) return;
+
+    const versions = await ResumeVersion.find({ resumeId: req.params.id })
+      .sort({ versionNumber: -1 })
+      .lean();
+
+    res.render('resume/versions', {
+      title: 'Version History – ' + resume.title,
+      resume,
+      versions,
+    });
+  } catch (err) {
+    console.error('List Versions Error:', err);
+    req.flash('error', 'Could not load version history.');
+    res.redirect('/resume/' + req.params.id + '/preview');
+  }
+};
+
+exports.previewVersion = async (req, res) => {
+  try {
+    const resume = await ownsResume(req, res);
+    if (!resume) return;
+
+    const version = await ResumeVersion.findOne({
+      resumeId: req.params.id,
+      versionNumber: req.params.versionNumber,
+    }).lean();
+
+    if (!version) {
+      req.flash('error', 'Version not found.');
+      return res.redirect('/resume/' + req.params.id + '/versions');
+    }
+
+    const versionResume = {
+      ...resume,
+      ...version.snapshot,
+      _isVersion: true,
+      _versionNumber: version.versionNumber,
+      _versionDate: version.createdAt,
+    };
+
+    const pi = versionResume.personalInfo || {};
+    const contact = [];
+    if (pi.email) contact.push(pi.email);
+    if (pi.phone) contact.push(pi.phone);
+    if (pi.website) contact.push(pi.website);
+    if (pi.city || pi.country) contact.push([pi.city, pi.country].filter(Boolean).join(', '));
+
+    const VALID_TEMPLATES = ['modern','classic','minimal','professional','executive','creative','compact','tech','elegant','ats-professional','minimal-pro','modern-gradient','sharp'];
+    const tpl = VALID_TEMPLATES.includes(versionResume.template) ? versionResume.template : 'modern';
+
+    res.render('resume/preview', {
+      title: `Version ${version.versionNumber} – ${resume.title}`,
+      resume: versionResume,
+      tpl,
+      pi,
+      contact,
+      isShared: false,
+    });
+  } catch (err) {
+    console.error('Preview Version Error:', err);
+    req.flash('error', 'Could not load version preview.');
+    res.redirect('/resume/' + req.params.id + '/versions');
+  }
+};
+
+exports.restoreVersion = async (req, res) => {
+  try {
+    const owned = await ownsResume(req, res);
+    if (!owned) return;
+
+    const version = await ResumeVersion.findOne({
+      resumeId: req.params.id,
+      versionNumber: req.params.versionNumber,
+    }).lean();
+
+    if (!version) {
+      req.flash('error', 'Version not found.');
+      return res.redirect('/resume/' + req.params.id + '/versions');
+    }
+
+    const doc = await Resume.findById(req.params.id);
+    if (!doc) {
+      req.flash('error', 'Resume not found.');
+      return res.redirect('/dashboard');
+    }
+
+    // Save current state as a new version before restoring
+    try {
+      const lastVersion = await ResumeVersion.findOne({ resumeId: req.params.id })
+        .sort({ versionNumber: -1 })
+        .lean();
+      const nextVersionNumber = lastVersion ? lastVersion.versionNumber + 1 : 1;
+      
+      const currentSnapshot = {
+        title: doc.title,
+        template: doc.template,
+        summary: doc.summary,
+        personalInfo: doc.personalInfo,
+        skills: doc.skills,
+        education: doc.education,
+        workExperience: doc.workExperience,
+        projects: doc.projects,
+        certifications: doc.certifications,
+        languages: doc.languages,
+        achievements: doc.achievements,
+        socialLinks: doc.socialLinks,
+        atsScore: doc.atsScore,
+      };
+      
+      await ResumeVersion.create({
+        resumeId: req.params.id,
+        versionNumber: nextVersionNumber,
+        snapshot: currentSnapshot,
+      });
+    } catch (versionErr) {
+      console.error('Version save error during restore (non-critical):', versionErr);
+    }
+
+    // Restore from the selected version
+    doc.title = version.snapshot.title;
+    doc.template = version.snapshot.template;
+    doc.summary = version.snapshot.summary;
+    doc.personalInfo = version.snapshot.personalInfo;
+    doc.skills = version.snapshot.skills;
+    doc.education = version.snapshot.education;
+    doc.workExperience = version.snapshot.workExperience;
+    doc.projects = version.snapshot.projects;
+    doc.certifications = version.snapshot.certifications;
+    doc.languages = version.snapshot.languages;
+    doc.achievements = version.snapshot.achievements;
+    doc.socialLinks = version.snapshot.socialLinks;
+    doc.atsScore = version.snapshot.atsScore;
+
+    doc.markModified('personalInfo');
+    doc.markModified('skills');
+    doc.markModified('education');
+    doc.markModified('workExperience');
+    doc.markModified('projects');
+    doc.markModified('certifications');
+    doc.markModified('languages');
+    doc.markModified('achievements');
+    doc.markModified('socialLinks');
+
+    await doc.save();
+
+    req.flash('success', `Version ${version.versionNumber} restored successfully!`);
+    res.redirect('/resume/' + req.params.id + '/preview');
+  } catch (err) {
+    console.error('Restore Version Error:', err);
+    req.flash('error', 'Could not restore version.');
+    res.redirect('/resume/' + req.params.id + '/versions');
   }
 };

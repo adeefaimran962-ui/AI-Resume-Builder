@@ -1,0 +1,205 @@
+<%- include("../partials/header") %>
+<%- include("../partials/navbar") %>
+<main class="form-page">
+  <div class="container">
+    <%- include("../partials/flash") %>
+    <div class="form-header">
+      <h1><% if (letter && letter._id) { %>Edit Cover Letter<% } else { %>Create Cover Letter<% } %></h1>
+      <p class="text-muted">Write a professional cover letter linked to your resume.</p>
+    </div>
+
+    <% if (errors && errors.length) { %>
+      <div class="alert alert-error">
+        <% errors.forEach(function(e){ %><p><i class="fas fa-exclamation-circle"></i> <%= e %></p><% }) %>
+      </div>
+    <% } %>
+
+    <form action="<%= action %>" method="<%= method %>" class="resume-form cover-letter-form">
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-tag"></i> Cover Letter Details</h2>
+        <div class="form-row">
+          <div class="form-group col-8">
+            <label for="title">Title *</label>
+            <input type="text" id="title" name="title" class="form-control" required
+              placeholder="e.g. Cover Letter – Software Engineer"
+              value="<%= letter ? letter.title : '' %>" />
+          </div>
+          <div class="form-group col-4">
+            <label for="resumeId">Linked Resume</label>
+            <select id="resumeId" name="resumeId" class="form-control">
+              <option value="">— None —</option>
+              <% resumes.forEach(function(r) { %>
+                <option value="<%= r._id %>"
+                  <%= letter && String(letter.resume) === String(r._id) ? 'selected' : '' %>>
+                  <%= r.title %><% if (r.personalInfo && r.personalInfo.fullName) { %> (<%= r.personalInfo.fullName %>)<% } %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-4">
+            <label for="date">Date</label>
+            <input type="text" id="date" name="date" class="form-control"
+              placeholder="March 15, 2026"
+              value="<%= letter && letter.date ? letter.date : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) %>" />
+          </div>
+          <div class="form-group col-8">
+            <label for="jobTitle">Position Applying For</label>
+            <input type="text" id="jobTitle" name="jobTitle" class="form-control"
+              placeholder="Software Engineer"
+              value="<%= letter ? letter.jobTitle : '' %>" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-user"></i> Your Information</h2>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label>Full Name</label>
+            <input type="text" name="fullName" class="form-control" placeholder="John Doe"
+              value="<%= letter && letter.personalInfo ? letter.personalInfo.fullName : '' %>" />
+          </div>
+          <div class="form-group col-6">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control" placeholder="john@example.com"
+              value="<%= letter && letter.personalInfo ? letter.personalInfo.email : '' %>" />
+          </div>
+          <div class="form-group col-6">
+            <label>Phone</label>
+            <input type="text" name="phone" class="form-control" placeholder="+1 555 000 0000"
+              value="<%= letter && letter.personalInfo ? letter.personalInfo.phone : '' %>" />
+          </div>
+          <div class="form-group col-6">
+            <label>Your Address</label>
+            <input type="text" name="address" class="form-control" placeholder="123 Main St, City, State"
+              value="<%= letter && letter.personalInfo ? letter.personalInfo.address : '' %>" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-building"></i> Employer Information</h2>
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label>Company Name</label>
+            <input type="text" name="companyName" class="form-control" placeholder="Acme Corp"
+              value="<%= letter && letter.employerInfo ? letter.employerInfo.companyName : '' %>" />
+          </div>
+          <div class="form-group col-6">
+            <label>Hiring Manager</label>
+            <input type="text" name="hiringManager" class="form-control" placeholder="Jane Smith"
+              value="<%= letter && letter.employerInfo ? letter.employerInfo.hiringManager : '' %>" />
+          </div>
+          <div class="form-group col-12">
+            <label>Company Address</label>
+            <input type="text" name="employerAddress" class="form-control" placeholder="456 Business Ave, City, State"
+              value="<%= letter && letter.employerInfo ? letter.employerInfo.address : '' %>" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-align-left"></i> Letter Content</h2>
+        <div class="form-group">
+          <textarea id="contentField" name="content" class="form-control" rows="14"
+            placeholder="Dear Hiring Manager,&#10;&#10;I am writing to express my interest in..."><%= letter ? letter.content : '' %></textarea>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+            <button type="button" class="btn btn-sm btn-outline" id="generateCoverLetterBtn">
+              <i class="fas fa-magic"></i> Generate with AI
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" data-ai-generate="improve" data-target="contentField">
+              <i class="fas fa-wand-magic-sparkles"></i> Improve
+            </button>
+            <button type="button" class="btn btn-sm btn-outline" data-ai-generate="rewrite" data-target="contentField">
+              <i class="fas fa-pen-fancy"></i> Rewrite
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;">
+        <button type="submit" class="btn btn-primary btn-lg">
+          <i class="fas fa-save"></i> Save Cover Letter
+        </button>
+        <% if (letter && letter._id) { %>
+          <a href="/cover-letter/<%= letter._id %>/preview" class="btn btn-outline btn-lg">
+            <i class="fas fa-eye"></i> Preview
+          </a>
+        <% } %>
+        <a href="/dashboard" class="btn btn-outline btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var genBtn = document.getElementById('generateCoverLetterBtn');
+  if (genBtn) {
+    genBtn.addEventListener('click', async function() {
+      var field = document.getElementById('contentField');
+      var orig = genBtn.innerHTML;
+      genBtn.disabled = true;
+      genBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating…';
+      try {
+        var res = await fetch('/cover-letter/ai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jobTitle: (document.querySelector('[name="jobTitle"]') || {}).value || '',
+            company: (document.querySelector('[name="companyName"]') || {}).value || '',
+            fullName: (document.querySelector('[name="fullName"]') || {}).value || '',
+            hiringManager: (document.querySelector('[name="hiringManager"]') || {}).value || '',
+            inputText: field ? field.value : '',
+          })
+        });
+        var data = await res.json();
+        if (data.success && data.result && field) {
+          field.value = data.result;
+          if (window.showToast) window.showToast('Cover letter generated!', 'success');
+        } else {
+          if (window.showToast) window.showToast('Generation failed. Try again.', 'error');
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('Error connecting to AI service.', 'error');
+      } finally {
+        genBtn.disabled = false;
+        genBtn.innerHTML = orig;
+      }
+    });
+  }
+
+  document.querySelectorAll('[data-ai-generate]').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      var type = btn.getAttribute('data-ai-generate');
+      var target = btn.getAttribute('data-target');
+      var field = target ? document.getElementById(target) : null;
+      if (!field) return;
+      var orig = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> …';
+      try {
+        var res = await fetch('/resume/ai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: type, inputText: field.value, jobTitle: (document.querySelector('[name="jobTitle"]') || {}).value || '' })
+        });
+        var data = await res.json();
+        if (data.success && data.result) {
+          field.value = data.result;
+          if (window.showToast) window.showToast('Content updated!', 'success');
+        }
+      } catch (e) {
+        if (window.showToast) window.showToast('AI generation failed.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+      }
+    });
+  });
+});
+</script>
+
+<%- include("../partials/footer") %>

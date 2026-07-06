@@ -874,3 +874,48 @@ select.form-control { cursor: pointer; }
    SUBMIT DUPLICATE PREVENTION
 ═══════════════════════════════════════════════════════════ */
 .btn-submitting { opacity:.7 !important; cursor:not-allowed !important; pointer-events:none !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   TEMPLATE: ATS-PROFESSIONAL
+═══════════════════════════════════════════════════════════ */
+.tpl-ats-pro { font-family:'Arial',sans-serif; background:#fff; min-height:900px; padding:48px 56px; }
+.tpl-ap-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; border-bottom:2px solid #0D9488; padding-bottom:24px; }
+.tpl-ap-header-left { flex:1; }
+.tpl-ap-name { font-size:34px; font-weight:800; color:#111827; margin-bottom:4px; text-transform:uppercase; letter-spacing:1px; }
+.tpl-ap-role { font-size:16px; color:#0D9488; font-weight:600; text-transform:uppercase; letter-spacing:1.5px; }
+.tpl-ap-contact-block { max-width:300px; display:flex; flex-direction:column; gap:6px; align-items:flex-end; text-align:right; }
+.tpl-ap-contact-item { font-size:12px; color:#4B5563; }
+.tpl-ap-contact-item i { color:#0D9488; width:16px; text-align:center; }
+.tpl-ap-body { }
+.tpl-ap-section { margin-bottom:24px; }
+.tpl-ap-section-title { font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#0F766E; border-bottom:1px solid #E5E7EB; padding-bottom:6px; margin-bottom:16px; }
+.tpl-ap-summary { font-size:13px; color:#374151; line-height:1.7; }
+.tpl-ap-skills-grid { display:flex; flex-wrap:wrap; gap:8px; }
+.tpl-ap-skill-tag { font-size:12px; font-weight:600; color:#111827; background:#F0FDFA; border:1px solid #CCFBF1; padding:4px 10px; border-radius:4px; }
+.tpl-ap-exp-item { margin-bottom:16px; }
+.tpl-ap-exp-header { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; flex-wrap:wrap; gap:8px; }
+.tpl-ap-exp-title { font-size:14px; font-weight:700; color:#111827; }
+.tpl-ap-exp-sep { color:#9CA3AF; margin:0 4px; }
+.tpl-ap-exp-company { font-size:14px; color:#0F766E; font-weight:600; }
+.tpl-ap-exp-dates { font-size:12px; color:#6B7280; font-weight:500; white-space:nowrap; }
+.tpl-ap-exp-desc { font-size:13px; color:#4B5563; line-height:1.6; white-space:pre-line; }
+.tpl-ap-bottom-grid { display:grid; grid-template-columns:1fr 1fr; gap:32px; }
+.tpl-ap-cert-item { margin-bottom:8px; font-size:13px; color:#111827; }
+.tpl-ap-cert-meta { color:#6B7280; font-size:12px; }
+.tpl-ap-lang-item { margin-bottom:6px; font-size:13px; color:#111827; font-weight:500; }
+.tpl-ap-link { color:#0D9488; font-size:12px; font-weight:600; text-decoration:none; margin-left:8px; }
+
+/* Multi-page / PDF support */
+@media print {
+  body { background: white !important; }
+  .resume-multipage { page-break-inside: auto; }
+  .resume-multipage section,
+  .resume-multipage .tpl-m-section,
+  .resume-multipage .tpl-c-section,
+  .resume-multipage .tpl-co-section,
+  .resume-multipage .tpl-ap-section,
+  .resume-multipage .tpl-e-section,
+  .resume-multipage .tpl-cr-section {
+    page-break-inside: avoid;
+  }
+}

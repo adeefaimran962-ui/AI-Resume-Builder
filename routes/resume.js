@@ -95,4 +95,9 @@ router.delete('/:id/permanent', rc.destroyPermanent); // permanent delete
 router.post('/:id/duplicate', rc.duplicate);
 router.post('/:id/rename',    rc.rename);
 
+// ── Version History ─────────────────────────────────────────────────────
+router.get('/:id/versions',              rc.listVersions);
+router.get('/:id/versions/:versionNumber', rc.previewVersion);
+router.post('/:id/versions/:versionNumber/restore', rc.restoreVersion);
+
 module.exports = router;
