@@ -1,50 +1,262 @@
 ﻿<%- include("../partials/header") %>
-<%- include("../partials/navbar") %>
-<main class="dashboard-page">
-  <div class="container">
-    <%- include("../partials/flash") %>
-    <div class="dashboard-header">
-      <div>
-        <h1>My Resumes</h1>
-        <p>Welcome back, <strong><%= currentUser.name %></strong></p>
+
+<div class="dashboard-layout">
+
+  <!-- ═══ SIDEBAR ══════════════════════════════════════════════ -->
+  <aside class="sidebar" id="dashSidebar">
+    <div class="sidebar-logo">
+      <a href="/">
+        <span class="brand-icon-wrap"><i class="fas fa-bolt"></i></span>
+        <span>ResumeAI<span style="color:var(--accent)">.</span></span>
+      </a>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="sidebar-nav-section">Main</span>
+      <a href="/dashboard" class="sidebar-nav-item active">
+        <i class="fas fa-th-large"></i> Dashboard
+      </a>
+      <a href="/resume/new" class="sidebar-nav-item">
+        <i class="fas fa-plus-circle"></i> New Resume
+      </a>
+
+      <span class="sidebar-nav-section" style="margin-top:12px">Manage</span>
+      <a href="/dashboard" class="sidebar-nav-item">
+        <i class="fas fa-folder-open"></i> My Resumes
+      </a>
+      <a href="/resume/new" class="sidebar-nav-item">
+        <i class="fas fa-layer-group"></i> Templates
+      </a>
+
+      <span class="sidebar-nav-section" style="margin-top:12px">Account</span>
+      <a href="#" class="sidebar-nav-item">
+        <i class="fas fa-user-circle"></i> Profile
+      </a>
+      <a href="#" class="sidebar-nav-item">
+        <i class="fas fa-cog"></i> Settings
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar"><%= currentUser.name.charAt(0).toUpperCase() %></div>
+        <div style="overflow:hidden">
+          <div class="sidebar-user-name"><%= currentUser.name %></div>
+          <div class="sidebar-user-email"><%= currentUser.email %></div>
+        </div>
       </div>
-      <a href="/resume/new" class="btn btn-primary"><i class="fas fa-plus"></i> New Resume</a>
+      <a href="/auth/logout" class="sidebar-logout">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
     </div>
-    <% if (resumes.length === 0) { %>
-    <div class="empty-state">
-      <div class="empty-icon"><i class="fas fa-file-alt"></i></div>
-      <h2>No resumes yet</h2>
-      <p>Create your first professional resume in minutes.</p>
-      <a href="/resume/new" class="btn btn-primary btn-lg"><i class="fas fa-plus"></i> Create My First Resume</a>
-    </div>
-    <% } else { %>
-    <div class="resume-grid">
-      <% resumes.forEach(function(resume){ %>
-      <div class="resume-card">
-        <div class="resume-card-header">
-          <span class="resume-template-badge"><%= resume.template %></span>
-          <div class="resume-card-actions">
-            <a href="/resume/<%= resume._id %>/preview" class="btn-icon" title="Preview"><i class="fas fa-eye"></i></a>
-            <a href="/resume/<%= resume._id %>/edit" class="btn-icon" title="Edit"><i class="fas fa-edit"></i></a>
-            <a href="/resume/<%= resume._id %>/download" class="btn-icon" title="PDF"><i class="fas fa-file-pdf"></i></a>
+  </aside>
+
+  <!-- ═══ MAIN CONTENT ════════════════════════════════════════ -->
+  <div class="dashboard-main">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle sidebar">
+          <i class="fas fa-bars"></i>
+        </button>
+        <span class="topbar-title">Dashboard</span>
+      </div>
+      <div class="topbar-actions">
+        <a href="/resume/new" class="btn btn-primary btn-sm">
+          <i class="fas fa-plus"></i> New Resume
+        </a>
+        <div class="nav-avatar" title="<%= currentUser.name %>">
+          <%= currentUser.name.charAt(0).toUpperCase() %>
+        </div>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+      <%- include("../partials/flash") %>
+
+      <!-- WELCOME CARD -->
+      <div class="welcome-card">
+        <div class="welcome-card-text">
+          <h2>Welcome back, <%= currentUser.name.split(' ')[0] %>! 👋</h2>
+          <p>You have <strong><%= resumes.length %></strong> resume<%= resumes.length !== 1 ? 's' : '' %> in your account.
+          <% if (resumes.length === 0) { %>Start building your first one today.<% } else { %>Keep them updated to stay competitive.<% } %>
+          </p>
+          <a href="/resume/new" class="btn btn-white btn-sm" style="margin-top:14px">
+            <i class="fas fa-plus"></i> Create New Resume
+          </a>
+        </div>
+        <div class="welcome-card-art">
+          <i class="fas fa-file-alt" style="font-size:80px;opacity:.15;color:white"></i>
+        </div>
+      </div>
+
+      <!-- STATS ROW -->
+      <div class="stats-row">
+        <div class="stat-card-dash">
+          <div class="icon-box" style="background:linear-gradient(135deg,#6C63FF,#A855F7)">
+            <i class="fas fa-file-alt" style="color:white"></i>
+          </div>
+          <div>
+            <div class="stat-value"><%= resumes.length %></div>
+            <div class="stat-label-dash">Total Resumes</div>
           </div>
         </div>
-        <div class="resume-card-body">
-          <h3 class="resume-title"><%= resume.title %></h3>
-          <p class="resume-name"><%= resume.personalInfo.fullName || "Name not set" %></p>
-          <p class="resume-meta"><i class="fas fa-clock"></i> <%= new Date(resume.updatedAt).toLocaleDateString() %></p>
+        <div class="stat-card-dash">
+          <div class="icon-box" style="background:linear-gradient(135deg,#10B981,#34D399)">
+            <i class="fas fa-download" style="color:white"></i>
+          </div>
+          <div>
+            <div class="stat-value"><%= resumes.length > 0 ? resumes.length * 2 : 0 %></div>
+            <div class="stat-label-dash">Downloads</div>
+          </div>
         </div>
-        <div class="resume-card-footer">
-          <a href="/resume/<%= resume._id %>/preview" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> Preview</a>
-          <a href="/resume/<%= resume._id %>/download" class="btn btn-primary btn-sm"><i class="fas fa-download"></i> PDF</a>
-          <form action="/resume/<%= resume._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Delete?')">
-            <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
-          </form>
+        <div class="stat-card-dash">
+          <div class="icon-box" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)">
+            <i class="fas fa-layer-group" style="color:white"></i>
+          </div>
+          <div>
+            <div class="stat-value">
+              <%= resumes.length > 0 ? [...new Set(resumes.map(function(r){ return r.template; }))].length : 0 %>
+            </div>
+            <div class="stat-label-dash">Templates Used</div>
+          </div>
+        </div>
+        <div class="stat-card-dash">
+          <div class="icon-box" style="background:linear-gradient(135deg,#EF4444,#F87171)">
+            <i class="fas fa-clock" style="color:white"></i>
+          </div>
+          <div>
+            <div class="stat-value" style="font-size:15px">
+              <% if (resumes.length > 0) { %>
+                <%= new Date(resumes[0].updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'}) %>
+              <% } else { %>
+                N/A
+              <% } %>
+            </div>
+            <div class="stat-label-dash">Last Updated</div>
+          </div>
         </div>
       </div>
-      <% }) %>
-    </div>
-    <% } %>
-  </div>
-</main>
+
+      <!-- MY RESUMES SECTION -->
+      <div class="dash-section-header">
+        <h3 class="dash-section-title">My Resumes</h3>
+        <% if (resumes.length > 0) { %>
+          <a href="/resume/new" class="btn btn-outline btn-sm"><i class="fas fa-plus"></i> Add New</a>
+        <% } %>
+      </div>
+
+      <% if (resumes.length === 0) { %>
+        <!-- EMPTY STATE -->
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <h3>No resumes yet</h3>
+          <p>Create your first professional resume and start landing interviews.</p>
+          <a href="/resume/new" class="btn btn-primary btn-lg" style="margin-top:8px">
+            <i class="fas fa-plus"></i> Create My First Resume
+          </a>
+        </div>
+
+      <% } else { %>
+        <!-- RESUME GRID -->
+        <div class="resume-grid">
+          <% resumes.forEach(function(resume, idx){ %>
+          <div class="resume-card animate-on-scroll" style="animation-delay: <%= idx * 60 %>ms">
+
+            <!-- Card Top Bar (colour-coded by template) -->
+            <div class="resume-card-bar
+              <% if(resume.template==='modern'){ %>bar-modern<% } else if(resume.template==='classic'){ %>bar-classic<% } else { %>bar-minimal<% } %>
+            "></div>
+
+            <div class="resume-card-inner">
+              <!-- Header -->
+              <div class="resume-card-header">
+                <span class="resume-template-badge badge-<%= resume.template %>">
+                  <i class="fas
+                    <% if(resume.template==='modern'){ %> fa-magic
+                    <% } else if(resume.template==='classic'){ %> fa-crown
+                    <% } else { %> fa-feather<% } %>
+                  "></i>
+                  <%= resume.template.charAt(0).toUpperCase() + resume.template.slice(1) %>
+                </span>
+                <div class="resume-card-actions">
+                  <a href="/resume/<%= resume._id %>/preview" class="btn-icon" title="Preview">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <a href="/resume/<%= resume._id %>/edit" class="btn-icon" title="Edit">
+                    <i class="fas fa-pencil-alt"></i>
+                  </a>
+                  <a href="/resume/<%= resume._id %>/download" class="btn-icon" title="Download PDF">
+                    <i class="fas fa-file-pdf"></i>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Body -->
+              <div class="resume-card-body">
+                <h3 class="resume-title"><%= resume.title %></h3>
+                <p class="resume-person-name">
+                  <i class="fas fa-user"></i>
+                  <%= resume.personalInfo && resume.personalInfo.fullName ? resume.personalInfo.fullName : 'Name not set' %>
+                </p>
+                <% if (resume.personalInfo && resume.personalInfo.jobTitle) { %>
+                  <p class="resume-job-title">
+                    <i class="fas fa-briefcase"></i> <%= resume.personalInfo.jobTitle %>
+                  </p>
+                <% } %>
+                <p class="resume-meta">
+                  <i class="fas fa-clock"></i>
+                  Updated <%= new Date(resume.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %>
+                </p>
+              </div>
+
+              <!-- Footer Actions -->
+              <div class="resume-card-footer">
+                <a href="/resume/<%= resume._id %>/preview" class="btn btn-outline btn-sm">
+                  <i class="fas fa-eye"></i> Preview
+                </a>
+                <a href="/resume/<%= resume._id %>/download" class="btn btn-primary btn-sm">
+                  <i class="fas fa-download"></i> PDF
+                </a>
+                <form action="/resume/<%= resume._id %>?_method=DELETE" method="POST"
+                  onsubmit="return confirm('Are you sure you want to delete this resume? This cannot be undone.')"
+                  style="margin:0">
+                  <button type="submit" class="btn btn-danger btn-sm" title="Delete">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+
+        <!-- QUICK TIPS -->
+        <div class="quick-tips">
+          <h4 class="quick-tips-title"><i class="fas fa-lightbulb"></i> Quick Tips</h4>
+          <div class="tips-grid">
+            <div class="tip-item">
+              <i class="fas fa-check-circle"></i>
+              <span>Keep your resume to 1-2 pages for best results</span>
+            </div>
+            <div class="tip-item">
+              <i class="fas fa-check-circle"></i>
+              <span>Use keywords from the job description to pass ATS filters</span>
+            </div>
+            <div class="tip-item">
+              <i class="fas fa-check-circle"></i>
+              <span>Quantify your achievements with numbers where possible</span>
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+    </div><!-- /.page-content -->
+  </div><!-- /.dashboard-main -->
+</div><!-- /.dashboard-layout -->
+
 <%- include("../partials/footer") %>

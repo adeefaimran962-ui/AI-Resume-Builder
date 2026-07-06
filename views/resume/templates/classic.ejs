@@ -1,0 +1,152 @@
+<%# CLASSIC TEMPLATE: Traditional dark navy header, warm accent, serif feel %>
+<div class="tpl-classic">
+
+  <%# HEADER %>
+  <div class="tpl-c-header">
+    <h1 class="tpl-c-name"><%= resume.personalInfo.fullName || resume.title %></h1>
+    <% if (resume.personalInfo.jobTitle) { %>
+      <p class="tpl-c-role"><%= resume.personalInfo.jobTitle %></p>
+    <% } %>
+    <div class="tpl-c-divider"></div>
+    <div class="tpl-c-contact">
+      <% if (resume.personalInfo.email) { %><span><i class="fas fa-envelope"></i> <%= resume.personalInfo.email %></span><% } %>
+      <% if (resume.personalInfo.phone) { %><span><i class="fas fa-phone"></i> <%= resume.personalInfo.phone %></span><% } %>
+      <% if (resume.personalInfo.city) { %><span><i class="fas fa-map-marker-alt"></i> <%= resume.personalInfo.city %><% if(resume.personalInfo.country){ %>, <%= resume.personalInfo.country %><% } %></span><% } %>
+      <% if (resume.personalInfo.website) { %><span><i class="fas fa-globe"></i> <%= resume.personalInfo.website %></span><% } %>
+      <% if (resume.personalInfo.linkedin) { %><span><i class="fab fa-linkedin"></i> <%= resume.personalInfo.linkedin %></span><% } %>
+      <% if (resume.personalInfo.github) { %><span><i class="fab fa-github"></i> <%= resume.personalInfo.github %></span><% } %>
+    </div>
+  </div>
+
+  <%# BODY %>
+  <div class="tpl-c-body">
+
+    <%# LEFT COLUMN %>
+    <div class="tpl-c-left">
+
+      <% if (resume.summary) { %>
+      <div class="tpl-c-section">
+        <h2 class="tpl-c-section-title">Professional Summary</h2>
+        <p class="tpl-c-summary"><%= resume.summary %></p>
+      </div>
+      <% } %>
+
+      <% if (resume.workExperience && resume.workExperience.length) { %>
+      <div class="tpl-c-section">
+        <h2 class="tpl-c-section-title">Work Experience</h2>
+        <% resume.workExperience.forEach(function(w){ %>
+        <div class="tpl-c-exp-item">
+          <div class="tpl-c-exp-row">
+            <div>
+              <span class="tpl-c-exp-title"><%= w.jobTitle %></span>
+              <span class="tpl-c-exp-company"> &mdash; <%= w.company %><% if(w.location){ %>, <%= w.location %><% } %></span>
+            </div>
+            <span class="tpl-c-exp-dates"><%= w.startDate %> &ndash; <%= w.current ? 'Present' : w.endDate %></span>
+          </div>
+          <% if(w.description){ %><p class="tpl-c-exp-desc"><%= w.description %></p><% } %>
+        </div>
+        <% }); %>
+      </div>
+      <% } %>
+
+      <% if (resume.education && resume.education.length) { %>
+      <div class="tpl-c-section">
+        <h2 class="tpl-c-section-title">Education</h2>
+        <% resume.education.forEach(function(e){ %>
+        <div class="tpl-c-exp-item">
+          <div class="tpl-c-exp-row">
+            <div>
+              <span class="tpl-c-exp-title"><%= e.degree %><% if(e.fieldOfStudy){ %> in <%= e.fieldOfStudy %><% } %></span>
+              <span class="tpl-c-exp-company"> &mdash; <%= e.institution %></span>
+            </div>
+            <span class="tpl-c-exp-dates"><%= e.startDate %> &ndash; <%= e.endDate %></span>
+          </div>
+          <% if(e.description){ %><p class="tpl-c-exp-desc"><%= e.description %></p><% } %>
+        </div>
+        <% }); %>
+      </div>
+      <% } %>
+
+      <% if (resume.projects && resume.projects.length) { %>
+      <div class="tpl-c-section">
+        <h2 class="tpl-c-section-title">Projects</h2>
+        <% resume.projects.forEach(function(p){ %>
+        <div class="tpl-c-exp-item">
+          <div class="tpl-c-exp-row">
+            <span class="tpl-c-exp-title"><%= p.name %></span>
+            <% if(p.link){ %><a href="<%= p.link %>" class="tpl-c-proj-link" target="_blank"><i class="fas fa-external-link-alt"></i> View</a><% } %>
+          </div>
+          <% if(p.techStack){ %><p class="tpl-c-tech"><i class="fas fa-code"></i> <%= p.techStack %></p><% } %>
+          <% if(p.description){ %><p class="tpl-c-exp-desc"><%= p.description %></p><% } %>
+        </div>
+        <% }); %>
+      </div>
+      <% } %>
+
+      <% if (resume.achievements && resume.achievements.length) { %>
+      <div class="tpl-c-section">
+        <h2 class="tpl-c-section-title">Achievements</h2>
+        <% resume.achievements.forEach(function(a){ %>
+        <div class="tpl-c-exp-item">
+          <div class="tpl-c-exp-row">
+            <span class="tpl-c-exp-title"><%= a.title %></span>
+            <% if(a.date){ %><span class="tpl-c-exp-dates"><%= a.date %></span><% } %>
+          </div>
+          <% if(a.description){ %><p class="tpl-c-exp-desc"><%= a.description %></p><% } %>
+        </div>
+        <% }); %>
+      </div>
+      <% } %>
+
+    </div>
+
+    <%# RIGHT SIDEBAR %>
+    <div class="tpl-c-right">
+
+      <% if (resume.skills && resume.skills.length) { %>
+      <div class="tpl-c-section">
+        <h2 class="tpl-c-section-title">Skills</h2>
+        <ul class="tpl-c-skill-list">
+          <% resume.skills.forEach(function(s){ %><li><i class="fas fa-check-circle"></i> <%= s %></li><% }); %>
+        </ul>
+      </div>
+      <% } %>
+
+      <% if (resume.languages && resume.languages.length) { %>
+      <div class="tpl-c-section">
+        <h2 class="tpl-c-section-title">Languages</h2>
+        <% resume.languages.forEach(function(l){ %>
+        <div class="tpl-c-lang">
+          <span class="tpl-c-lang-name"><%= l.language %></span>
+          <span class="tpl-c-lang-level"><%= l.proficiency %></span>
+        </div>
+        <% }); %>
+      </div>
+      <% } %>
+
+      <% if (resume.certifications && resume.certifications.length) { %>
+      <div class="tpl-c-section">
+        <h2 class="tpl-c-section-title">Certifications</h2>
+        <% resume.certifications.forEach(function(c){ %>
+        <div class="tpl-c-cert">
+          <strong><%= c.name %></strong>
+          <% if(c.issuer){ %><span><%= c.issuer %></span><% } %>
+          <% if(c.issueDate){ %><span class="tpl-c-cert-date"><%= c.issueDate %></span><% } %>
+        </div>
+        <% }); %>
+      </div>
+      <% } %>
+
+      <% if (resume.socialLinks && resume.socialLinks.length) { %>
+      <div class="tpl-c-section">
+        <h2 class="tpl-c-section-title">Links</h2>
+        <% resume.socialLinks.forEach(function(s){ %>
+        <div class="tpl-c-social"><i class="fas fa-link"></i> <% if(s.platform){ %><strong><%= s.platform %>:</strong> <% } %><%= s.url %></div>
+        <% }); %>
+      </div>
+      <% } %>
+
+    </div>
+
+  </div>
+</div>

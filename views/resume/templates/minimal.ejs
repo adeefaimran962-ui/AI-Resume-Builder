@@ -1,0 +1,143 @@
+<%# MINIMAL TEMPLATE: Clean single-column, whitespace-heavy, understated %>
+<div class="tpl-minimal">
+
+  <%# HEADER %>
+  <div class="tpl-min-header">
+    <h1 class="tpl-min-name"><%= resume.personalInfo.fullName || resume.title %></h1>
+    <% if (resume.personalInfo.jobTitle) { %>
+      <p class="tpl-min-role"><%= resume.personalInfo.jobTitle %></p>
+    <% } %>
+    <div class="tpl-min-contact">
+      <% if (resume.personalInfo.email) { %><span><%= resume.personalInfo.email %></span><% } %>
+      <% if (resume.personalInfo.phone) { %><span><%= resume.personalInfo.phone %></span><% } %>
+      <% if (resume.personalInfo.city) { %><span><%= resume.personalInfo.city %><% if(resume.personalInfo.country){ %>, <%= resume.personalInfo.country %><% } %></span><% } %>
+      <% if (resume.personalInfo.website) { %><span><%= resume.personalInfo.website %></span><% } %>
+      <% if (resume.personalInfo.linkedin) { %><span><%= resume.personalInfo.linkedin %></span><% } %>
+      <% if (resume.personalInfo.github) { %><span><%= resume.personalInfo.github %></span><% } %>
+    </div>
+  </div>
+
+  <div class="tpl-min-rule"></div>
+
+  <%# BODY %>
+  <div class="tpl-min-body">
+
+    <% if (resume.summary) { %>
+    <div class="tpl-min-section">
+      <h2 class="tpl-min-section-title">Summary</h2>
+      <p class="tpl-min-summary"><%= resume.summary %></p>
+    </div>
+    <% } %>
+
+    <% if (resume.skills && resume.skills.length) { %>
+    <div class="tpl-min-section">
+      <h2 class="tpl-min-section-title">Skills</h2>
+      <p class="tpl-min-skills-inline"><%= resume.skills.join(' &bull; ') %></p>
+    </div>
+    <% } %>
+
+    <% if (resume.workExperience && resume.workExperience.length) { %>
+    <div class="tpl-min-section">
+      <h2 class="tpl-min-section-title">Experience</h2>
+      <% resume.workExperience.forEach(function(w){ %>
+      <div class="tpl-min-exp-item">
+        <div class="tpl-min-exp-row">
+          <div>
+            <span class="tpl-min-exp-title"><%= w.jobTitle %></span>
+            <% if(w.company){ %><span class="tpl-min-exp-company">, <%= w.company %><% if(w.location){ %> &mdash; <%= w.location %><% } %></span><% } %>
+          </div>
+          <span class="tpl-min-exp-dates"><%= w.startDate %><% if(w.startDate || w.endDate){ %> &ndash; <% } %><%= w.current ? 'Present' : w.endDate %></span>
+        </div>
+        <% if(w.description){ %><p class="tpl-min-exp-desc"><%= w.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if (resume.education && resume.education.length) { %>
+    <div class="tpl-min-section">
+      <h2 class="tpl-min-section-title">Education</h2>
+      <% resume.education.forEach(function(e){ %>
+      <div class="tpl-min-exp-item">
+        <div class="tpl-min-exp-row">
+          <div>
+            <span class="tpl-min-exp-title"><%= e.degree %><% if(e.fieldOfStudy){ %> in <%= e.fieldOfStudy %><% } %></span>
+            <% if(e.institution){ %><span class="tpl-min-exp-company">, <%= e.institution %></span><% } %>
+          </div>
+          <span class="tpl-min-exp-dates"><%= e.startDate %><% if(e.startDate || e.endDate){ %> &ndash; <% } %><%= e.endDate %></span>
+        </div>
+        <% if(e.description){ %><p class="tpl-min-exp-desc"><%= e.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if (resume.projects && resume.projects.length) { %>
+    <div class="tpl-min-section">
+      <h2 class="tpl-min-section-title">Projects</h2>
+      <% resume.projects.forEach(function(p){ %>
+      <div class="tpl-min-exp-item">
+        <div class="tpl-min-exp-row">
+          <span class="tpl-min-exp-title"><%= p.name %></span>
+          <% if(p.link){ %><a href="<%= p.link %>" class="tpl-min-link" target="_blank"><%= p.link %></a><% } %>
+        </div>
+        <% if(p.techStack){ %><p class="tpl-min-exp-company"><%= p.techStack %></p><% } %>
+        <% if(p.description){ %><p class="tpl-min-exp-desc"><%= p.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if (resume.certifications && resume.certifications.length) { %>
+    <div class="tpl-min-section">
+      <h2 class="tpl-min-section-title">Certifications</h2>
+      <% resume.certifications.forEach(function(c){ %>
+      <div class="tpl-min-exp-item">
+        <div class="tpl-min-exp-row">
+          <span class="tpl-min-exp-title"><%= c.name %></span>
+          <% if(c.issueDate){ %><span class="tpl-min-exp-dates"><%= c.issueDate %></span><% } %>
+        </div>
+        <% if(c.issuer){ %><p class="tpl-min-exp-company"><%= c.issuer %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if (resume.achievements && resume.achievements.length) { %>
+    <div class="tpl-min-section">
+      <h2 class="tpl-min-section-title">Achievements</h2>
+      <% resume.achievements.forEach(function(a){ %>
+      <div class="tpl-min-exp-item">
+        <div class="tpl-min-exp-row">
+          <span class="tpl-min-exp-title"><%= a.title %></span>
+          <% if(a.date){ %><span class="tpl-min-exp-dates"><%= a.date %></span><% } %>
+        </div>
+        <% if(a.description){ %><p class="tpl-min-exp-desc"><%= a.description %></p><% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <% if ((resume.languages && resume.languages.length) || (resume.socialLinks && resume.socialLinks.length)) { %>
+    <div class="tpl-min-section tpl-min-bottom-grid">
+      <% if (resume.languages && resume.languages.length) { %>
+      <div>
+        <h2 class="tpl-min-section-title">Languages</h2>
+        <% resume.languages.forEach(function(l){ %>
+        <span class="tpl-min-lang"><%= l.language %> (<%= l.proficiency %>)</span>
+        <% }); %>
+      </div>
+      <% } %>
+      <% if (resume.socialLinks && resume.socialLinks.length) { %>
+      <div>
+        <h2 class="tpl-min-section-title">Links</h2>
+        <% resume.socialLinks.forEach(function(s){ %>
+        <div class="tpl-min-exp-company"><% if(s.platform){ %><strong><%= s.platform %>:</strong> <% } %><%= s.url %></div>
+        <% }); %>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+
+  </div>
+</div>

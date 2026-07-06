@@ -1,60 +1,172 @@
 ﻿<%- include("partials/header") %>
 <%- include("partials/navbar") %>
-<main>
-  <%- include("partials/flash") %>
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="container hero-content">
-      <div class="hero-text">
-        <span class="badge-pill">Free &bull; Professional &bull; Fast</span>
-        <h1>Build Your Dream Resume <span class="text-primary">in Minutes</span></h1>
-        <p>Create ATS-friendly, professional resumes with our AI-powered builder. Stand out from the crowd and land your dream job.</p>
+
+<!-- ══════════════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+
+      <!-- Left: Copy -->
+      <div class="hero-left">
+        <div class="hero-eyebrow">
+          <span>&#10024;</span> The #1 AI-Powered Resume Builder
+        </div>
+
+        <h1 class="hero-title">
+          Create Resumes That<br>
+          <span class="highlight">Get You Hired</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Build stunning, ATS-optimized resumes in minutes.<br>
+          No design skills needed. 100% free to start.
+        </p>
+
         <div class="hero-actions">
-          <a href="/auth/register" class="btn btn-primary btn-lg">Get Started Free</a>
-          <a href="/auth/login" class="btn btn-outline btn-lg">Sign In</a>
+          <% if (currentUser) { %>
+            <a href="/dashboard" class="btn btn-white btn-lg">
+              <i class="fas fa-th-large"></i> Go to Dashboard
+            </a>
+            <a href="/resume/new" class="btn btn-lg" style="background:rgba(255,255,255,.18);color:white;border:2px solid rgba(255,255,255,.4);">
+              <i class="fas fa-plus"></i> New Resume
+            </a>
+          <% } else { %>
+            <a href="/auth/register" class="btn btn-white btn-lg">
+              Start Building Free &rarr;
+            </a>
+            <a href="/auth/login" class="btn btn-lg" style="background:rgba(255,255,255,.18);color:white;border:2px solid rgba(255,255,255,.4);">
+              View Templates
+            </a>
+          <% } %>
         </div>
-      </div>
-      <div class="hero-image">
-        <div class="resume-card-preview">
-          <div class="preview-header"></div>
-          <div class="preview-line long"></div>
-          <div class="preview-line medium"></div>
-          <div class="preview-line short"></div>
-          <div class="preview-divider"></div>
-          <div class="preview-line medium"></div>
-          <div class="preview-line long"></div>
-          <div class="preview-line short"></div>
+
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="stat-number">50K+</div>
+            <div class="stat-label">Resumes Created</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-number">4.9 &#9733;</div>
+            <div class="stat-label">Average Rating</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Free to Start</div>
+          </div>
         </div>
+      </div><!-- /.hero-left -->
+
+      <!-- Right: Mockup -->
+      <div class="hero-visual">
+        <div style="position:relative;display:inline-block;">
+          <div class="mockup-card">
+            <div class="mockup-header"></div>
+            <div class="mockup-body">
+              <div class="mockup-name"></div>
+              <div class="mockup-title-line"></div>
+              <div class="mockup-section-label"></div>
+              <div class="mockup-lines">
+                <div class="mockup-line w-full"></div>
+                <div class="mockup-line w-80"></div>
+                <div class="mockup-line w-90"></div>
+                <div class="mockup-line w-65"></div>
+              </div>
+              <br>
+              <div class="mockup-section-label"></div>
+              <div class="mockup-lines">
+                <div class="mockup-line w-full"></div>
+                <div class="mockup-line w-80"></div>
+                <div class="mockup-line w-65"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Floating Badges -->
+          <div class="floating-badge badge-ats">
+            <i class="fas fa-robot"></i> ATS-Friendly
+          </div>
+          <div class="floating-badge badge-pdf">
+            <i class="fas fa-file-pdf"></i> PDF Ready
+          </div>
+          <div class="floating-badge badge-sections">
+            <i class="fas fa-layer-group"></i> 10 Sections
+          </div>
+        </div>
+      </div><!-- /.hero-visual -->
+
+    </div><!-- /.hero-content -->
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TRUST BAR
+═══════════════════════════════════════════════════════════ -->
+<div class="trust-bar">
+  <div class="container">
+    <div class="trust-bar-inner">
+      <span class="trust-label">Trusted by professionals at</span>
+      <div class="trust-companies">
+        <span class="trust-company">Google</span>
+        <span class="trust-company">Microsoft</span>
+        <span class="trust-company">Amazon</span>
+        <span class="trust-company">Meta</span>
+        <span class="trust-company">Netflix</span>
+        <span class="trust-company">Spotify</span>
       </div>
     </div>
-  </section>
-  <!-- Features -->
-  <section class="features">
-    <div class="container">
-      <h2 class="section-title">Everything You Need to Land the Job</h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-magic"></i></div>
-          <h3>Smart Builder</h3>
-          <p>Guided form with all 10 resume sections. Fill in your details and we handle the formatting.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-file-pdf"></i></div>
-          <h3>PDF Download</h3>
-          <p>Download a professionally formatted PDF resume instantly, ready to send to employers.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-edit"></i></div>
-          <h3>Easy Editing</h3>
-          <p>Update your resume anytime. All your resumes are saved securely in your account.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-          <h3>Secure &amp; Private</h3>
-          <p>Your data is protected with bcrypt encryption and secure session management.</p>
-        </div>
-      </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     FEATURES
+═══════════════════════════════════════════════════════════ -->
+<section class="features fade-in-up" id="features">
+  <div class="container">
+    <div class="features-header">
+      <span class="section-label">Features</span>
+      <h2 class="section-title">Everything You Need to Stand Out</h2>
+      <p class="section-subtitle">Powerful tools designed to help you create the perfect resume and land more interviews.</p>
     </div>
-  </section>
-</main>
-<%- include("partials/footer") %>
+
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap"><i class="fas fa-magic"></i></div>
+        <h3>Smart Builder</h3>
+        <p>Our intuitive step-by-step builder guides you through creating a polished resume — no experience needed. Fill in your details and we handle the formatting.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap"><i class="fas fa-file-pdf"></i></div>
+        <h3>PDF Export</h3>
+        <p>Download your resume as a pixel-perfect PDF instantly. Your formatting stays intact, no matter where you send it — guaranteed.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap"><i class="fas fa-shield-halved"></i></div>
+        <h3>Secure &amp; Private</h3>
+        <p>Your data is encrypted and private. Only you have access to your resumes. We never share your information with third parties.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap"><i class="fas fa-robot"></i></div>
+        <h3>ATS Optimized</h3>
+        <p>Every resume we generate is structured to pass Applicant Tracking Systems. Get past the bots and in front of real hiring managers.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap"><i class="fas fa-palette"></i></div>
+        <h3>Multiple Templates</h3>
+        <p>Choose from a collection of professionally designed templates — from clean and minimal to bold and modern. Pick what fits your industry.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap"><i class="fas fa-pen-to-square"></i></div>
+        <h3>Easy Editing</h3>
+        <p>Update your resume anytime with just a few clicks. Add new jobs, tweak your skills, and re-download a fresh PDF in seconds.</p>
+      </div>
+
+    </div><!-- /.features-grid -->
+  </div>
+</section>

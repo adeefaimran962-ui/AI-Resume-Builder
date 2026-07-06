@@ -1,43 +1,36 @@
-/**
+﻿/**
  * routes/resume.js
- * ----------------------------------------------------------
- * Resume CRUD routes (all protected).
- *
- *   GET    /resume/new          – New resume form
- *   POST   /resume              – Create resume
- *   GET    /resume/:id/edit     – Edit resume form
- *   PUT    /resume/:id          – Update resume
- *   DELETE /resume/:id          – Delete resume
- *   GET    /resume/:id/preview  – Preview resume
- *   GET    /resume/:id/download – Download as PDF
- *
- * PUT and DELETE are tunnelled via method-override using
- * the ?_method= query string.
- * ----------------------------------------------------------
+ * ─────────────────────────────────────────────────────────
+ * FIXES:
+ *  - Removed duplicate GET / route (was shadowing GET /new in some cases)
+ *  - AI endpoint kept before /:id routes (correct)
+ *  - All CRUD routes correctly separated
+ * ─────────────────────────────────────────────────────────
  */
-
 const express                 = require('express');
 const router                  = express.Router();
-const resumeController        = require('../controllers/resumeController');
+const rc                      = require('../controllers/resumeController');
 const { ensureAuthenticated } = require('../middleware/auth');
 
-// Apply auth middleware to every resume route
+// All resume routes require login
 router.use(ensureAuthenticated);
 
-// New & Create
-router.get('/',     resumeController.showCreateForm); // fallback to /resume
-router.get('/new',  resumeController.showCreateForm);
-router.post('/',    resumeController.create);
+// ── AI generation (POST, AJAX – no :id, must be BEFORE /:id) ──
+router.post('/ai/generate', rc.aiGenerate);
 
-// Edit & Update  (PUT tunnelled via method-override)
-router.get('/:id/edit', resumeController.showEditForm);
-router.put('/:id',      resumeController.update);
+// ── Create ─────────────────────────────────────────────────
+router.get('/new', rc.showCreateForm);   // Show blank create form
+router.post('/',   rc.create);           // Submit new resume
 
-// Delete (DELETE tunnelled via method-override)
-router.delete('/:id', resumeController.destroy);
+// ── Read ───────────────────────────────────────────────────
+router.get('/:id/preview',  rc.preview);     // Preview a resume
+router.get('/:id/download', rc.downloadPDF); // Download as PDF
 
-// Preview & Download
-router.get('/:id/preview',  resumeController.preview);
-router.get('/:id/download', resumeController.downloadPDF);
+// ── Update ─────────────────────────────────────────────────
+router.get('/:id/edit', rc.showEditForm); // Show pre-filled edit form
+router.put('/:id',      rc.update);       // Submit edit (method-override converts POST -> PUT)
+
+// ── Delete ─────────────────────────────────────────────────
+router.delete('/:id', rc.destroy);        // method-override converts POST -> DELETE
 
 module.exports = router;

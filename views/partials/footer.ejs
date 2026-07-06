@@ -1,14 +1,64 @@
-﻿  <footer class="footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-brand">
-          <span class="brand-icon"><i class="fas fa-file-alt"></i></span>
-          <span class="brand-name">AI Resume Builder</span>
+﻿<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+
+      <!-- Col 1: Brand -->
+      <div>
+        <a href="/" class="footer-brand-name">
+          <span class="brand-icon-wrap"><i class="fas fa-file-alt"></i></span>
+          ResumeAI
+        </a>
+        <p class="footer-desc">Build professional, ATS-friendly resumes in minutes with the power of AI. Land your dream job faster.</p>
+        <div class="social-links">
+          <a href="#" class="social-link" aria-label="GitHub"><i class="fab fa-github"></i></a>
+          <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" class="social-link" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
         </div>
-        <p class="footer-copy">&copy; <%= new Date().getFullYear() %> AI Resume Builder. Built with Node.js &amp; MongoDB.</p>
       </div>
+
+      <!-- Col 2: Product -->
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="/resume/new">Create Resume</a></li>
+          <li><a href="/resume/new">Templates</a></li>
+          <li><a href="/dashboard">Dashboard</a></li>
+          <li><a href="#">Download PDF</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Company -->
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 4: Support -->
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Cookie Policy</a></li>
+        </ul>
+      </div>
+
+    </div><!-- /.footer-top -->
+
+    <div class="footer-bottom">
+      <p class="footer-copy">&copy; <%= new Date().getFullYear() %> ResumeAI. All rights reserved.</p>
+      <p class="footer-made">Made with &#10084;&#65039; using Node.js &amp; MongoDB</p>
     </div>
-  </footer>
-  <script src="/js/main.js"></script>
+  </div>
+</footer>
+
+<script src="/js/main.js"></script>
 </body>
 </html>

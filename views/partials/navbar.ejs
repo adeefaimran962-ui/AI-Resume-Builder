@@ -1,23 +1,33 @@
 ﻿<nav class="navbar">
   <div class="container navbar-inner">
+    <!-- Brand -->
     <a href="/" class="navbar-brand">
-      <i class="fas fa-file-alt"></i>
-      <span>AI Resume Builder</span>
+      <span class="brand-icon-wrap"><i class="fas fa-file-alt"></i></span>
+      <span>ResumeAI<span class="brand-dot">.</span></span>
     </a>
-    <button class="navbar-toggle" id="navToggle" aria-label="Toggle menu">
+
+    <!-- Mobile Toggle -->
+    <button class="navbar-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
       <i class="fas fa-bars"></i>
     </button>
+
+    <!-- Menu -->
     <ul class="navbar-menu" id="navMenu">
       <% if (currentUser) { %>
         <li><a href="/dashboard" class="nav-link"><i class="fas fa-th-large"></i> Dashboard</a></li>
         <li><a href="/resume/new" class="nav-link"><i class="fas fa-plus"></i> New Resume</a></li>
-        <li class="nav-user">
-          <span class="user-name"><i class="fas fa-user-circle"></i> <%= currentUser.name %></span>
+        <li>
+          <span class="nav-user-wrap">
+            <span class="nav-avatar" title="<%= currentUser.name %>">
+              <%= currentUser.name.charAt(0).toUpperCase() %>
+            </span>
+            <span style="font-size:14px;font-weight:600;color:var(--dark);"><%= currentUser.name.split(' ')[0] %></span>
+          </span>
         </li>
-        <li><a href="/auth/logout" class="btn btn-outline btn-sm">Logout</a></li>
+        <li><a href="/auth/logout" class="btn btn-ghost btn-sm"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       <% } else { %>
         <li><a href="/auth/login" class="nav-link">Login</a></li>
-        <li><a href="/auth/register" class="btn btn-primary btn-sm">Get Started</a></li>
+        <li><a href="/auth/register" class="nav-cta">Get Started Free</a></li>
       <% } %>
     </ul>
   </div>
