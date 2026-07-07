@@ -14,6 +14,8 @@
 const Resume        = require('../models/Resume');
 const ResumeVersion = require('../models/ResumeVersion');
 const PDFDocument   = require('pdfkit');
+const fs            = require('fs');
+const path          = require('path');
 const { scoreResume } = require('../lib/atsScorer');
 const { generateContent } = require('../lib/aiService');
 
@@ -225,6 +227,7 @@ exports.update = async (req, res) => {
 
     // ── DEBUG: confirm parseResumeBody output ────────────────────────────
     console.log('[DEBUG update] parsed data:', JSON.stringify(data).slice(0, 800));
+    console.log('[DEBUG update] template from parsed data:', data.template);
     // ────────────────────────────────────────────────────────────────────
 
     // ── Fetch the live Mongoose document (NOT lean) ──────────────────────
@@ -272,6 +275,10 @@ exports.update = async (req, res) => {
     doc.title    = data.title;
     doc.template = data.template;
     doc.summary  = data.summary;
+
+    // ── DEBUG: Log template before save ───────────────────────────────────
+    console.log('[DEBUG update] Setting doc.template to:', data.template);
+    // ────────────────────────────────────────────────────────────────────
 
     // Nested plain-object path: assign each sub-field individually, then
     // explicitly mark the parent path modified so Mongoose 8 flushes it.
@@ -481,6 +488,13 @@ exports.preview = async (req, res) => {
     const VALID_TEMPLATES = ['modern','classic','minimal','professional','executive','creative','compact','tech','elegant','ats-professional','minimal-pro','modern-gradient','sharp'];
     const tpl = (VALID_TEMPLATES.includes(req.query.tpl) ? req.query.tpl : null) || resume.template || 'modern';
 
+    // ── DEBUG: Log template being used for preview ────────────────────────
+    console.log('[DEBUG preview] resume._id:', resume._id);
+    console.log('[DEBUG preview] resume.template from DB:', resume.template);
+    console.log('[DEBUG preview] req.query.tpl:', req.query.tpl);
+    console.log('[DEBUG preview] final tpl used:', tpl);
+    // ────────────────────────────────────────────────────────────────────────
+
     res.render('resume/preview', {
       title: 'Preview – ' + resume.title,
       resume,
@@ -523,6 +537,13 @@ exports.score = async (req, res) => {
 exports.downloadPDF = async (req, res) => {
   try {
     const resume = await ownsResume(req,res); if (!resume) return;
+    
+    // ── DEBUG: Log the template being used for PDF generation ─────────────
+    console.log('[DEBUG downloadPDF] resume._id:', resume._id);
+    console.log('[DEBUG downloadPDF] resume.template from DB:', resume.template);
+    console.log('[DEBUG downloadPDF] using template:', resume.template || 'modern');
+    // ────────────────────────────────────────────────────────────────────────
+    
     Resume.findByIdAndUpdate(req.params.id,{$inc:{downloadCount:1}}).catch(()=>{});
 
     const doc = new PDFDocument({size:'A4',margins:{top:50,bottom:50,left:60,right:60},
@@ -697,38 +718,45 @@ exports.downloadPDF = async (req, res) => {
       const sMin=(t)=>{
         doc.fillColor(CD).fontSize(10).font('Helvetica-Bold').text(t.toUpperCase(),60,y,{width:PW,characterSpacing:1.5});
         y=doc.y+2;
-        doc.moveTo(60,y).lineTo(doc.page.width-60,y).strokeColor('#9CA3AF').lineWidth(0.5).stroke();
+        doc.moveTo(60,y).lineTo(doc.page.width-60,y).strokeColor(CD).lineWidth(0.5).stroke();
         y+=8;
       };
 
-      if(resume.summary){sMin('Summary');doc.fillColor(CD).fontSize(10).font('Helvetica').text(resume.summary,60,y,{width:PW,align:'justify'});y=doc.y+14;}
-      if(resume.skills&&resume.skills.length){sMin('Skills');doc.fillColor(CD).fontSize(10).font('Helvetica').text(resume.skills.join('  •  '),60,y,{width:PW});y=doc.y+14;}
+      if(resume.summary){
+        sMin('Summary');
+        doc.fillColor(CD).fontSize(9.5).font('Helvetica').text(resume.summary,60,y,{width:PW,align:'justify'});
+        y=doc.y+14;
+      }
       if(resume.workExperience&&resume.workExperience.length){
-        sMin('Experience');
+        sMin('Work Experience');
         resume.workExperience.forEach(w=>{
-          doc.fillColor(CD).fontSize(10).font('Helvetica-Bold').text(w.jobTitle||'',60,y,{continued:true,width:PW*0.6});
-          doc.fillColor(CM).font('Helvetica').fontSize(9).text((w.startDate||'')+' – '+(w.current?'Present':(w.endDate||'')),{align:'right'});
-          y=doc.y;
-          if(w.company){doc.fillColor(CM).fontSize(9).font('Helvetica').text(w.company+(w.location?' — '+w.location:''),60,y,{width:PW});y=doc.y+2;}
+          doc.fillColor(CD).fontSize(10).font('Helvetica-Bold').text(w.jobTitle||'',60,y,{width:PW});y=doc.y;
+          doc.fillColor(CP).fontSize(9).font('Helvetica-Bold').text(w.company||'',60,y,{continued:true,width:PW/2});
+          doc.fillColor(CM).font('Helvetica').text((w.startDate||'')+' – '+(w.current?'Present':(w.endDate||'')),{align:'right'});
+          y=doc.y+2;
           if(w.description){doc.fillColor(CD).fontSize(9).font('Helvetica').text(w.description,60,y,{width:PW});y=doc.y;}
           y+=8;
         });
       }
+      if(resume.skills&&resume.skills.length){
+        sMin('Skills');
+        doc.fillColor(CD).fontSize(9).font('Helvetica').text(resume.skills.join(', '),60,y,{width:PW});
+        y=doc.y+14;
+      }
       if(resume.education&&resume.education.length){
         sMin('Education');
         resume.education.forEach(e=>{
-          doc.fillColor(CD).fontSize(10).font('Helvetica-Bold').text((e.degree||'')+(e.fieldOfStudy?' in '+e.fieldOfStudy:''),60,y,{continued:true,width:PW*0.6});
-          doc.fillColor(CM).font('Helvetica').fontSize(9).text((e.startDate||'')+' – '+(e.endDate||''),{align:'right'});
-          y=doc.y;
-          if(e.institution){doc.fillColor(CM).fontSize(9).font('Helvetica').text(e.institution,60,y,{width:PW});y=doc.y+2;}
-          y+=8;
+          doc.fillColor(CD).fontSize(10).font('Helvetica-Bold').text((e.degree||'')+(e.fieldOfStudy?' in '+e.fieldOfStudy:''),60,y,{width:PW});y=doc.y;
+          doc.fillColor(CP).fontSize(9).font('Helvetica-Bold').text(e.institution||'',60,y,{continued:true,width:PW/2});
+          doc.fillColor(CM).font('Helvetica').text((e.startDate||'')+' – '+(e.endDate||''),{align:'right'});
+          y=doc.y+8;
         });
       }
       if(resume.projects&&resume.projects.length){
         sMin('Projects');
         resume.projects.forEach(p=>{
           doc.fillColor(CD).fontSize(10).font('Helvetica-Bold').text(p.name||'',60,y,{width:PW});y=doc.y;
-          if(p.techStack){doc.fillColor(CM).fontSize(9).font('Helvetica-Oblique').text(p.techStack,60,y,{width:PW});y=doc.y+2;}
+          if(p.techStack){doc.fillColor(CM).fontSize(8).font('Helvetica-Oblique').text(p.techStack,60,y,{width:PW});y=doc.y+2;}
           if(p.description){doc.fillColor(CD).fontSize(9).font('Helvetica').text(p.description,60,y,{width:PW});y=doc.y;}
           y+=8;
         });
@@ -736,16 +764,39 @@ exports.downloadPDF = async (req, res) => {
       if(resume.achievements&&resume.achievements.length){
         sMin('Achievements');
         resume.achievements.forEach(a=>{
-          doc.fillColor(CD).fontSize(10).font('Helvetica-Bold').text('• '+(a.title||''),60,y,{width:PW});y=doc.y;
+          doc.fillColor(CD).fontSize(9.5).font('Helvetica-Bold').text('• '+(a.title||''),60,y,{width:PW});y=doc.y;
           if(a.description){doc.fillColor(CM).fontSize(9).font('Helvetica').text(a.description,68,y,{width:PW-8});y=doc.y;}
-          y+=6;
+          y+=4;
+        });
+      }
+      if(resume.certifications&&resume.certifications.length){
+        sMin('Certifications');
+        resume.certifications.forEach(c=>{
+          doc.fillColor(CD).fontSize(9).font('Helvetica-Bold').text(c.name,60,y,{width:PW});y=doc.y;
+          if(c.issuer){doc.fillColor(CM).fontSize(8).font('Helvetica').text(c.issuer,60,y,{width:PW});y=doc.y+4;}
+        });
+        y+=6;
+      }
+      if(resume.languages&&resume.languages.length){
+        sMin('Languages');
+        resume.languages.forEach(l=>{
+          doc.fillColor(CD).fontSize(9).font('Helvetica-Bold').text(l.language,60,y,{continued:true,width:PW/2});
+          doc.fillColor(CM).fontSize(9).font('Helvetica').text(l.proficiency,{align:'right'});
+          y=doc.y+4;
         });
       }
     }
 
-    doc.fontSize(8).fillColor(CM).text('Generated by ResumeAI • '+new Date().toLocaleDateString(),60,doc.page.height-40,{align:'center',width:PW});
     doc.end();
-  } catch(err){ console.error('PDF Error:',err); req.flash('error','Could not generate PDF.'); res.redirect('/dashboard'); }
+  } catch (err) {
+    console.error('Download PDF Error:', err);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: 'Could not generate PDF. Please try again.',
+      });
+    }
+  }
 };
 
 /* ── AI Text Generation (uses aiService for professional ATS-friendly content) ── */
@@ -945,8 +996,6 @@ exports.setTemplate = async (req, res) => {
  * Returns JSON so the form page can update the preview without a page reload.
  */
 exports.uploadPhoto = async (req, res) => {
-  const fs   = require('fs');
-  const path = require('path');
   try {
     const doc = await Resume.findOne({ _id: req.params.id, user: req.session.userId });
     if (!doc) return res.status(404).json({ success: false, message: 'Resume not found.' });
@@ -971,7 +1020,6 @@ exports.uploadPhoto = async (req, res) => {
     console.error('Upload Photo Error:', err);
     // Clean up the uploaded file if save failed
     if (req.file) {
-      const path = require('path');
       fs.unlink(path.join(__dirname, '../public/uploads/photos', req.file.filename), () => {});
     }
     res.status(500).json({ success: false, message: 'Could not save photo.' });

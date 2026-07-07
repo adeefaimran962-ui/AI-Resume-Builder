@@ -76,12 +76,12 @@ exports.index = async (req, res) => {
       stats: {
         totalResumes:   allActive.length,
         totalDownloads: allActive.reduce((s, r) => s + (r.downloadCount || 0), 0),
-      coverLetters,
         avgAtsScore,
         lastUpdated,
       },
       recentActivity,
       trashCount,
+      coverLetters,
       pagination: {
         page,
         totalPages,
@@ -107,15 +107,22 @@ exports.index = async (req, res) => {
 ───────────────────────────────────────────────────────────────────────── */
 exports.trash = async (req, res) => {
   try {
-    const resumes = await Resume.find({
-      user:      req.session.userId,
-      isDeleted: true,
-    }).sort({ deletedAt: -1 }).lean();
+    const [resumes, coverLetters] = await Promise.all([
+      Resume.find({
+        user:      req.session.userId,
+        isDeleted: true,
+      }).sort({ deletedAt: -1 }).lean(),
+      CoverLetter.find({
+        user:      req.session.userId,
+        isDeleted: true,
+      }).sort({ deletedAt: -1 }).lean(),
+    ]);
 
     return res.render('dashboard/trash', {
       title:      'Trash – ResumeAI',
       resumes,
-      trashCount: resumes.length,
+      coverLetters,
+      trashCount: resumes.length + coverLetters.length,
     });
   } catch (err) {
     console.error('Trash Error:', err);

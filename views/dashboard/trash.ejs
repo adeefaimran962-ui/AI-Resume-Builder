@@ -85,7 +85,7 @@
     <div class="page-content">
       <%- include("../partials/flash") %>
 
-      <% if (!resumes || resumes.length === 0) { %>
+      <% if ((!resumes || resumes.length === 0) && (!coverLetters || coverLetters.length === 0)) { %>
 
         <!-- EMPTY TRASH STATE -->
         <div style="text-align:center;padding:80px 20px;">
@@ -94,7 +94,7 @@
           </div>
           <h3 style="font-size:22px;font-weight:700;color:var(--dark);margin-bottom:8px;">Trash is empty</h3>
           <p style="color:var(--muted);font-size:15px;margin-bottom:28px;">
-            Deleted resumes will appear here.<br>You can restore them or permanently delete them.
+            Deleted resumes and cover letters will appear here.<br>You can restore them or permanently delete them.
           </p>
           <a href="/dashboard" class="btn btn-primary">
             <i class="fas fa-th-large"></i> Back to Dashboard
@@ -107,13 +107,15 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;background:var(--white);padding:14px 20px;border-radius:var(--radius);border:1.5px solid #FEE2E2;">
           <p style="color:var(--muted);font-size:14px;margin:0;">
             <i class="fas fa-info-circle" style="color:var(--warning);margin-right:6px;"></i>
-            <strong><%= resumes.length %></strong> resume<%= resumes.length !== 1 ? 's' : '' %> in Trash.
+            <strong><%= (resumes ? resumes.length : 0) + (coverLetters ? coverLetters.length : 0) %></strong> item<%= (resumes ? resumes.length : 0) + (coverLetters ? coverLetters.length : 0) !== 1 ? 's' : '' %> in Trash.
             Restore or permanently delete them below.
           </p>
         </div>
 
-        <!-- TRASH GRID -->
-        <div class="resume-grid">
+        <!-- RESUMES SECTION -->
+        <% if (resumes && resumes.length > 0) { %>
+        <h4 style="margin:0 0 16px 0;font-size:16px;font-weight:700;color:var(--dark);">Resumes</h4>
+        <div class="resume-grid" style="margin-bottom:32px;">
           <% resumes.forEach(function(resume) { %>
           <div class="resume-card" style="opacity:0.88;">
 
@@ -125,7 +127,7 @@
               <!-- Card Header -->
               <div class="resume-card-header">
                 <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:50px;background:rgba(239,68,68,0.1);color:var(--danger);display:inline-flex;align-items:center;gap:6px;">
-                  <i class="fas fa-trash-alt"></i>
+                  <i class="fas fa-file-alt"></i>
                   <%= resume.template ? resume.template.charAt(0).toUpperCase() + resume.template.slice(1) : 'Resume' %>
                 </span>
               </div>
@@ -177,6 +179,76 @@
           </div>
           <% }) %>
         </div>
+        <% } %>
+
+        <!-- COVER LETTERS SECTION -->
+        <% if (coverLetters && coverLetters.length > 0) { %>
+        <h4 style="margin:0 0 16px 0;font-size:16px;font-weight:700;color:var(--dark);">Cover Letters</h4>
+        <div class="resume-grid">
+          <% coverLetters.forEach(function(letter) { %>
+          <div class="resume-card" style="opacity:0.88;">
+
+            <!-- Pink top bar -->
+            <div style="height:4px;background:#EC4899;border-radius:var(--radius-lg) var(--radius-lg) 0 0;"></div>
+
+            <div class="resume-card-inner">
+
+              <!-- Card Header -->
+              <div class="resume-card-header">
+                <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:50px;background:rgba(236,72,153,0.1);color:#EC4899;display:inline-flex;align-items:center;gap:6px;">
+                  <i class="fas fa-envelope"></i>
+                  Cover Letter
+                </span>
+              </div>
+
+              <!-- Card Body -->
+              <div class="resume-card-body">
+                <h3 class="resume-title"><%= letter.title %></h3>
+                <p class="resume-person-name">
+                  <i class="fas fa-user"></i>
+                  <%= (letter.personalInfo && letter.personalInfo.fullName) ? letter.personalInfo.fullName : 'Name not set' %>
+                </p>
+                <% if (letter.jobTitle) { %>
+                  <p class="resume-job-title">
+                    <i class="fas fa-briefcase"></i> <%= letter.jobTitle %>
+                  </p>
+                <% } %>
+                <p class="resume-meta" style="margin-top:6px;">
+                  <i class="fas fa-calendar-times" style="color:var(--danger);"></i>
+                  Deleted: <%= letter.deletedAt
+                    ? new Date(letter.deletedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                    : 'Unknown date' %>
+                </p>
+              </div>
+
+              <!-- Card Footer Actions -->
+              <div class="resume-card-footer" style="gap:8px;flex-wrap:wrap;">
+
+                <!-- RESTORE -->
+                <form action="/cover-letter/<%= letter._id %>/restore" method="POST" style="margin:0;">
+                  <button type="submit" class="btn btn-sm btn-outline"
+                    style="color:var(--success);border-color:var(--success);">
+                    <i class="fas fa-undo-alt"></i> Restore
+                  </button>
+                </form>
+
+                <!-- PERMANENT DELETE -->
+                <form
+                  action="/cover-letter/<%= letter._id %>/permanent?_method=DELETE"
+                  method="POST"
+                  onsubmit="return confirm('Permanently delete this cover letter? This cannot be undone.')"
+                  style="margin:0;">
+                  <button type="submit" class="btn btn-sm btn-danger">
+                    <i class="fas fa-times-circle"></i> Delete Forever
+                  </button>
+                </form>
+
+              </div>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+        <% } %>
 
       <% } %>
     </div><!-- /.page-content -->

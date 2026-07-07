@@ -21,5 +21,7 @@ router.get('/:id/download', cc.downloadPDF);
 router.get('/:id/edit',     cc.showEditForm);
 router.put('/:id',          cc.update);
 router.delete('/:id',       cc.destroy);
+router.post('/:id/restore', cc.restore);
+router.delete('/:id/permanent', cc.destroyPermanent);
 
 module.exports = router;

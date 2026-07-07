@@ -18,7 +18,7 @@ const { ensureAuthenticated } = require('../middleware/auth');
 
 /* ── Avatar upload for profile page ─────────────────────────────────── */
 const avatarStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'public/uploads/'),
+  destination: (req, file, cb) => cb(null, path.join(__dirname, '../public/uploads/')),
   filename:    (req, file, cb) =>
     cb(null, req.session.userId + '-' + Date.now() + path.extname(file.originalname)),
 });

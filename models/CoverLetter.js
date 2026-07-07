@@ -31,6 +31,8 @@ const CoverLetterSchema = new mongoose.Schema({
   jobTitle: { type: String, trim: true, default: '' },
   date: { type: String, default: '' },
   content: { type: String, trim: true, default: '' },
+  isDeleted: { type: Boolean, default: false },
+  deletedAt: { type: Date },
 }, { timestamps: true });
 
 module.exports = mongoose.model('CoverLetter', CoverLetterSchema);

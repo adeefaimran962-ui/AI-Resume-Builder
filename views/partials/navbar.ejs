@@ -15,7 +15,20 @@
     <ul class="navbar-menu" id="navMenu">
       <% if (currentUser) { %>
         <li><a href="/dashboard" class="nav-link"><i class="fas fa-th-large"></i> Dashboard</a></li>
-        <li><a href="/resume/new" class="nav-link"><i class="fas fa-plus"></i> New Resume</a></li>
+        <li class="nav-dropdown">
+          <a href="#" class="nav-link dropdown-toggle">
+            <i class="fas fa-tools"></i> Tools <i class="fas fa-chevron-down"></i>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a href="/resume/new" class="dropdown-link"><i class="fas fa-file-alt"></i> Create Resume</a></li>
+            <li><a href="/cover-letter/new" class="dropdown-link"><i class="fas fa-file-text"></i> Create Cover Letter</a></li>
+            <li><a href="/jobs" class="dropdown-link"><i class="fas fa-briefcase"></i> Job Tracker</a></li>
+            <li><a href="/certificates" class="dropdown-link"><i class="fas fa-certificate"></i> Certificates</a></li>
+            <li><a href="/interview" class="dropdown-link"><i class="fas fa-question-circle"></i> Interview Prep</a></li>
+            <li><a href="/skill-gap" class="dropdown-link"><i class="fas fa-chart-line"></i> Skill Analysis</a></li>
+            <li><a href="/career-roadmap" class="dropdown-link"><i class="fas fa-map-marked-alt"></i> Career Roadmap</a></li>
+          </ul>
+        </li>
         <li>
           <span class="nav-user-wrap">
             <span class="nav-avatar" title="<%= currentUser.name %>">

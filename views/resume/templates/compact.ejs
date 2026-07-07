@@ -3,6 +3,12 @@
 
   <%# HEADER %>
   <div class="tpl-co-header">
+    <% if (resume.personalInfo.photo) { %>
+      <div style="text-align:center;margin-bottom:16px;">
+        <img src="<%= resume.personalInfo.photo %>" alt="Profile Photo" 
+             style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid #E5E7EB;">
+      </div>
+    <% } %>
     <h1 class="tpl-co-name"><%= resume.personalInfo.fullName || resume.title %></h1>
     <% if (resume.personalInfo.jobTitle) { %>
       <p class="tpl-co-role"><%= resume.personalInfo.jobTitle %></p>

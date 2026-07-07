@@ -1,0 +1,452 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-container">
+  <div class="dashboard-main">
+    <div class="form-header">
+      <h1 class="form-title">
+        <i class="fas fa-certificate"></i>
+        <%= certificate ? 'Edit Certificate' : 'Add Certificate' %>
+      </h1>
+      <a href="/certificates" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i>
+        Back to Certificates
+      </a>
+    </div>
+
+    <form method="<%= method %>" action="<%= action %>" enctype="multipart/form-data" class="certificate-form">
+      <div class="form-grid">
+        <!-- Certificate Details -->
+        <div class="form-section">
+          <h2 class="section-title">Certificate Details</h2>
+          
+          <div class="form-group">
+            <label for="name" class="form-label">Certificate Name *</label>
+            <input type="text" id="name" name="name" 
+                   value="<%= certificate ? certificate.name : '' %>" 
+                   class="form-input" required maxlength="150"
+                   placeholder="AWS Certified Solutions Architect">
+          </div>
+
+          <div class="form-group">
+            <label for="issuer" class="form-label">Issuing Organization *</label>
+            <input type="text" id="issuer" name="issuer" 
+                   value="<%= certificate ? certificate.issuer : '' %>" 
+                   class="form-input" required maxlength="100"
+                   placeholder="Amazon Web Services">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="issueDate" class="form-label">Issue Date *</label>
+              <input type="text" id="issueDate" name="issueDate" 
+                     value="<%= certificate ? certificate.issueDate : '' %>" 
+                     class="form-input" required
+                     placeholder="January 2024">
+            </div>
+
+            <div class="form-group">
+              <label for="expiryDate" class="form-label">Expiry Date</label>
+              <input type="text" id="expiryDate" name="expiryDate" 
+                     value="<%= certificate ? certificate.expiryDate : '' %>" 
+                     class="form-input"
+                     placeholder="January 2027 (optional)">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="description" class="form-label">Description</label>
+            <textarea id="description" name="description" class="form-textarea" rows="3" 
+                      placeholder="Brief description of the certification and its significance..." 
+                      maxlength="500"><%= certificate ? certificate.description : '' %></textarea>
+            <div class="form-help">
+              <span id="descriptionCount">0</span>/500 characters
+            </div>
+          </div>
+        </div>
+
+        <!-- Verification Details -->
+        <div class="form-section">
+          <h2 class="section-title">Verification Details</h2>
+          
+          <div class="form-group">
+            <label for="credentialId" class="form-label">Credential ID</label>
+            <input type="text" id="credentialId" name="credentialId" 
+                   value="<%= certificate ? certificate.credentialId : '' %>" 
+                   class="form-input"
+                   placeholder="AWS-SAA-123456789">
+          </div>
+
+          <div class="form-group">
+            <label for="credentialUrl" class="form-label">Verification URL</label>
+            <input type="url" id="credentialUrl" name="credentialUrl" 
+                   value="<%= certificate ? certificate.credentialUrl : '' %>" 
+                   class="form-input"
+                   placeholder="https://aws.amazon.com/verification/123456789">
+          </div>
+
+          <div class="form-group">
+            <label for="skills" class="form-label">Related Skills</label>
+            <input type="text" id="skills" name="skills" 
+                   value="<%= certificate && certificate.skills ? certificate.skills.join(', ') : '' %>" 
+                   class="form-input"
+                   placeholder="Cloud Computing, AWS, System Architecture">
+            <div class="form-help">
+              Enter skills separated by commas
+            </div>
+          </div>
+        </div>
+
+        <!-- File Upload -->
+        <div class="form-section full-width">
+          <h2 class="section-title">Certificate File</h2>
+          
+          <% if (certificate && certificate.filePath) { %>
+          <div class="current-file">
+            <div class="file-info">
+              <div class="file-icon">
+                <% if (certificate.fileType === 'pdf') { %>
+                  <i class="fas fa-file-pdf"></i>
+                <% } else { %>
+                  <i class="fas fa-image"></i>
+                <% } %>
+              </div>
+              <div class="file-details">
+                <h4>Current File</h4>
+                <p><%= certificate.fileType.toUpperCase() %> file uploaded</p>
+              </div>
+              <div class="file-actions">
+                <a href="<%= certificate.filePath %>" target="_blank" class="btn btn-outline btn-small">
+                  <i class="fas fa-eye"></i> Preview
+                </a>
+                <a href="/certificates/<%= certificate._id %>/download" class="btn btn-outline btn-small">
+                  <i class="fas fa-download"></i> Download
+                </a>
+              </div>
+            </div>
+          </div>
+          <% } %>
+
+          <div class="form-group">
+            <label for="certificateFile" class="form-label">
+              <%= certificate && certificate.filePath ? 'Replace Certificate File' : 'Upload Certificate File' %>
+            </label>
+            <div class="file-upload-area" id="fileUploadArea">
+              <div class="file-upload-icon">
+                <i class="fas fa-cloud-upload-alt"></i>
+              </div>
+              <div class="file-upload-text">
+                <p><strong>Click to upload</strong> or drag and drop</p>
+                <p>PDF, JPG, or PNG (max 5MB)</p>
+              </div>
+              <input type="file" id="certificateFile" name="certificateFile" 
+                     accept=".pdf,.jpg,.jpeg,.png" class="file-input">
+            </div>
+            <div id="filePreview" class="file-preview"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i>
+          <%= certificate ? 'Update Certificate' : 'Save Certificate' %>
+        </button>
+        <a href="/certificates" class="btn btn-outline">Cancel</a>
+        <% if (certificate) { %>
+        <a href="/certificates/<%= certificate._id %>" class="btn btn-ghost">View Certificate</a>
+        <% } %>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.certificate-form {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 2rem;
+}
+
+.current-file {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.file-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.file-details {
+  flex: 1;
+}
+
+.file-details h4 {
+  margin: 0 0 0.25rem 0;
+  color: #1f2937;
+}
+
+.file-details p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.file-upload-area {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.file-upload-area:hover {
+  border-color: #6366f1;
+  background: #f8fafc;
+}
+
+.file-upload-area.dragover {
+  border-color: #6366f1;
+  background: #eff6ff;
+}
+
+.file-upload-icon {
+  font-size: 3rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.file-upload-text p {
+  margin: 0.25rem 0;
+  color: #6b7280;
+}
+
+.file-upload-text p:first-child {
+  color: #374151;
+  font-weight: 500;
+}
+
+.file-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-preview {
+  margin-top: 1rem;
+}
+
+.file-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.file-preview-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: white;
+}
+
+.file-preview-details {
+  flex: 1;
+}
+
+.file-preview-details h4 {
+  margin: 0 0 0.25rem 0;
+  color: #1f2937;
+  font-size: 0.875rem;
+}
+
+.file-preview-details p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.file-remove {
+  color: #dc2626;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.file-remove:hover {
+  background: #fee2e2;
+}
+
+/* Character counter styling */
+#descriptionCount {
+  font-weight: 500;
+  color: #6366f1;
+}
+
+@media (max-width: 768px) {
+  .file-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .file-actions {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Character counter for description
+  const descriptionTextarea = document.getElementById('description');
+  const descriptionCount = document.getElementById('descriptionCount');
+  
+  function updateDescriptionCount() {
+    const count = descriptionTextarea.value.length;
+    descriptionCount.textContent = count;
+    
+    if (count > 400) {
+      descriptionCount.style.color = '#dc2626';
+    } else if (count > 300) {
+      descriptionCount.style.color = '#d97706';
+    } else {
+      descriptionCount.style.color = '#6366f1';
+    }
+  }
+  
+  descriptionTextarea.addEventListener('input', updateDescriptionCount);
+  updateDescriptionCount();
+
+  // File upload handling
+  const fileUploadArea = document.getElementById('fileUploadArea');
+  const fileInput = document.getElementById('certificateFile');
+  const filePreview = document.getElementById('filePreview');
+
+  // Click to upload
+  fileUploadArea.addEventListener('click', function() {
+    fileInput.click();
+  });
+
+  // Drag and drop handling
+  fileUploadArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    fileUploadArea.classList.add('dragover');
+  });
+
+  fileUploadArea.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    fileUploadArea.classList.remove('dragover');
+  });
+
+  fileUploadArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    fileUploadArea.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      fileInput.files = files;
+      handleFileSelect(files[0]);
+    }
+  });
+
+  // File input change
+  fileInput.addEventListener('change', function(e) {
+    if (e.target.files.length > 0) {
+      handleFileSelect(e.target.files[0]);
+    }
+  });
+
+  function handleFileSelect(file) {
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Please select a PDF, JPG, or PNG file.');
+      fileInput.value = '';
+      return;
+    }
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert('File size must be less than 5MB.');
+      fileInput.value = '';
+      return;
+    }
+
+    // Show preview
+    showFilePreview(file);
+  }
+
+  function showFilePreview(file) {
+    const fileSize = (file.size / 1024).toFixed(1) + ' KB';
+    if (file.size > 1024 * 1024) {
+      fileSize = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    const fileType = file.type.includes('pdf') ? 'pdf' : 'image';
+    const icon = fileType === 'pdf' ? 'fa-file-pdf' : 'fa-image';
+
+    filePreview.innerHTML = `
+      <div class="file-preview-item">
+        <div class="file-preview-icon">
+          <i class="fas ${icon}"></i>
+        </div>
+        <div class="file-preview-details">
+          <h4>${file.name}</h4>
+          <p>${fileSize} • ${file.type}</p>
+        </div>
+        <div class="file-remove" onclick="removeFile()">
+          <i class="fas fa-times"></i>
+        </div>
+      </div>
+    `;
+  }
+
+  window.removeFile = function() {
+    fileInput.value = '';
+    filePreview.innerHTML = '';
+  };
+});
+</script>
+
+<%- include('../partials/footer') %>

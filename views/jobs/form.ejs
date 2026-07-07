@@ -1,0 +1,362 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-container">
+  <div class="dashboard-main">
+    <div class="form-header">
+      <h1 class="form-title">
+        <i class="fas fa-briefcase"></i>
+        <%= job ? 'Edit Job Application' : 'Add Job Application' %>
+      </h1>
+      <a href="/jobs" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i>
+        Back to Applications
+      </a>
+    </div>
+
+    <form method="<%= method %>" action="<%= action %>" class="job-form">
+      <div class="form-grid">
+        <!-- Job Details -->
+        <div class="form-section">
+          <h2 class="section-title">Job Details</h2>
+          
+          <div class="form-group">
+            <label for="company" class="form-label">Company *</label>
+            <input type="text" id="company" name="company" 
+                   value="<%= job ? job.company : '' %>" 
+                   class="form-input" required maxlength="100">
+          </div>
+
+          <div class="form-group">
+            <label for="position" class="form-label">Position *</label>
+            <input type="text" id="position" name="position" 
+                   value="<%= job ? job.position : '' %>" 
+                   class="form-input" required maxlength="100">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="location" class="form-label">Location</label>
+              <input type="text" id="location" name="location" 
+                     value="<%= job ? job.location : '' %>" 
+                     class="form-input" placeholder="San Francisco, CA">
+            </div>
+
+            <div class="form-group">
+              <label for="jobType" class="form-label">Job Type</label>
+              <select id="jobType" name="jobType" class="form-select">
+                <option value="Full-time" <%= job && job.jobType === 'Full-time' ? 'selected' : '' %>>Full-time</option>
+                <option value="Part-time" <%= job && job.jobType === 'Part-time' ? 'selected' : '' %>>Part-time</option>
+                <option value="Contract" <%= job && job.jobType === 'Contract' ? 'selected' : '' %>>Contract</option>
+                <option value="Freelance" <%= job && job.jobType === 'Freelance' ? 'selected' : '' %>>Freelance</option>
+                <option value="Internship" <%= job && job.jobType === 'Internship' ? 'selected' : '' %>>Internship</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="salary" class="form-label">Salary Range</label>
+            <input type="text" id="salary" name="salary" 
+                   value="<%= job ? job.salary : '' %>" 
+                   class="form-input" placeholder="$80,000 - $120,000">
+          </div>
+
+          <div class="form-group">
+            <label for="jobUrl" class="form-label">Job Posting URL</label>
+            <input type="url" id="jobUrl" name="jobUrl" 
+                   value="<%= job ? job.jobUrl : '' %>" 
+                   class="form-input" placeholder="https://company.com/careers/job-id">
+          </div>
+        </div>
+
+        <!-- Application Status -->
+        <div class="form-section">
+          <h2 class="section-title">Application Status</h2>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="status" class="form-label">Status</label>
+              <select id="status" name="status" class="form-select">
+                <option value="Applied" <%= job && job.status === 'Applied' ? 'selected' : '' %>>Applied</option>
+                <option value="Under Review" <%= job && job.status === 'Under Review' ? 'selected' : '' %>>Under Review</option>
+                <option value="Phone Screen" <%= job && job.status === 'Phone Screen' ? 'selected' : '' %>>Phone Screen</option>
+                <option value="Technical Interview" <%= job && job.status === 'Technical Interview' ? 'selected' : '' %>>Technical Interview</option>
+                <option value="On-site Interview" <%= job && job.status === 'On-site Interview' ? 'selected' : '' %>>On-site Interview</option>
+                <option value="Final Interview" <%= job && job.status === 'Final Interview' ? 'selected' : '' %>>Final Interview</option>
+                <option value="Offer" <%= job && job.status === 'Offer' ? 'selected' : '' %>>Offer</option>
+                <option value="Rejected" <%= job && job.status === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+                <option value="Withdrawn" <%= job && job.status === 'Withdrawn' ? 'selected' : '' %>>Withdrawn</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="priority" class="form-label">Priority</label>
+              <select id="priority" name="priority" class="form-select">
+                <option value="Low" <%= job && job.priority === 'Low' ? 'selected' : '' %>>Low</option>
+                <option value="Medium" <%= job && job.priority === 'Medium' ? 'selected' : '' %>>Medium</option>
+                <option value="High" <%= job && job.priority === 'High' ? 'selected' : '' %>>High</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="appliedDate" class="form-label">Applied Date</label>
+              <input type="date" id="appliedDate" name="appliedDate" 
+                     value="<%= job ? job.appliedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0] %>" 
+                     class="form-input">
+            </div>
+
+            <div class="form-group">
+              <label for="interviewDate" class="form-label">Interview Date</label>
+              <input type="datetime-local" id="interviewDate" name="interviewDate" 
+                     value="<%= job && job.interviewDate ? new Date(job.interviewDate).toISOString().slice(0, 16) : '' %>" 
+                     class="form-input">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="followUpDate" class="form-label">Follow-up Date</label>
+            <input type="date" id="followUpDate" name="followUpDate" 
+                   value="<%= job && job.followUpDate ? job.followUpDate.toISOString().split('T')[0] : '' %>" 
+                   class="form-input">
+          </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="form-section">
+          <h2 class="section-title">Contact Information</h2>
+          
+          <div class="form-group">
+            <label for="contactPerson" class="form-label">Contact Person</label>
+            <input type="text" id="contactPerson" name="contactPerson" 
+                   value="<%= job ? job.contactPerson : '' %>" 
+                   class="form-input" placeholder="John Smith, Hiring Manager">
+          </div>
+
+          <div class="form-group">
+            <label for="contactEmail" class="form-label">Contact Email</label>
+            <input type="email" id="contactEmail" name="contactEmail" 
+                   value="<%= job ? job.contactEmail : '' %>" 
+                   class="form-input" placeholder="hiring@company.com">
+          </div>
+        </div>
+
+        <!-- Linked Documents -->
+        <div class="form-section">
+          <h2 class="section-title">Linked Documents</h2>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="resume" class="form-label">Resume Used</label>
+              <select id="resume" name="resume" class="form-select">
+                <option value="">No resume linked</option>
+                <% resumes.forEach(function(resume) { %>
+                <option value="<%= resume._id %>" 
+                        <%= job && job.resume && job.resume.toString() === resume._id.toString() ? 'selected' : '' %>>
+                  <%= resume.title %> (<%= resume.personalInfo.fullName || 'Untitled' %>)
+                </option>
+                <% }); %>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="coverLetter" class="form-label">Cover Letter Used</label>
+              <select id="coverLetter" name="coverLetter" class="form-select">
+                <option value="">No cover letter linked</option>
+                <% coverLetters.forEach(function(coverLetter) { %>
+                <option value="<%= coverLetter._id %>" 
+                        <%= job && job.coverLetter && job.coverLetter.toString() === coverLetter._id.toString() ? 'selected' : '' %>>
+                  <%= coverLetter.title %>
+                </option>
+                <% }); %>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-section full-width">
+          <h2 class="section-title">Notes</h2>
+          
+          <div class="form-group">
+            <label for="notes" class="form-label">Application Notes</label>
+            <textarea id="notes" name="notes" class="form-textarea" rows="4" 
+                      placeholder="Interview feedback, next steps, company culture notes, etc." 
+                      maxlength="1000"><%= job ? job.notes : '' %></textarea>
+            <div class="form-help">
+              <span id="noteCount">0</span>/1000 characters
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i>
+          <%= job ? 'Update Application' : 'Save Application' %>
+        </button>
+        <a href="/jobs" class="btn btn-outline">Cancel</a>
+        <% if (job) { %>
+        <a href="/jobs/<%= job._id %>" class="btn btn-ghost">View Application</a>
+        <% } %>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.job-form {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 2rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.form-section {
+  background: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+}
+
+.form-section.full-width {
+  grid-column: 1 / -1;
+}
+
+.section-title {
+  margin: 0 0 1.5rem 0;
+  color: #1f2937;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-help {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.form-title {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Character counter styling */
+#noteCount {
+  font-weight: 500;
+  color: #6366f1;
+}
+</style>
+
+<script>
+// Character counter for notes
+document.addEventListener('DOMContentLoaded', function() {
+  const notesTextarea = document.getElementById('notes');
+  const noteCount = document.getElementById('noteCount');
+  
+  function updateCount() {
+    const count = notesTextarea.value.length;
+    noteCount.textContent = count;
+    
+    // Change color based on character count
+    if (count > 800) {
+      noteCount.style.color = '#dc2626';
+    } else if (count > 600) {
+      noteCount.style.color = '#d97706';
+    } else {
+      noteCount.style.color = '#6366f1';
+    }
+  }
+  
+  notesTextarea.addEventListener('input', updateCount);
+  updateCount(); // Initial count
+});
+</script>
+
+<%- include('../partials/footer') %>

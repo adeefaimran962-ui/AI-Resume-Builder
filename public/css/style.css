@@ -97,6 +97,18 @@ button { cursor: pointer; font-family: var(--font); }
 .navbar-toggle { display: none; background: none; border: none; font-size: 22px; color: var(--dark); cursor: pointer; padding: 8px; border-radius: 8px; transition: var(--transition); }
 .navbar-toggle:hover { background: var(--bg-2); color: var(--primary); }
 
+/* Dropdown Menu */
+.nav-dropdown { position: relative; }
+.dropdown-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.dropdown-toggle .fa-chevron-down { font-size: 10px; transition: var(--transition); }
+.nav-dropdown:hover .dropdown-toggle .fa-chevron-down { transform: rotate(180deg); }
+.dropdown-menu { position: absolute; top: 100%; left: 0; background: white; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-card); min-width: 220px; padding: 8px; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.2s ease; z-index: 2000; }
+.nav-dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+.dropdown-link { display: flex; align-items: center; gap: 8px; padding: 10px 14px; color: var(--dark); font-size: 14px; border-radius: 6px; transition: var(--transition); text-decoration: none; }
+.dropdown-link:hover { background: var(--primary-light); color: var(--primary); }
+.dropdown-link i { width: 16px; color: var(--muted); font-size: 13px; }
+.dropdown-link:hover i { color: var(--primary); }
+
 /* Flash / Alert */
 .alert { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: var(--radius); margin-bottom: 16px; font-size: 14px; font-weight: 500; animation: slideDown .3s ease both; position: relative; }
 .alert i { font-size: 16px; flex-shrink: 0; }

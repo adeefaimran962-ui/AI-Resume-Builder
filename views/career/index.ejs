@@ -1,0 +1,941 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-container">
+  <div class="dashboard-main">
+    <div class="dashboard-header">
+      <div class="dashboard-title-section">
+        <h1 class="dashboard-title">
+          <i class="fas fa-map-marked-alt"></i>
+          Career Roadmap Generator
+        </h1>
+        <p class="dashboard-subtitle">Get a personalized learning roadmap to reach your career goals</p>
+      </div>
+    </div>
+
+    <div class="roadmap-content">
+      <!-- Generator Form -->
+      <div class="generator-section">
+        <h2 class="section-title">
+          <i class="fas fa-route"></i>
+          Create Your Career Roadmap
+        </h2>
+        
+        <form id="roadmapForm" class="roadmap-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="resumeId" class="form-label">Current Profile (Optional)</label>
+              <select id="resumeId" name="resumeId" class="form-select">
+                <option value="">Select a resume to analyze your current skills...</option>
+                <% resumes.forEach(function(resume) { %>
+                <option value="<%= resume._id %>">
+                  <%= resume.title %> (<%= resume.personalInfo.fullName || 'Untitled' %>)
+                </option>
+                <% }); %>
+              </select>
+              <div class="form-help">Your current skills and experience will be considered</div>
+            </div>
+
+            <div class="form-group">
+              <label for="targetRole" class="form-label">Target Role *</label>
+              <input type="text" id="targetRole" name="targetRole" class="form-input" required
+                     placeholder="Senior Software Engineer, VP of Marketing, Data Scientist, etc.">
+            </div>
+
+            <div class="form-group">
+              <label for="industry" class="form-label">Industry</label>
+              <select id="industry" name="industry" class="form-select">
+                <option value="Technology">Technology</option>
+                <option value="Finance">Finance & Banking</option>
+                <option value="Healthcare">Healthcare & Life Sciences</option>
+                <option value="Education">Education & Training</option>
+                <option value="Marketing">Marketing & Advertising</option>
+                <option value="Consulting">Consulting & Professional Services</option>
+                <option value="Manufacturing">Manufacturing & Engineering</option>
+                <option value="Retail">Retail & E-commerce</option>
+                <option value="Media">Media & Entertainment</option>
+                <option value="Government">Government & Non-profit</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="currentLevel" class="form-label">Current Experience Level</label>
+              <select id="currentLevel" name="currentLevel" class="form-select">
+                <option value="Entry-level">Entry-level (0-2 years)</option>
+                <option value="Mid-level" selected>Mid-level (2-5 years)</option>
+                <option value="Senior-level">Senior-level (5-8 years)</option>
+                <option value="Lead">Lead/Principal (8-12 years)</option>
+                <option value="Executive">Executive (12+ years)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="timeframe" class="form-label">Target Timeframe</label>
+              <select id="timeframe" name="timeframe" class="form-select">
+                <option value="6 months">6 months</option>
+                <option value="12 months" selected>12 months</option>
+                <option value="18 months">18 months</option>
+                <option value="2 years">2 years</option>
+                <option value="3 years">3 years</option>
+                <option value="5 years">5+ years</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="focusAreas" class="form-label">Areas of Focus</label>
+              <input type="text" id="focusAreas" name="focusAreas" class="form-input"
+                     placeholder="Technical skills, Leadership, Domain expertise, etc.">
+              <div class="form-help">What aspects would you like to prioritize? (comma-separated)</div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="generateBtn">
+              <i class="fas fa-map-marked-alt"></i>
+              Generate Career Roadmap
+            </button>
+            <button type="button" class="btn btn-outline" id="clearFormBtn">
+              <i class="fas fa-undo"></i>
+              Clear Form
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Results Section -->
+      <div id="resultsSection" class="results-section" style="display: none;">
+        <div class="results-header">
+          <h2 class="section-title">
+            <i class="fas fa-compass"></i>
+            Your Personalized Career Roadmap
+          </h2>
+          <div class="results-actions">
+            <button id="saveRoadmapBtn" class="btn btn-outline">
+              <i class="fas fa-save"></i>
+              Save Roadmap
+            </button>
+            <button id="exportRoadmapBtn" class="btn btn-outline">
+              <i class="fas fa-download"></i>
+              Export PDF
+            </button>
+            <button id="shareRoadmapBtn" class="btn btn-outline">
+              <i class="fas fa-share-alt"></i>
+              Share
+            </button>
+          </div>
+        </div>
+
+        <div id="roadmapContainer" class="roadmap-container">
+          <!-- Roadmap results will be populated here -->
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="loading-state" style="display: none;">
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+        </div>
+        <p>Creating your personalized career roadmap...</p>
+        <small>Analyzing market trends and skill requirements</small>
+      </div>
+
+      <!-- Success Stories -->
+      <div class="success-section">
+        <h2 class="section-title">
+          <i class="fas fa-trophy"></i>
+          Success Stories & Inspiration
+        </h2>
+        <div class="success-grid">
+          <div class="success-card">
+            <div class="success-icon">
+              <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="success-content">
+              <h3>Junior to Senior in 18 Months</h3>
+              <p>"Used AI-powered roadmaps to focus my learning. Went from junior developer to senior role with strategic skill development."</p>
+              <div class="success-skills">
+                <span class="skill-tag">React</span>
+                <span class="skill-tag">System Design</span>
+                <span class="skill-tag">Leadership</span>
+              </div>
+            </div>
+          </div>
+          <div class="success-card">
+            <div class="success-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="success-content">
+              <h3>Career Pivot Success</h3>
+              <p>"Transitioned from marketing to product management in 12 months. Roadmap helped identify transferable skills and gaps to fill."</p>
+              <div class="success-skills">
+                <span class="skill-tag">Analytics</span>
+                <span class="skill-tag">User Research</span>
+                <span class="skill-tag">Agile</span>
+              </div>
+            </div>
+          </div>
+          <div class="success-card">
+            <div class="success-icon">
+              <i class="fas fa-crown"></i>
+            </div>
+            <div class="success-content">
+              <h3>Leadership Advancement</h3>
+              <p>"Structured approach to developing leadership skills. Promoted to engineering manager within target timeline."</p>
+              <div class="success-skills">
+                <span class="skill-tag">Team Management</span>
+                <span class="skill-tag">Strategic Planning</span>
+                <span class="skill-tag">Communication</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Career Roadmap Styles */
+.roadmap-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.generator-section, .results-section, .success-section {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.section-title {
+  margin: 0 0 1.5rem 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.roadmap-form {
+  max-width: none;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Results Section */
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.results-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.roadmap-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Overview Section */
+.roadmap-overview {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.overview-item {
+  text-align: center;
+}
+
+.overview-item h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.overview-item p {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+/* Phase Timeline */
+.timeline-section {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.timeline-header {
+  background: #f9fafb;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.timeline-title {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeline-content {
+  padding: 2rem;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 3rem;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 1.5rem;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, #6366f1, #8b5cf6);
+  border-radius: 2px;
+}
+
+.timeline-phase {
+  position: relative;
+  margin-bottom: 3rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.timeline-phase:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-phase::before {
+  content: '';
+  position: absolute;
+  left: -2.75rem;
+  top: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: #6366f1;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #e5e7eb;
+}
+
+.phase-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.phase-title {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.phase-duration {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.phase-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.phase-section h4 {
+  margin: 0 0 0.75rem 0;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.phase-section ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #6b7280;
+}
+
+.phase-section ul li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.skill-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.skill-item:last-child {
+  border-bottom: none;
+}
+
+.skill-name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.skill-timeline {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Certifications & Resources */
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.recommendation-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  background: white;
+}
+
+.recommendation-header {
+  margin-bottom: 1rem;
+}
+
+.recommendation-title {
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.cert-item, .resource-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.cert-item:last-child, .resource-item:last-child {
+  margin-bottom: 0;
+}
+
+.cert-info, .resource-info {
+  flex: 1;
+}
+
+.cert-name, .resource-name {
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+}
+
+.cert-meta, .resource-meta {
+  color: #6b7280;
+  font-size: 0.875rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.cert-cost, .resource-type {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Budget Estimate */
+.budget-section {
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.budget-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.budget-item {
+  text-align: center;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.budget-amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.budget-label {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Success Stories */
+.success-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.success-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.success-card:hover {
+  border-color: #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.success-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #10b981, #047857);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.success-content h3 {
+  margin: 0 0 0.75rem 0;
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.success-content p {
+  margin: 0 0 1rem 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.success-skills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.skill-tag {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Loading State */
+.loading-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #6b7280;
+}
+
+.loading-spinner {
+  margin-bottom: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .results-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .results-actions {
+    justify-content: center;
+  }
+  
+  .overview-grid, .recommendations-grid, .success-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .timeline {
+    padding-left: 2rem;
+  }
+  
+  .timeline::before {
+    left: 1rem;
+  }
+  
+  .timeline-phase::before {
+    left: -1.75rem;
+  }
+  
+  .phase-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  
+  .phase-content {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('roadmapForm');
+  const generateBtn = document.getElementById('generateBtn');
+  const clearFormBtn = document.getElementById('clearFormBtn');
+  const loadingState = document.getElementById('loadingState');
+  const resultsSection = document.getElementById('resultsSection');
+  const roadmapContainer = document.getElementById('roadmapContainer');
+
+  // Form submission
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(form);
+    
+    if (!formData.get('targetRole').trim()) {
+      alert('Please enter a target role.');
+      return;
+    }
+    
+    // Show loading state
+    loadingState.style.display = 'block';
+    resultsSection.style.display = 'none';
+    generateBtn.disabled = true;
+    
+    try {
+      const response = await fetch('/career-roadmap/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resumeId: formData.get('resumeId') || null,
+          targetRole: formData.get('targetRole'),
+          industry: formData.get('industry'),
+          currentLevel: formData.get('currentLevel'),
+          timeframe: formData.get('timeframe'),
+          focusAreas: formData.get('focusAreas')
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        displayRoadmap(data.roadmap, data.metadata);
+      } else {
+        alert('Error generating roadmap: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to generate roadmap. Please try again.');
+    } finally {
+      loadingState.style.display = 'none';
+      generateBtn.disabled = false;
+    }
+  });
+
+  // Clear form
+  clearFormBtn.addEventListener('click', function() {
+    form.reset();
+    resultsSection.style.display = 'none';
+  });
+
+  function displayRoadmap(roadmap, metadata) {
+    let html = '';
+    
+    // Overview Section
+    if (roadmap.overview) {
+      html += createOverviewSection(roadmap.overview);
+    }
+    
+    // Timeline/Phases
+    if (roadmap.phases) {
+      html += createTimelineSection(roadmap.phases);
+    }
+    
+    // Recommended Certifications
+    if (roadmap.recommendedCertifications) {
+      html += createCertificationsSection(roadmap.recommendedCertifications);
+    }
+    
+    // Portfolio Projects
+    if (roadmap.portfolioProjects) {
+      html += createPortfolioSection(roadmap.portfolioProjects);
+    }
+    
+    // Budget Estimate
+    if (roadmap.budgetEstimate) {
+      html += createBudgetSection(roadmap.budgetEstimate);
+    }
+    
+    roadmapContainer.innerHTML = html;
+    resultsSection.style.display = 'block';
+    
+    // Scroll to results
+    resultsSection.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function createOverviewSection(overview) {
+    return `
+      <div class="roadmap-overview">
+        <h3>Career Transition Overview</h3>
+        <p>${overview.currentRole} → ${overview.targetRole}</p>
+        <div class="overview-grid">
+          <div class="overview-item">
+            <h4>Timeframe</h4>
+            <p>${overview.timeframe}</p>
+          </div>
+          <div class="overview-item">
+            <h4>Difficulty Level</h4>
+            <p>${overview.difficultyLevel}</p>
+          </div>
+          <div class="overview-item">
+            <h4>Success Probability</h4>
+            <p>${overview.successProbability}</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function createTimelineSection(phases) {
+    return `
+      <div class="timeline-section">
+        <div class="timeline-header">
+          <h3 class="timeline-title">
+            <i class="fas fa-road"></i>
+            Learning Timeline & Phases
+          </h3>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline">
+            ${Object.entries(phases).map(([phase, data]) => `
+              <div class="timeline-phase">
+                <div class="phase-header">
+                  <h4 class="phase-title">${data.title}</h4>
+                  <span class="phase-duration">${data.duration}</span>
+                </div>
+                <div class="phase-content">
+                  <div class="phase-section">
+                    <h4>Skills to Develop</h4>
+                    <ul>
+                      ${data.skills.map(skill => `
+                        <li class="skill-item">
+                          <span class="skill-name">${skill.skill}</span>
+                          <span class="skill-timeline">${skill.timeRequired}</span>
+                        </li>
+                      `).join('')}
+                    </ul>
+                  </div>
+                  <div class="phase-section">
+                    <h4>Key Activities</h4>
+                    <ul>
+                      ${data.keyActivities.map(activity => `<li>${activity}</li>`).join('')}
+                    </ul>
+                  </div>
+                  ${data.certifications && data.certifications.length > 0 ? `
+                    <div class="phase-section">
+                      <h4>Recommended Certifications</h4>
+                      <ul>
+                        ${data.certifications.map(cert => `<li>${cert}</li>`).join('')}
+                      </ul>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function createCertificationsSection(certifications) {
+    return `
+      <div class="timeline-section">
+        <div class="timeline-header">
+          <h3 class="timeline-title">
+            <i class="fas fa-certificate"></i>
+            Recommended Certifications
+          </h3>
+        </div>
+        <div class="timeline-content">
+          <div class="recommendations-grid">
+            ${certifications.map(cert => `
+              <div class="recommendation-card">
+                <div class="recommendation-header">
+                  <h4 class="recommendation-title">${cert.name}</h4>
+                </div>
+                <div class="cert-item">
+                  <div class="cert-info">
+                    <h5 class="cert-name">${cert.issuer}</h5>
+                    <div class="cert-meta">
+                      <span class="cert-cost">${cert.cost}</span>
+                      <span>${cert.estimatedTime}</span>
+                    </div>
+                    <p style="margin: 0.5rem 0 0 0; color: #6b7280; font-size: 0.875rem;">
+                      ${cert.relevance}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function createPortfolioSection(projects) {
+    return `
+      <div class="timeline-section">
+        <div class="timeline-header">
+          <h3 class="timeline-title">
+            <i class="fas fa-folder-open"></i>
+            Portfolio Projects
+          </h3>
+        </div>
+        <div class="timeline-content">
+          <div class="recommendations-grid">
+            ${projects.map(project => `
+              <div class="recommendation-card">
+                <div class="recommendation-header">
+                  <h4 class="recommendation-title">${project.project}</h4>
+                  <span class="phase-duration">${project.timeline}</span>
+                </div>
+                <div class="resource-item">
+                  <div class="resource-info">
+                    <div class="cert-meta">
+                      <span class="resource-type">${project.difficulty}</span>
+                      <span>${project.skills.join(', ')}</span>
+                    </div>
+                    <p style="margin: 0.5rem 0 0 0; color: #6b7280; font-size: 0.875rem;">
+                      ${project.impact}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function createBudgetSection(budget) {
+    return `
+      <div class="budget-section">
+        <h3 class="section-title">
+          <i class="fas fa-calculator"></i>
+          Estimated Investment
+        </h3>
+        <div class="budget-grid">
+          <div class="budget-item">
+            <div class="budget-amount">${budget.courses}</div>
+            <div class="budget-label">Courses</div>
+          </div>
+          <div class="budget-item">
+            <div class="budget-amount">${budget.certifications}</div>
+            <div class="budget-label">Certifications</div>
+          </div>
+          <div class="budget-item">
+            <div class="budget-amount">${budget.books}</div>
+            <div class="budget-label">Books & Resources</div>
+          </div>
+          <div class="budget-item">
+            <div class="budget-amount">${budget.total}</div>
+            <div class="budget-label">Total Investment</div>
+          </div>
+        </div>
+        <p style="text-align: center; margin-top: 1rem; color: #6b7280; font-size: 0.875rem;">
+          Monthly average: ${budget.monthlyAverage}
+        </p>
+      </div>
+    `;
+  }
+});
+</script>
+
+<%- include('../partials/footer') %>

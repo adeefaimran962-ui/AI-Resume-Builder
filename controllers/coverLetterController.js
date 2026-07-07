@@ -21,6 +21,12 @@ const ownsCoverLetter = async (req, res) => {
     res.redirect('/dashboard');
     return null;
   }
+  // Exclude soft-deleted letters from normal operations (except restore/permanent delete)
+  if (letter.isDeleted && !req.path.includes('/restore') && !req.path.includes('/permanent')) {
+    req.flash('error', 'Cover letter is in trash. Restore it first.');
+    res.redirect('/dashboard');
+    return null;
+  }
   return letter;
 };
 
@@ -212,18 +218,54 @@ exports.update = async (req, res) => {
   }
 };
 
-/** DELETE /cover-letter/:id */
+/** DELETE /cover-letter/:id (soft delete - move to trash) */
 exports.destroy = async (req, res) => {
   try {
     const letter = await ownsCoverLetter(req, res);
     if (!letter) return;
 
-    await CoverLetter.findByIdAndDelete(req.params.id);
-    req.flash('success', 'Cover letter deleted.');
+    letter.isDeleted = true;
+    letter.deletedAt = new Date();
+    await letter.save();
+    req.flash('success', 'Cover letter moved to trash.');
     res.redirect('/dashboard');
   } catch (err) {
     console.error('Delete Cover Letter Error:', err);
     req.flash('error', 'Could not delete cover letter.');
+    res.redirect('/dashboard');
+  }
+};
+
+/** POST /cover-letter/:id/restore (restore from trash) */
+exports.restore = async (req, res) => {
+  try {
+    const letter = await ownsCoverLetter(req, res);
+    if (!letter) return;
+
+    letter.isDeleted = false;
+    letter.deletedAt = null;
+    await letter.save();
+    req.flash('success', 'Cover letter restored.');
+    res.redirect('/dashboard');
+  } catch (err) {
+    console.error('Restore Cover Letter Error:', err);
+    req.flash('error', 'Could not restore cover letter.');
+    res.redirect('/dashboard');
+  }
+};
+
+/** DELETE /cover-letter/:id/permanent (permanent delete) */
+exports.destroyPermanent = async (req, res) => {
+  try {
+    const letter = await ownsCoverLetter(req, res);
+    if (!letter) return;
+
+    await CoverLetter.findByIdAndDelete(req.params.id);
+    req.flash('success', 'Cover letter permanently deleted.');
+    res.redirect('/dashboard');
+  } catch (err) {
+    console.error('Permanent Delete Cover Letter Error:', err);
+    req.flash('error', 'Could not permanently delete cover letter.');
     res.redirect('/dashboard');
   }
 };

@@ -1,0 +1,683 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-container">
+  <div class="dashboard-main">
+    <div class="job-detail-header">
+      <div class="job-title-section">
+        <h1 class="job-title">
+          <%= job.position %>
+          <span class="job-status status-<%= job.status.replace(/\s+/g, '-').toLowerCase() %>">
+            <%= job.status %>
+          </span>
+        </h1>
+        <div class="job-company">
+          <i class="fas fa-building"></i>
+          <%= job.company %>
+          <% if (job.location) { %>
+            <span class="job-location">
+              <i class="fas fa-map-marker-alt"></i>
+              <%= job.location %>
+            </span>
+          <% } %>
+        </div>
+        <div class="job-meta">
+          <span class="job-type"><%= job.jobType %></span>
+          <span class="job-priority priority-<%= job.priority.toLowerCase() %>">
+            <%= job.priority %> Priority
+          </span>
+          <% if (job.salary) { %>
+            <span class="job-salary">
+              <i class="fas fa-dollar-sign"></i>
+              <%= job.salary %>
+            </span>
+          <% } %>
+        </div>
+      </div>
+      <div class="job-actions">
+        <a href="/jobs/<%= job._id %>/edit" class="btn btn-primary">
+          <i class="fas fa-edit"></i>
+          Edit
+        </a>
+        <a href="/jobs" class="btn btn-outline">
+          <i class="fas fa-arrow-left"></i>
+          Back to Applications
+        </a>
+      </div>
+    </div>
+
+    <div class="job-detail-grid">
+      <!-- Application Timeline -->
+      <div class="timeline-section">
+        <h2 class="section-title">
+          <i class="fas fa-clock"></i>
+          Application Timeline
+        </h2>
+        <div class="timeline">
+          <div class="timeline-item active">
+            <div class="timeline-icon">
+              <i class="fas fa-paper-plane"></i>
+            </div>
+            <div class="timeline-content">
+              <h3>Application Submitted</h3>
+              <p><%= new Date(job.appliedDate).toLocaleDateString() %></p>
+            </div>
+          </div>
+          
+          <% if (['Under Review', 'Phone Screen', 'Technical Interview', 'On-site Interview', 'Final Interview', 'Offer', 'Rejected'].includes(job.status)) { %>
+          <div class="timeline-item active">
+            <div class="timeline-icon">
+              <i class="fas fa-search"></i>
+            </div>
+            <div class="timeline-content">
+              <h3>Under Review</h3>
+              <p>Application is being reviewed</p>
+            </div>
+          </div>
+          <% } %>
+          
+          <% if (['Phone Screen', 'Technical Interview', 'On-site Interview', 'Final Interview', 'Offer'].includes(job.status)) { %>
+          <div class="timeline-item active">
+            <div class="timeline-icon">
+              <i class="fas fa-phone"></i>
+            </div>
+            <div class="timeline-content">
+              <h3>Phone Screen</h3>
+              <% if (job.interviewDate && job.status === 'Phone Screen') { %>
+                <p><%= new Date(job.interviewDate).toLocaleString() %></p>
+              <% } else { %>
+                <p>Phone screening scheduled</p>
+              <% } %>
+            </div>
+          </div>
+          <% } %>
+          
+          <% if (['Technical Interview', 'On-site Interview', 'Final Interview', 'Offer'].includes(job.status)) { %>
+          <div class="timeline-item active">
+            <div class="timeline-icon">
+              <i class="fas fa-code"></i>
+            </div>
+            <div class="timeline-content">
+              <h3>Technical Interview</h3>
+              <% if (job.interviewDate && job.status === 'Technical Interview') { %>
+                <p><%= new Date(job.interviewDate).toLocaleString() %></p>
+              <% } else { %>
+                <p>Technical assessment completed</p>
+              <% } %>
+            </div>
+          </div>
+          <% } %>
+          
+          <% if (['On-site Interview', 'Final Interview', 'Offer'].includes(job.status)) { %>
+          <div class="timeline-item active">
+            <div class="timeline-icon">
+              <i class="fas fa-building"></i>
+            </div>
+            <div class="timeline-content">
+              <h3>On-site Interview</h3>
+              <% if (job.interviewDate && job.status === 'On-site Interview') { %>
+                <p><%= new Date(job.interviewDate).toLocaleString() %></p>
+              <% } else { %>
+                <p>On-site interview completed</p>
+              <% } %>
+            </div>
+          </div>
+          <% } %>
+          
+          <% if (['Final Interview', 'Offer'].includes(job.status)) { %>
+          <div class="timeline-item active">
+            <div class="timeline-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="timeline-content">
+              <h3>Final Interview</h3>
+              <% if (job.interviewDate && job.status === 'Final Interview') { %>
+                <p><%= new Date(job.interviewDate).toLocaleString() %></p>
+              <% } else { %>
+                <p>Final interview completed</p>
+              <% } %>
+            </div>
+          </div>
+          <% } %>
+          
+          <% if (job.status === 'Offer') { %>
+          <div class="timeline-item active">
+            <div class="timeline-icon">
+              <i class="fas fa-trophy"></i>
+            </div>
+            <div class="timeline-content">
+              <h3>Offer Received</h3>
+              <p>Congratulations! 🎉</p>
+            </div>
+          </div>
+          <% } else if (job.status === 'Rejected') { %>
+          <div class="timeline-item rejected">
+            <div class="timeline-icon">
+              <i class="fas fa-times"></i>
+            </div>
+            <div class="timeline-content">
+              <h3>Application Rejected</h3>
+              <p>Keep going, you've got this!</p>
+            </div>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Job Information -->
+      <div class="info-section">
+        <h2 class="section-title">
+          <i class="fas fa-info-circle"></i>
+          Job Information
+        </h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Company:</label>
+            <span><%= job.company %></span>
+          </div>
+          <div class="info-item">
+            <label>Position:</label>
+            <span><%= job.position %></span>
+          </div>
+          <div class="info-item">
+            <label>Location:</label>
+            <span><%= job.location || 'Not specified' %></span>
+          </div>
+          <div class="info-item">
+            <label>Job Type:</label>
+            <span><%= job.jobType %></span>
+          </div>
+          <% if (job.salary) { %>
+          <div class="info-item">
+            <label>Salary:</label>
+            <span><%= job.salary %></span>
+          </div>
+          <% } %>
+          <% if (job.jobUrl) { %>
+          <div class="info-item">
+            <label>Job Posting:</label>
+            <a href="<%= job.jobUrl %>" target="_blank" class="job-link">
+              View Original Posting <i class="fas fa-external-link-alt"></i>
+            </a>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Contact Information -->
+      <% if (job.contactPerson || job.contactEmail) { %>
+      <div class="contact-section">
+        <h2 class="section-title">
+          <i class="fas fa-address-book"></i>
+          Contact Information
+        </h2>
+        <div class="contact-info">
+          <% if (job.contactPerson) { %>
+          <div class="contact-item">
+            <i class="fas fa-user"></i>
+            <span><%= job.contactPerson %></span>
+          </div>
+          <% } %>
+          <% if (job.contactEmail) { %>
+          <div class="contact-item">
+            <i class="fas fa-envelope"></i>
+            <a href="mailto:<%= job.contactEmail %>"><%= job.contactEmail %></a>
+          </div>
+          <% } %>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- Important Dates -->
+      <div class="dates-section">
+        <h2 class="section-title">
+          <i class="fas fa-calendar"></i>
+          Important Dates
+        </h2>
+        <div class="dates-info">
+          <div class="date-item">
+            <label>Applied:</label>
+            <span><%= new Date(job.appliedDate).toLocaleDateString() %></span>
+          </div>
+          <% if (job.interviewDate) { %>
+          <div class="date-item">
+            <label>Interview:</label>
+            <span><%= new Date(job.interviewDate).toLocaleString() %></span>
+          </div>
+          <% } %>
+          <% if (job.followUpDate) { %>
+          <div class="date-item">
+            <label>Follow-up:</label>
+            <span><%= new Date(job.followUpDate).toLocaleDateString() %></span>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Linked Documents -->
+      <% if (job.resume || job.coverLetter) { %>
+      <div class="documents-section">
+        <h2 class="section-title">
+          <i class="fas fa-paperclip"></i>
+          Linked Documents
+        </h2>
+        <div class="documents-list">
+          <% if (job.resume) { %>
+          <div class="document-item">
+            <i class="fas fa-file-alt"></i>
+            <div class="document-info">
+              <h4><%= job.resume.title %></h4>
+              <p>Resume</p>
+            </div>
+            <a href="/resume/<%= job.resume._id %>/preview" class="btn btn-outline btn-small">
+              View Resume
+            </a>
+          </div>
+          <% } %>
+          <% if (job.coverLetter) { %>
+          <div class="document-item">
+            <i class="fas fa-file-text"></i>
+            <div class="document-info">
+              <h4><%= job.coverLetter.title %></h4>
+              <p>Cover Letter</p>
+            </div>
+            <a href="/cover-letter/<%= job.coverLetter._id %>/preview" class="btn btn-outline btn-small">
+              View Cover Letter
+            </a>
+          </div>
+          <% } %>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- Notes -->
+      <% if (job.notes) { %>
+      <div class="notes-section full-width">
+        <h2 class="section-title">
+          <i class="fas fa-sticky-note"></i>
+          Notes
+        </h2>
+        <div class="notes-content">
+          <p><%= job.notes %></p>
+        </div>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h2 class="section-title">Quick Actions</h2>
+      <div class="action-buttons">
+        <a href="/jobs/<%= job._id %>/edit" class="btn btn-primary">
+          <i class="fas fa-edit"></i>
+          Edit Application
+        </a>
+        <% if (job.jobUrl) { %>
+        <a href="<%= job.jobUrl %>" target="_blank" class="btn btn-outline">
+          <i class="fas fa-external-link-alt"></i>
+          View Job Posting
+        </a>
+        <% } %>
+        <% if (job.contactEmail) { %>
+        <a href="mailto:<%= job.contactEmail %>?subject=Following up on <%= job.position %> application" 
+           class="btn btn-outline">
+          <i class="fas fa-envelope"></i>
+          Send Follow-up Email
+        </a>
+        <% } %>
+        <form method="POST" action="/jobs/<%= job._id %>?_method=DELETE" style="display:inline;" 
+              onsubmit="return confirm('Are you sure you want to delete this job application?')">
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash"></i>
+            Delete Application
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Job Detail Styles */
+.job-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 2rem;
+}
+
+.job-title {
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+  font-size: 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.job-company {
+  margin: 0 0 1rem 0;
+  color: #6366f1;
+  font-size: 1.1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.job-location {
+  color: #6b7280;
+}
+
+.job-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.job-type, .job-salary {
+  background: #f3f4f6;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.job-status {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.job-priority {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.job-actions {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.job-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.timeline-section, .info-section, .contact-section, .dates-section, .documents-section, .notes-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.notes-section.full-width {
+  grid-column: 1 / -1;
+}
+
+.section-title {
+  margin: 0 0 1.5rem 0;
+  color: #1f2937;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Timeline Styles */
+.timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #e5e7eb;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-icon {
+  position: absolute;
+  left: -2rem;
+  width: 2rem;
+  height: 2rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.timeline-item.active .timeline-icon {
+  border-color: #10b981;
+  background: #10b981;
+  color: white;
+}
+
+.timeline-item.rejected .timeline-icon {
+  border-color: #ef4444;
+  background: #ef4444;
+  color: white;
+}
+
+.timeline-content h3 {
+  margin: 0 0 0.25rem 0;
+  color: #1f2937;
+  font-size: 1rem;
+}
+
+.timeline-content p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Info Grid */
+.info-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item label {
+  font-weight: 500;
+  color: #374151;
+  min-width: 100px;
+}
+
+.info-item span {
+  color: #6b7280;
+  text-align: right;
+  flex: 1;
+}
+
+.job-link {
+  color: #6366f1;
+  text-decoration: none;
+}
+
+.job-link:hover {
+  text-decoration: underline;
+}
+
+/* Contact Info */
+.contact-info, .dates-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.contact-item, .date-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.contact-item i, .date-item label {
+  min-width: 80px;
+  color: #6b7280;
+}
+
+.contact-item a {
+  color: #6366f1;
+  text-decoration: none;
+}
+
+.contact-item a:hover {
+  text-decoration: underline;
+}
+
+/* Documents */
+.documents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.document-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #f3f4f6;
+}
+
+.document-item i {
+  font-size: 1.5rem;
+  color: #6366f1;
+}
+
+.document-info {
+  flex: 1;
+}
+
+.document-info h4 {
+  margin: 0 0 0.25rem 0;
+  color: #1f2937;
+}
+
+.document-info p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Notes */
+.notes-content {
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #f3f4f6;
+}
+
+.notes-content p {
+  margin: 0;
+  color: #374151;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* Quick Actions */
+.quick-actions {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Status and Priority Colors */
+.status-applied { background: #dbeafe; color: #1d4ed8; }
+.status-under-review { background: #fef3c7; color: #d97706; }
+.status-phone-screen { background: #e0e7ff; color: #5b21b6; }
+.status-technical-interview { background: #f3e8ff; color: #7c3aed; }
+.status-on-site-interview { background: #fce7f3; color: #be185d; }
+.status-final-interview { background: #ecfdf5; color: #059669; }
+.status-offer { background: #d1fae5; color: #047857; }
+.status-rejected { background: #fee2e2; color: #dc2626; }
+.status-withdrawn { background: #f3f4f6; color: #6b7280; }
+
+.priority-high { background: #fee2e2; color: #dc2626; }
+.priority-medium { background: #fef3c7; color: #d97706; }
+.priority-low { background: #d1fae5; color: #059669; }
+
+@media (max-width: 768px) {
+  .job-detail-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .job-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .job-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .job-actions, .action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .info-item span {
+    text-align: left;
+  }
+}
+</style>
+
+<%- include('../partials/footer') %>

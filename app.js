@@ -46,6 +46,11 @@ const authRouter         = require('./routes/auth');
 const dashboardRouter    = require('./routes/dashboard');
 const resumeRouter       = require('./routes/resume');
 const coverLetterRouter  = require('./routes/coverLetter');
+const jobsRouter         = require('./routes/jobs');
+const certificatesRouter = require('./routes/certificates');
+const interviewRouter    = require('./routes/interview');
+const skillGapRouter     = require('./routes/skillGap');
+const careerRouter       = require('./routes/career');
 
 connectDB();
 
@@ -54,9 +59,18 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-app.use(express.static(path.join(__dirname, 'public')));
-// Serve uploaded profile photos
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+// ── STATIC FILES WITH CACHE HEADERS ─────────────────────────────────────
+// Main static files (CSS, JS, etc.)
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: process.env.NODE_ENV === 'production' ? '1d' : '0'
+}));
+
+// Uploaded files with cache-busting and longer cache for photos
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), {
+  maxAge: process.env.NODE_ENV === 'production' ? '7d' : '0',
+  etag: true,
+  lastModified: true
+}));
 
 // ── BODY PARSERS ─────────────────────────────────────────────────────────
 // CRITICAL FIX: extended: false preserves flat bracket-notation keys.
@@ -86,11 +100,16 @@ app.use(flash());
 app.use(setLocals);
 
 // ── ROUTES ───────────────────────────────────────────────────────────────
-app.use('/',          indexRouter);
-app.use('/auth',      authRouter);
-app.use('/dashboard', dashboardRouter);
-app.use('/resume',    resumeRouter);
+app.use('/',             indexRouter);
+app.use('/auth',         authRouter);
+app.use('/dashboard',    dashboardRouter);
+app.use('/resume',       resumeRouter);
 app.use('/cover-letter', coverLetterRouter);
+app.use('/jobs',         jobsRouter);
+app.use('/certificates', certificatesRouter);
+app.use('/interview',    interviewRouter);
+app.use('/skill-gap',    skillGapRouter);
+app.use('/career-roadmap', careerRouter);
 
 // ── 404 ──────────────────────────────────────────────────────────────────
 app.use((req, res) => {

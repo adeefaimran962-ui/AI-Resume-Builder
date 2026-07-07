@@ -1,0 +1,495 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-container">
+  <div class="dashboard-main">
+    <div class="dashboard-header">
+      <div class="dashboard-title-section">
+        <h1 class="dashboard-title">
+          <i class="fas fa-briefcase"></i>
+          Job Applications
+        </h1>
+        <p class="dashboard-subtitle">Track your job applications and interview progress</p>
+      </div>
+      <div class="dashboard-actions">
+        <a href="/jobs/new" class="btn btn-primary">
+          <i class="fas fa-plus"></i>
+          Add Application
+        </a>
+      </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-paper-plane"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number"><%= stats.total %></div>
+          <div class="stat-label">Total Applications</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number"><%= stats.applied %></div>
+          <div class="stat-label">Under Review</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-video"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number"><%= stats.interviews %></div>
+          <div class="stat-label">Interviews</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-trophy"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number"><%= stats.offers %></div>
+          <div class="stat-label">Offers</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming Interviews -->
+    <% if (upcomingInterviews.length > 0) { %>
+    <div class="upcoming-interviews">
+      <h2><i class="fas fa-calendar-check"></i> Upcoming Interviews</h2>
+      <div class="interview-list">
+        <% upcomingInterviews.forEach(function(job) { %>
+        <div class="interview-item">
+          <div class="interview-info">
+            <h3><%= job.position %> at <%= job.company %></h3>
+            <p><i class="fas fa-calendar"></i> <%= new Date(job.interviewDate).toLocaleDateString() %></p>
+          </div>
+          <div class="interview-actions">
+            <a href="/jobs/<%= job._id %>" class="btn btn-outline">View</a>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Filters and Search -->
+    <div class="filter-section">
+      <form method="GET" class="filter-form">
+        <div class="filter-group">
+          <input type="text" name="search" placeholder="Search companies or positions..." 
+                 value="<%= filters.search %>" class="search-input">
+        </div>
+        <div class="filter-group">
+          <select name="status" class="filter-select">
+            <option value="">All Statuses</option>
+            <option value="Applied" <%= filters.status === 'Applied' ? 'selected' : '' %>>Applied</option>
+            <option value="Under Review" <%= filters.status === 'Under Review' ? 'selected' : '' %>>Under Review</option>
+            <option value="Phone Screen" <%= filters.status === 'Phone Screen' ? 'selected' : '' %>>Phone Screen</option>
+            <option value="Technical Interview" <%= filters.status === 'Technical Interview' ? 'selected' : '' %>>Technical Interview</option>
+            <option value="On-site Interview" <%= filters.status === 'On-site Interview' ? 'selected' : '' %>>On-site Interview</option>
+            <option value="Final Interview" <%= filters.status === 'Final Interview' ? 'selected' : '' %>>Final Interview</option>
+            <option value="Offer" <%= filters.status === 'Offer' ? 'selected' : '' %>>Offer</option>
+            <option value="Rejected" <%= filters.status === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <select name="sort" class="filter-select">
+            <option value="newest" <%= filters.sort === 'newest' ? 'selected' : '' %>>Newest First</option>
+            <option value="oldest" <%= filters.sort === 'oldest' ? 'selected' : '' %>>Oldest First</option>
+            <option value="company" <%= filters.sort === 'company' ? 'selected' : '' %>>Company A-Z</option>
+            <option value="position" <%= filters.sort === 'position' ? 'selected' : '' %>>Position A-Z</option>
+            <option value="status" <%= filters.sort === 'status' ? 'selected' : '' %>>By Status</option>
+            <option value="interview" <%= filters.sort === 'interview' ? 'selected' : '' %>>Interview Date</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-outline">
+          <i class="fas fa-search"></i>
+          Filter
+        </button>
+        <a href="/jobs" class="btn btn-ghost">Clear</a>
+      </form>
+    </div>
+
+    <!-- Job Applications Grid -->
+    <div class="jobs-grid">
+      <% if (jobs.length === 0) { %>
+      <div class="empty-state">
+        <i class="fas fa-briefcase"></i>
+        <h3>No job applications yet</h3>
+        <p>Start tracking your job applications to monitor your progress and stay organized.</p>
+        <a href="/jobs/new" class="btn btn-primary">Add Your First Application</a>
+      </div>
+      <% } else { %>
+        <% jobs.forEach(function(job) { %>
+        <div class="job-card">
+          <div class="job-header">
+            <div class="job-info">
+              <h3 class="job-title"><%= job.position %></h3>
+              <p class="job-company"><%= job.company %></p>
+              <p class="job-location">
+                <% if (job.location) { %>
+                  <i class="fas fa-map-marker-alt"></i> <%= job.location %>
+                <% } %>
+              </p>
+            </div>
+            <div class="job-priority priority-<%= job.priority.toLowerCase() %>">
+              <%= job.priority %>
+            </div>
+          </div>
+          
+          <div class="job-meta">
+            <div class="job-status status-<%= job.status.replace(/\s+/g, '-').toLowerCase() %>">
+              <%= job.status %>
+            </div>
+            <div class="job-dates">
+              <p><i class="fas fa-calendar-plus"></i> Applied: <%= new Date(job.appliedDate).toLocaleDateString() %></p>
+              <% if (job.interviewDate) { %>
+              <p><i class="fas fa-video"></i> Interview: <%= new Date(job.interviewDate).toLocaleDateString() %></p>
+              <% } %>
+            </div>
+          </div>
+
+          <% if (job.notes) { %>
+          <div class="job-notes">
+            <p><%= job.notes.substring(0, 100) %><%= job.notes.length > 100 ? '...' : '' %></p>
+          </div>
+          <% } %>
+
+          <div class="job-actions">
+            <a href="/jobs/<%= job._id %>" class="btn btn-outline btn-small">
+              <i class="fas fa-eye"></i> View
+            </a>
+            <a href="/jobs/<%= job._id %>/edit" class="btn btn-outline btn-small">
+              <i class="fas fa-edit"></i> Edit
+            </a>
+            <form method="POST" action="/jobs/<%= job._id %>?_method=DELETE" style="display:inline;" 
+                  onsubmit="return confirm('Delete this job application?')">
+              <button type="submit" class="btn btn-danger btn-small">
+                <i class="fas fa-trash"></i> Delete
+              </button>
+            </form>
+          </div>
+        </div>
+        <% }); %>
+      <% } %>
+    </div>
+
+    <!-- Pagination -->
+    <% if (pagination.totalPages > 1) { %>
+    <div class="pagination-wrapper">
+      <div class="pagination">
+        <% if (pagination.hasPrev) { %>
+        <a href="?page=<%= pagination.page - 1 %>&search=<%= filters.search %>&status=<%= filters.status %>&sort=<%= filters.sort %>" 
+           class="pagination-link">
+          <i class="fas fa-chevron-left"></i> Previous
+        </a>
+        <% } %>
+
+        <span class="pagination-info">
+          Page <%= pagination.page %> of <%= pagination.totalPages %> 
+          (<%= pagination.totalCount %> total)
+        </span>
+
+        <% if (pagination.hasNext) { %>
+        <a href="?page=<%= pagination.page + 1 %>&search=<%= filters.search %>&status=<%= filters.status %>&sort=<%= filters.sort %>" 
+           class="pagination-link">
+          Next <i class="fas fa-chevron-right"></i>
+        </a>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<style>
+/* Job Applications Styles */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1f2937;
+}
+
+.stat-label {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.upcoming-interviews {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 2rem;
+}
+
+.upcoming-interviews h2 {
+  margin: 0 0 1rem 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+}
+
+.interview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.interview-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  border-left: 4px solid #10b981;
+}
+
+.interview-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+}
+
+.interview-info p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.filter-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 2rem;
+}
+
+.filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.search-input, .filter-select {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  min-width: 200px;
+}
+
+.jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.job-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.job-card:hover {
+  border-color: #6366f1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.job-title {
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+  font-size: 1.1rem;
+}
+
+.job-company {
+  margin: 0 0 0.25rem 0;
+  color: #6366f1;
+  font-weight: 500;
+}
+
+.job-location {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.job-priority {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.priority-high { background: #fee2e2; color: #dc2626; }
+.priority-medium { background: #fef3c7; color: #d97706; }
+.priority-low { background: #d1fae5; color: #059669; }
+
+.job-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-applied { background: #dbeafe; color: #1d4ed8; }
+.status-under-review { background: #fef3c7; color: #d97706; }
+.status-phone-screen { background: #e0e7ff; color: #5b21b6; }
+.status-technical-interview { background: #f3e8ff; color: #7c3aed; }
+.status-on-site-interview { background: #fce7f3; color: #be185d; }
+.status-final-interview { background: #ecfdf5; color: #059669; }
+.status-offer { background: #d1fae5; color: #047857; }
+.status-rejected { background: #fee2e2; color: #dc2626; }
+
+.job-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.job-dates p {
+  margin: 0 0 0.25rem 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.job-notes {
+  margin-bottom: 1rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.job-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-small {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #6b7280;
+}
+
+.empty-state i {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+}
+
+.pagination-wrapper {
+  margin-top: 2rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.pagination-link {
+  color: #6366f1;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.pagination-link:hover {
+  text-decoration: underline;
+}
+
+.pagination-info {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .jobs-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .filter-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-input, .filter-select {
+    min-width: unset;
+  }
+}
+</style>
+
+<%- include('../partials/footer') %>

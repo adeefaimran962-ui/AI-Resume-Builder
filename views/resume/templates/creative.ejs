@@ -1,5 +1,11 @@
 <div class="resume-preview-wrapper tpl-creative">
   <div class="tpl-cr-sidebar">
+    <% if (resume.personalInfo.photo) { %>
+      <div class="tpl-cr-photo" style="text-align:center;margin-bottom:20px;">
+        <img src="<%= resume.personalInfo.photo %>" alt="Profile Photo" 
+             style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid #F59E0B;">
+      </div>
+    <% } %>
     <div class="tpl-cr-name-box">
       <h1 class="tpl-cr-name"><%= pi.fullName || resume.title %></h1>
       <% if (pi.jobTitle) { %><h2 class="tpl-cr-role"><%= pi.jobTitle %></h2><% } %>
