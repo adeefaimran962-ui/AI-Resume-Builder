@@ -98,11 +98,14 @@ ${skillsContext}
 Experience Level: ${experienceLevel || 'Mid-level'}
 Question Categories: ${questionCategories.join(', ')}
 
-Please generate 5-7 questions for each requested category. For each question, provide:
+Please generate at least 10 to 12 interview questions in total. If only one category is selected, generate all 10+ questions within that category. If multiple categories are selected, distribute them evenly.
+For each question, provide:
 1. The question itself
 2. Key points the interviewer is looking for
 3. A sample strong answer approach (not a full answer, but guidance)
 4. Common mistakes to avoid
+5. Difficulty level ("Easy", "Medium", "Hard")
+6. Estimated time to answer (e.g. "2-3 mins", "4-5 mins")
 
 Format the response as JSON with this structure:
 {
@@ -111,7 +114,9 @@ Format the response as JSON with this structure:
       "question": "Question here",
       "lookingFor": ["point 1", "point 2", "point 3"],
       "approachTips": "How to approach this question...",
-      "avoidMistakes": ["mistake 1", "mistake 2"]
+      "avoidMistakes": ["mistake 1", "mistake 2"],
+      "difficulty": "Medium",
+      "time": "3-4 mins"
     }
   ],
   "behavioral": [...],
@@ -163,12 +168,14 @@ function extractQuestionsFromText(text, categories) {
     let match;
     let count = 0;
     
-    while ((match = questionRegex.exec(text)) && count < 5) {
+    while ((match = questionRegex.exec(text)) && count < 15) {
       questions[category].push({
         question: match[1].trim(),
         lookingFor: ['Relevant experience', 'Problem-solving skills', 'Technical knowledge'],
         approachTips: 'Structure your answer with specific examples and clear outcomes.',
         avoidMistakes: ['Being too vague', 'Not providing concrete examples'],
+        difficulty: 'Medium',
+        time: '3 mins'
       });
       count++;
     }
@@ -191,13 +198,33 @@ function getDefaultQuestions(category) {
         lookingFor: ['Systematic approach', 'Problem breakdown', 'Testing methodology'],
         approachTips: 'Describe your step-by-step process with a specific example.',
         avoidMistakes: ['Being too theoretical', 'Not mentioning testing or validation'],
+        difficulty: 'Medium',
+        time: '3 mins'
       },
       {
         question: 'Tell me about a challenging bug you fixed recently.',
         lookingFor: ['Debugging skills', 'Persistence', 'Learning from issues'],
         approachTips: 'Walk through your debugging process and what you learned.',
         avoidMistakes: ['Blaming others', 'Not explaining the resolution clearly'],
+        difficulty: 'Medium',
+        time: '3 mins'
       },
+      {
+        question: 'How do you keep up-to-date with the latest technologies in your field?',
+        lookingFor: ['Proactive learning', 'Industry publications', 'Side projects or courses'],
+        approachTips: 'Mention specific tech blogs, newsletters, books, or online learning platforms you use.',
+        avoidMistakes: ['Saying you do not have time to learn', 'Giving generic answers without examples'],
+        difficulty: 'Easy',
+        time: '2 mins'
+      },
+      {
+        question: 'Explain the difference between monolith and microservices architecture.',
+        lookingFor: ['Architectural patterns', 'Scalability concepts', 'Trade-offs between complexity and speed'],
+        approachTips: 'Explain the definitions first, then compare their advantages and disadvantages.',
+        avoidMistakes: ['Only favoring microservices without acknowledging complexity', 'Being too brief'],
+        difficulty: 'Hard',
+        time: '4 mins'
+      }
     ],
     behavioral: [
       {
@@ -205,13 +232,33 @@ function getDefaultQuestions(category) {
         lookingFor: ['Communication skills', 'Conflict resolution', 'Team collaboration'],
         approachTips: 'Use the STAR method (Situation, Task, Action, Result).',
         avoidMistakes: ['Speaking negatively about others', 'Not showing what you learned'],
+        difficulty: 'Medium',
+        time: '3 mins'
       },
       {
         question: 'Tell me about a time when you failed and how you handled it.',
         lookingFor: ['Self-awareness', 'Learning mindset', 'Resilience'],
         approachTips: 'Choose a real failure and focus on the lessons learned.',
         avoidMistakes: ['Choosing a fake weakness', 'Not showing growth from the experience'],
+        difficulty: 'Hard',
+        time: '4 mins'
       },
+      {
+        question: 'Describe a situation where you had to meet a tight deadline under pressure.',
+        lookingFor: ['Prioritization skills', 'Time management', 'Maintaining quality under stress'],
+        approachTips: 'Detail the strategies you used to stay organized and deliver on time.',
+        avoidMistakes: ['Admitting you missed the deadline without a good explanation', 'Focusing too much on the stress rather than the solution'],
+        difficulty: 'Medium',
+        time: '3 mins'
+      },
+      {
+        question: 'How do you handle disagreement with your manager or team lead?',
+        lookingFor: ['Professionalism', 'Constructive communication', 'Conflict management'],
+        approachTips: 'Emphasize that you discuss things calmly, provide evidence/data, and respect their final decision.',
+        avoidMistakes: ['Saying you never disagree', 'Saying you go behind their back'],
+        difficulty: 'Medium',
+        time: '3 mins'
+      }
     ],
     hr: [
       {
@@ -219,14 +266,34 @@ function getDefaultQuestions(category) {
         lookingFor: ['Company research', 'Role alignment', 'Career goals'],
         approachTips: 'Connect your skills and interests to the specific role and company.',
         avoidMistakes: ['Generic answers', 'Only focusing on what you want to get'],
+        difficulty: 'Easy',
+        time: '2 mins'
       },
       {
         question: 'Where do you see yourself in 5 years?',
         lookingFor: ['Career ambition', 'Growth mindset', 'Realistic goals'],
         approachTips: 'Show ambition while demonstrating commitment to growing with the company.',
         avoidMistakes: ['Saying you want their job', 'Being too vague or unrealistic'],
+        difficulty: 'Easy',
+        time: '2 mins'
       },
-    ],
+      {
+        question: 'What is your greatest professional accomplishment?',
+        lookingFor: ['Impact and results', 'Skills utilized', 'Work ethic'],
+        approachTips: 'Pick an accomplishment with clear metrics or tangible results.',
+        avoidMistakes: ['Being too modest', 'Taking credit for others\' work'],
+        difficulty: 'Medium',
+        time: '3 mins'
+      },
+      {
+        question: 'Why should we hire you over other candidates?',
+        lookingFor: ['Unique value proposition', 'Confidence', 'Alignment with team culture'],
+        approachTips: 'Summarize your core strengths, experience, and enthusiasm for the position.',
+        avoidMistakes: ['Sounding arrogant', 'Being generic or saying "I do not know"'],
+        difficulty: 'Hard',
+        time: '3 mins'
+      }
+    ]
   };
   
   return defaults[category] || [];

@@ -1,11 +1,12 @@
 /**
  * controllers/jobController.js
- * Job Application Tracker Controller
+ * Job Application Tracker Controller - Full Featured
  */
 'use strict';
 
 const Job = require('../models/Job');
 
+/* ── ownership guard ── */
 const ownsJob = async (req, res) => {
   const job = await Job.findById(req.params.id).lean();
   if (!job) {
@@ -21,27 +22,94 @@ const ownsJob = async (req, res) => {
   return job;
 };
 
+/* ── GET /jobs ── */
 exports.index = async (req, res) => {
   try {
-    const jobs = await Job.find({ user: req.session.userId })
-      .sort({ appliedDate: -1 })
-      .lean();
-    
-    // Calculate statistics
-    const stats = {
-      total: jobs.length,
-      applied: jobs.filter(j => j.status === 'Applied').length,
-      interview: jobs.filter(j => j.status === 'Interview').length,
-      offer: jobs.filter(j => j.status === 'Offer').length,
-      rejected: jobs.filter(j => j.status === 'Rejected').length,
+    const page  = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = 12;
+    const skip  = (page - 1) * limit;
+
+    const baseQuery = { user: req.session.userId };
+
+    // Search filter
+    if (req.query.search) {
+      baseQuery.$or = [
+        { company:  { $regex: req.query.search, $options: 'i' } },
+        { position: { $regex: req.query.search, $options: 'i' } },
+        { location: { $regex: req.query.search, $options: 'i' } },
+      ];
+    }
+
+    // Status filter
+    if (req.query.status) baseQuery.status = req.query.status;
+
+    // Priority filter
+    if (req.query.priority) baseQuery.priority = req.query.priority;
+
+    // Sort
+    const sortMap = {
+      newest:    { createdAt: -1 },
+      oldest:    { createdAt:  1 },
+      company:   { company:    1 },
+      position:  { position:   1 },
+      status:    { status:     1 },
+      interview: { interviewDate: 1 },
+      deadline:  { deadline:   1 },
     };
-    
-    // Upcoming interviews (jobs with status 'Interview' and interviewDate in future)
-    const upcomingInterviews = jobs.filter(j => 
-      j.status === 'Interview' && j.interviewDate && new Date(j.interviewDate) >= new Date()
-    ).sort((a, b) => new Date(a.interviewDate) - new Date(b.interviewDate));
-    
-    res.render('jobs/index', { title: 'Job Tracker', jobs, stats, upcomingInterviews });
+    const sortQuery = sortMap[req.query.sort] || { createdAt: -1 };
+
+    const [jobs, totalCount] = await Promise.all([
+      Job.find(baseQuery).sort(sortQuery).skip(skip).limit(limit).lean(),
+      Job.countDocuments(baseQuery),
+    ]);
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Stats (always on all jobs, ignoring filters)
+    const allJobs = await Job.find({ user: req.session.userId }).lean();
+    const stats = {
+      total:      allJobs.length,
+      wishlist:   allJobs.filter(j => j.status === 'Wishlist').length,
+      applied:    allJobs.filter(j => j.status === 'Applied').length,
+      assessment: allJobs.filter(j => j.status === 'Assessment').length,
+      interview:  allJobs.filter(j => j.status === 'Interview').length,
+      offer:      allJobs.filter(j => j.status === 'Offer').length,
+      rejected:   allJobs.filter(j => j.status === 'Rejected').length,
+    };
+
+    // Upcoming interviews
+    const now = new Date();
+    const upcomingInterviews = allJobs
+      .filter(j => j.status === 'Interview' && j.interviewDate && new Date(j.interviewDate) >= now)
+      .sort((a, b) => new Date(a.interviewDate) - new Date(b.interviewDate))
+      .slice(0, 5);
+
+    // Upcoming deadlines
+    const upcomingDeadlines = allJobs
+      .filter(j => j.deadline && new Date(j.deadline) >= now && j.status !== 'Rejected' && j.status !== 'Withdrawn')
+      .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+      .slice(0, 5);
+
+    res.render('jobs/index', {
+      title: 'Job Tracker – ResumeAI',
+      jobs,
+      stats,
+      upcomingInterviews,
+      upcomingDeadlines,
+      pagination: {
+        page,
+        totalPages,
+        hasNext:    page < totalPages,
+        hasPrev:    page > 1,
+        totalCount,
+      },
+      filters: {
+        search:   req.query.search   || '',
+        status:   req.query.status   || '',
+        priority: req.query.priority || '',
+        sort:     req.query.sort     || 'newest',
+      },
+    });
   } catch (err) {
     console.error('Job Index Error:', err);
     req.flash('error', 'Could not load job applications.');
@@ -49,29 +117,42 @@ exports.index = async (req, res) => {
   }
 };
 
-exports.showCreateForm = async (req, res) => {
-  try {
-    res.render('jobs/form', { title: 'Add Job Application', job: null });
-  } catch (err) {
-    console.error('Job Create Form Error:', err);
-    req.flash('error', 'Could not load form.');
-    res.redirect('/jobs');
-  }
+/* ── GET /jobs/new ── */
+exports.showCreateForm = (req, res) => {
+  res.render('jobs/form', { title: 'Add Job Application', job: null, errors: [] });
 };
 
+/* ── POST /jobs ── */
 exports.create = async (req, res) => {
   try {
-    const jobData = {
-      user: req.session.userId,
-      company: req.body.company,
-      position: req.body.position,
-      status: req.body.status || 'Applied',
-      appliedDate: req.body.appliedDate || new Date(),
-      interviewDate: req.body.interviewDate || null,
-      notes: req.body.notes || '',
-    };
-    
-    await Job.create(jobData);
+    const {
+      company, position, status, priority, location, salary,
+      applicationUrl, appliedDate, deadline, interviewDate,
+      notes, contactPerson, contactEmail,
+    } = req.body;
+
+    if (!company || !position) {
+      req.flash('error', 'Company and position are required.');
+      return res.redirect('/jobs/new');
+    }
+
+    await Job.create({
+      user:           req.session.userId,
+      company:        (company   || '').trim(),
+      position:       (position  || '').trim(),
+      status:         status     || 'Applied',
+      priority:       priority   || 'Medium',
+      location:       (location  || '').trim(),
+      salary:         (salary    || '').trim(),
+      applicationUrl: (applicationUrl || '').trim(),
+      appliedDate:    appliedDate    ? new Date(appliedDate)    : new Date(),
+      deadline:       deadline       ? new Date(deadline)       : undefined,
+      interviewDate:  interviewDate  ? new Date(interviewDate)  : undefined,
+      notes:          (notes         || '').trim(),
+      contactPerson:  (contactPerson || '').trim(),
+      contactEmail:   (contactEmail  || '').trim(),
+    });
+
     req.flash('success', 'Job application added successfully!');
     res.redirect('/jobs');
   } catch (err) {
@@ -81,12 +162,12 @@ exports.create = async (req, res) => {
   }
 };
 
+/* ── GET /jobs/:id ── */
 exports.show = async (req, res) => {
   try {
     const job = await ownsJob(req, res);
     if (!job) return;
-    
-    res.render('jobs/show', { title: job.company + ' - ' + job.position, job });
+    res.render('jobs/show', { title: `${job.company} – ${job.position}`, job });
   } catch (err) {
     console.error('Job Show Error:', err);
     req.flash('error', 'Could not load job application.');
@@ -94,12 +175,12 @@ exports.show = async (req, res) => {
   }
 };
 
+/* ── GET /jobs/:id/edit ── */
 exports.showEditForm = async (req, res) => {
   try {
     const job = await ownsJob(req, res);
     if (!job) return;
-    
-    res.render('jobs/form', { title: 'Edit Job Application', job });
+    res.render('jobs/form', { title: 'Edit Job Application', job, errors: [] });
   } catch (err) {
     console.error('Job Edit Form Error:', err);
     req.flash('error', 'Could not load form.');
@@ -107,6 +188,7 @@ exports.showEditForm = async (req, res) => {
   }
 };
 
+/* ── PUT /jobs/:id ── */
 exports.update = async (req, res) => {
   try {
     const job = await Job.findOne({ _id: req.params.id, user: req.session.userId });
@@ -114,29 +196,42 @@ exports.update = async (req, res) => {
       req.flash('error', 'Job application not found.');
       return res.redirect('/jobs');
     }
-    
-    job.company = req.body.company;
-    job.position = req.body.position;
-    job.status = req.body.status || 'Applied';
-    job.appliedDate = req.body.appliedDate || new Date();
-    job.interviewDate = req.body.interviewDate || null;
-    job.notes = req.body.notes || '';
-    
+
+    const {
+      company, position, status, priority, location, salary,
+      applicationUrl, appliedDate, deadline, interviewDate,
+      notes, contactPerson, contactEmail,
+    } = req.body;
+
+    job.company        = (company   || '').trim();
+    job.position       = (position  || '').trim();
+    job.status         = status     || 'Applied';
+    job.priority       = priority   || 'Medium';
+    job.location       = (location  || '').trim();
+    job.salary         = (salary    || '').trim();
+    job.applicationUrl = (applicationUrl || '').trim();
+    job.appliedDate    = appliedDate   ? new Date(appliedDate)   : job.appliedDate;
+    job.deadline       = deadline      ? new Date(deadline)      : undefined;
+    job.interviewDate  = interviewDate ? new Date(interviewDate) : undefined;
+    job.notes          = (notes         || '').trim();
+    job.contactPerson  = (contactPerson || '').trim();
+    job.contactEmail   = (contactEmail  || '').trim();
+
     await job.save();
     req.flash('success', 'Job application updated successfully!');
     res.redirect('/jobs');
   } catch (err) {
     console.error('Job Update Error:', err);
     req.flash('error', 'Could not update job application.');
-    res.redirect('/jobs/' + req.params.id + '/edit');
+    res.redirect(`/jobs/${req.params.id}/edit`);
   }
 };
 
+/* ── DELETE /jobs/:id ── */
 exports.destroy = async (req, res) => {
   try {
     const job = await ownsJob(req, res);
     if (!job) return;
-    
     await Job.findByIdAndDelete(req.params.id);
     req.flash('success', 'Job application deleted.');
     res.redirect('/jobs');
@@ -144,5 +239,21 @@ exports.destroy = async (req, res) => {
     console.error('Job Delete Error:', err);
     req.flash('error', 'Could not delete job application.');
     res.redirect('/jobs');
+  }
+};
+
+/* ── PATCH /jobs/:id/status  (quick status update via AJAX) ── */
+exports.updateStatus = async (req, res) => {
+  try {
+    const job = await Job.findOne({ _id: req.params.id, user: req.session.userId });
+    if (!job) return res.status(404).json({ success: false, error: 'Not found' });
+    const allowed = ['Wishlist','Applied','Assessment','Interview','Offer','Rejected','Withdrawn'];
+    if (!allowed.includes(req.body.status)) return res.status(400).json({ success: false, error: 'Invalid status' });
+    job.status = req.body.status;
+    await job.save();
+    res.json({ success: true, status: job.status });
+  } catch (err) {
+    console.error('Job Status Update Error:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
   }
 };

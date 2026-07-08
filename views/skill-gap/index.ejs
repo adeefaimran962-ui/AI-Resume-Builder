@@ -205,6 +205,90 @@
   gap: 2rem;
 }
 
+[data-theme="dark"] .analyzer-section,
+[data-theme="dark"] .results-section,
+[data-theme="dark"] .skills-preview,
+[data-theme="dark"] .resources-section {
+  background: #1f2937;
+  border-color: #374151;
+}
+[data-theme="dark"] .section-title {
+  color: #f9fafb;
+}
+[data-theme="dark"] .analysis-section {
+  border-color: #374151;
+}
+[data-theme="dark"] .analysis-header {
+  background: #374151;
+  border-color: #4b5563;
+}
+[data-theme="dark"] .analysis-title {
+  color: #f9fafb;
+}
+[data-theme="dark"] .skill-item {
+  background: #374151;
+  border-color: #4b5563;
+}
+[data-theme="dark"] .skill-name {
+  color: #f9fafb;
+}
+[data-theme="dark"] .missing-skill-item {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+[data-theme="dark"] .missing-skill-name {
+  color: #fca5a5;
+}
+[data-theme="dark"] .phase-card {
+  background: #1f2937;
+  border-color: #374151;
+}
+[data-theme="dark"] .phase-title {
+  color: #f9fafb;
+}
+[data-theme="dark"] .phase-skills h4,
+[data-theme="dark"] .phase-projects h4 {
+  color: #e5e7eb;
+}
+[data-theme="dark"] .phase-skills ul,
+[data-theme="dark"] .phase-projects ul {
+  color: #9ca3af;
+}
+[data-theme="dark"] .recommendation-category h4 {
+  color: #f9fafb;
+}
+[data-theme="dark"] .recommendation-category ul li {
+  color: #d1d5db;
+}
+[data-theme="dark"] .resource-card {
+  background: #374151;
+  border-color: #4b5563;
+}
+[data-theme="dark"] .resource-content h3 {
+  color: #f9fafb;
+}
+[data-theme="dark"] .resource-content p,
+[data-theme="dark"] .resource-content ul {
+  color: #9ca3af;
+}
+[data-theme="dark"] .current-skill-tag {
+  background: rgba(3, 105, 161, 0.2);
+  color: #38bdf8;
+}
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .form-textarea {
+  background: #1f2937;
+  border-color: #374151;
+  color: #f9fafb;
+}
+[data-theme="dark"] .form-label {
+  color: #d1d5db;
+}
+[data-theme="dark"] .form-help {
+  color: #9ca3af;
+}
+
 .analyzer-section, .results-section, .skills-preview, .resources-section {
   background: white;
   border: 1px solid #e5e7eb;
@@ -790,26 +874,30 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <div class="analysis-content">
           <div class="learning-phases">
-            ${Object.entries(learningPath).map(([phase, data]) => `
-              <div class="phase-card">
-                <div class="phase-header">
-                  <h4 class="phase-title">${data.title}</h4>
-                  <p class="phase-duration">${data.duration}</p>
+            ${Object.entries(learningPath).map(([phase, data]) => {
+              const phaseNumber = phase.replace('phase', '');
+              const titleText = data.title || `Phase ${phaseNumber} - ${data.focus || 'Development'}`;
+              return `
+                <div class="phase-card">
+                  <div class="phase-header">
+                    <h4 class="phase-title">${titleText}</h4>
+                    <p class="phase-duration"><i class="far fa-calendar-alt"></i> ${data.duration}</p>
+                  </div>
+                  <div class="phase-skills">
+                    <h4>Skills to Focus On:</h4>
+                    <ul>
+                      ${data.skills.map(skill => `<li>${skill}</li>`).join('')}
+                    </ul>
+                  </div>
+                  <div class="phase-projects">
+                    <h4>Recommended Projects:</h4>
+                    <ul>
+                      ${data.projects.map(project => `<li>${project}</li>`).join('')}
+                    </ul>
+                  </div>
                 </div>
-                <div class="phase-skills">
-                  <h4>Skills to Focus On:</h4>
-                  <ul>
-                    ${data.skills.map(skill => `<li>${skill}</li>`).join('')}
-                  </ul>
-                </div>
-                <div class="phase-projects">
-                  <h4>Recommended Projects:</h4>
-                  <ul>
-                    ${data.projects.map(project => `<li>${project}</li>`).join('')}
-                  </ul>
-                </div>
-              </div>
-            `).join('')}
+              `;
+            }).join('')}
           </div>
         </div>
       </div>

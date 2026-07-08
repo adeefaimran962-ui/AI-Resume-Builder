@@ -17,29 +17,29 @@
     <nav class="sidebar-nav">
       <span class="sidebar-nav-section">Main</span>
       <a href="/dashboard" class="sidebar-nav-item active" data-tooltip="Dashboard">
-        <span class="sidebar-nav-icon">📊</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-th-large"></i></span>
         <span class="sidebar-nav-text">Dashboard</span>
       </a>
       <a href="/resume/new" class="sidebar-nav-item" data-tooltip="New Resume">
-        <span class="sidebar-nav-icon">➕</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-plus"></i></span>
         <span class="sidebar-nav-text">New Resume</span>
       </a>
 
       <span class="sidebar-nav-section" style="margin-top:12px">Documents</span>
       <a href="/dashboard" class="sidebar-nav-item" data-tooltip="My Resumes">
-        <span class="sidebar-nav-icon">📁</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-file-alt"></i></span>
         <span class="sidebar-nav-text">My Resumes</span>
       </a>
       <a href="/cover-letter/new" class="sidebar-nav-item" data-tooltip="Cover Letters">
-        <span class="sidebar-nav-icon">✉️</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-envelope"></i></span>
         <span class="sidebar-nav-text">Cover Letters</span>
       </a>
       <a href="/certificates" class="sidebar-nav-item" data-tooltip="Certificates">
-        <span class="sidebar-nav-icon">🎖️</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-certificate"></i></span>
         <span class="sidebar-nav-text">Certificates</span>
       </a>
       <a href="/dashboard/trash" class="sidebar-nav-item" data-tooltip="Trash">
-        <span class="sidebar-nav-icon">🗑️</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-trash-alt"></i></span>
         <span class="sidebar-nav-text">Trash</span>
         <% if (typeof trashCount !== 'undefined' && trashCount > 0) { %>
           <span class="sidebar-badge"><%= trashCount %></span>
@@ -48,43 +48,43 @@
 
       <span class="sidebar-nav-section" style="margin-top:12px">Career Tools</span>
       <a href="/jobs" class="sidebar-nav-item" data-tooltip="Job Tracker">
-        <span class="sidebar-nav-icon">💼</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-briefcase"></i></span>
         <span class="sidebar-nav-text">Job Tracker</span>
       </a>
       <a href="/interview" class="sidebar-nav-item" data-tooltip="Interview Prep">
-        <span class="sidebar-nav-icon">💬</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-question-circle"></i></span>
         <span class="sidebar-nav-text">Interview Prep</span>
       </a>
       <a href="/skill-gap" class="sidebar-nav-item" data-tooltip="Skill Analysis">
-        <span class="sidebar-nav-icon">📈</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-chart-line"></i></span>
         <span class="sidebar-nav-text">Skill Analysis</span>
       </a>
       <a href="/career-roadmap" class="sidebar-nav-item" data-tooltip="Career Roadmap">
-        <span class="sidebar-nav-icon">🗺️</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-map-marked-alt"></i></span>
         <span class="sidebar-nav-text">Career Roadmap</span>
       </a>
 
       <span class="sidebar-nav-section" style="margin-top:12px">AI Tools</span>
       <a href="/resume/ats-checker" class="sidebar-nav-item" data-tooltip="ATS Resume Checker">
-        <span class="sidebar-nav-icon">✅</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-check-circle"></i></span>
         <span class="sidebar-nav-text">ATS Checker</span>
       </a>
       <a href="/resume/new" class="sidebar-nav-item" data-tooltip="AI Resume Builder">
-        <span class="sidebar-nav-icon">✨</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-magic"></i></span>
         <span class="sidebar-nav-text">AI Resume</span>
       </a>
       <a href="/cover-letter/new" class="sidebar-nav-item" data-tooltip="AI Cover Letter">
-        <span class="sidebar-nav-icon">📝</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-pen-fancy"></i></span>
         <span class="sidebar-nav-text">AI Cover Letter</span>
       </a>
 
       <span class="sidebar-nav-section" style="margin-top:12px">Account</span>
       <a href="/dashboard/profile" class="sidebar-nav-item" data-tooltip="Profile">
-        <span class="sidebar-nav-icon">👤</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-user"></i></span>
         <span class="sidebar-nav-text">Profile</span>
       </a>
       <a href="/dashboard/settings" class="sidebar-nav-item" data-tooltip="Settings">
-        <span class="sidebar-nav-icon">⚙️</span>
+        <span class="sidebar-nav-icon"><i class="fas fa-cog"></i></span>
         <span class="sidebar-nav-text">Settings</span>
       </a>
     </nav>
@@ -161,7 +161,7 @@
       <div class="stats-row">
         <div class="stat-card-dash">
           <div class="icon-box" style="background:linear-gradient(135deg,#6C63FF,#A855F7)">
-            <i class="fas fa-file-alt" style="color:white"></i>
+            <i class="fas fa-file-lines" style="color:white"></i>
           </div>
           <div>
             <div class="stat-value"><%= stats.totalResumes %></div>
@@ -179,7 +179,7 @@
         </div>
         <div class="stat-card-dash">
           <div class="icon-box" style="background:linear-gradient(135deg,#3B82F6,#60A5FA)">
-            <i class="fas fa-chart-pie" style="color:white"></i>
+            <i class="fas fa-bullseye" style="color:white"></i>
           </div>
           <div>
             <div class="stat-value"><%= stats.avgAtsScore %>%</div>
@@ -188,7 +188,7 @@
         </div>
         <div class="stat-card-dash">
           <div class="icon-box" style="background:linear-gradient(135deg,#EF4444,#F87171)">
-            <i class="fas fa-clock" style="color:white"></i>
+            <i class="fas fa-calendar-alt" style="color:white"></i>
           </div>
           <div>
             <div class="stat-value" style="font-size:15px"><%= stats.lastUpdated %></div>

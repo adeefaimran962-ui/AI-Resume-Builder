@@ -16,23 +16,101 @@
   --success: #10B981;
   --danger: #EF4444;
   --warning: #F59E0B;
+  --info: #3B82F6;
+  /* Light mode semantic colors */
   --dark: #0F172A;
   --dark-2: #1E293B;
   --muted: #64748B;
   --border: #E2E8F0;
-  --bg: #F8FAFC;
-  --bg-2: #F1F5F9;
+  --bg: #ffffff;
+  --bg-2: #F8FAFC;
+  --bg-3: #F1F5F9;
   --white: #FFFFFF;
+  --text: #111827;
+  --text-2: #374151;
+  --card-bg: #ffffff;
+  /* Common */
   --radius: 12px;
   --radius-lg: 20px;
   --shadow: 0 10px 40px rgba(108,99,255,.14);
   --shadow-sm: 0 2px 12px rgba(0,0,0,.06);
   --shadow-card: 0 4px 24px rgba(0,0,0,.08);
+  --shadow-lg: rgba(0,0,0,.15);
   --transition: all .25s cubic-bezier(.4,0,.2,1);
+  --transition-fast: all .15s ease;
   --font: 'Inter','Plus Jakarta Sans',-apple-system,sans-serif;
   --gradient: linear-gradient(135deg,#6C63FF 0%,#a955f7 50%,#FF6584 100%);
   --gradient-soft: linear-gradient(135deg,#6C63FF 0%,#A855F7 100%);
+  --navbar-bg: #ffffff;
+  --navbar-text: #111827;
+  --navbar-border: #E2E8F0;
+  --sidebar-bg: #ffffff;
+  --sidebar-text: #475569;
+  --sidebar-hover: #F1F5F9;
+  --sidebar-border: #E2E8F0;
+  --sidebar-active: #6C63FF;
+  --input-bg: #ffffff;
+  --input-border: #E2E8F0;
+  --dropdown-bg: #ffffff;
+  --dropdown-border: #E2E8F0;
+  --dropdown-hover: #F1F5F9;
+  --dropdown-text: #111827;
+  --table-bg: #ffffff;
+  --table-header-bg: #F8FAFC;
+  --table-border: #E2E8F0;
+  --table-hover: #F1F5F9;
+  --table-text: #111827;
+  --table-text-muted: #64748B;
+  --modal-bg: #ffffff;
+  --modal-border: #E2E8F0;
+  --modal-overlay: rgba(0,0,0,.5);
 }
+
+/* ════════════════════════════════════════════════════════════
+   DARK MODE – comprehensive overrides
+   Every token referencing a "light" color is remapped here.
+════════════════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  --dark:    #F8FAFC;
+  --dark-2:  #E2E8F0;
+  --muted:   #94A3B8;
+  --border:  #374151;
+  --bg:      #111827;
+  --bg-2:    #1F2937;
+  --bg-3:    #374151;
+  --white:   #1F2937;
+  --text:    #F9FAFB;
+  --text-2:  #E5E7EB;
+  --card-bg: #1F2937;
+  --primary-light: #312e81;
+  --shadow-card: 0 4px 24px rgba(0,0,0,.4);
+  --shadow-sm: 0 2px 12px rgba(0,0,0,.3);
+  --shadow: 0 10px 40px rgba(0,0,0,.4);
+  --shadow-lg: rgba(0,0,0,.4);
+  --navbar-bg: #111827;
+  --navbar-text: #F9FAFB;
+  --navbar-border: #374151;
+  --sidebar-bg: #111827;
+  --sidebar-text: #D1D5DB;
+  --sidebar-hover: #1F2937;
+  --sidebar-border: #374151;
+  --input-bg: #1F2937;
+  --input-border: #374151;
+  --dropdown-bg: #1F2937;
+  --dropdown-border: #374151;
+  --dropdown-hover: #374151;
+  --dropdown-text: #F9FAFB;
+  --table-bg: #1F2937;
+  --table-header-bg: #374151;
+  --table-border: #374151;
+  --table-hover: #374151;
+  --table-text: #F9FAFB;
+  --table-text-muted: #94A3B8;
+  --modal-bg: #1F2937;
+  --modal-border: #374151;
+  --modal-overlay: rgba(0,0,0,.7);
+}
+
 
 /* Reset & Base */
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1595,3 +1673,236 @@ tr {
 tr:hover {
   background: var(--bg-2);
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   DARK MODE — COMPREHENSIVE COMPONENT OVERRIDES
+   These rules fix hardcoded colors that don't use CSS variables.
+════════════════════════════════════════════════════════════════════════ */
+
+/* Base elements */
+[data-theme="dark"] body { background: #111827; color: #F9FAFB; }
+[data-theme="dark"] a { color: #818cf8; }
+[data-theme="dark"] a:hover { color: #a5b4fc; }
+
+/* Navbar */
+[data-theme="dark"] .navbar { background: #111827; border-color: #374151; }
+[data-theme="dark"] .navbar-brand { color: #F9FAFB; }
+[data-theme="dark"] .nav-link { color: #9CA3AF; }
+[data-theme="dark"] .nav-link:hover { color: #818cf8; background: rgba(108,99,255,.15); }
+[data-theme="dark"] .nav-user-wrap { color: #F9FAFB; }
+[data-theme="dark"] .navbar-menu { background: #111827; }
+
+/* Dropdown */
+[data-theme="dark"] .dropdown-menu { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .dropdown-link { color: #F9FAFB; }
+[data-theme="dark"] .dropdown-link:hover { background: rgba(108,99,255,.15); color: #818cf8; }
+[data-theme="dark"] .dropdown-link i { color: #9CA3AF; }
+
+/* Mobile navbar */
+[data-theme="dark"] .navbar-menu.mobile-open { background: #1F2937; }
+
+/* Sidebar */
+[data-theme="dark"] .sidebar { background: #111827; border-color: #374151; }
+[data-theme="dark"] .sidebar-logo { border-color: #374151; }
+[data-theme="dark"] .sidebar-logo a { color: #F9FAFB; }
+[data-theme="dark"] .sidebar-nav-item { color: #D1D5DB; }
+[data-theme="dark"] .sidebar-nav-item:hover { background: #1F2937; color: #F9FAFB; }
+[data-theme="dark"] .sidebar-nav-section { color: #6B7280; }
+[data-theme="dark"] .sidebar-user { background: #1F2937; }
+[data-theme="dark"] .sidebar-user-name { color: #F9FAFB; }
+[data-theme="dark"] .sidebar-user-email { color: #9CA3AF; }
+[data-theme="dark"] .sidebar-footer { border-color: #374151; }
+[data-theme="dark"] .sidebar-logout { border-color: #374151; }
+
+/* Topbar */
+[data-theme="dark"] .topbar { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .topbar-title { color: #F9FAFB; }
+
+/* Cards */
+[data-theme="dark"] .stat-card-dash { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .stat-value { color: #F9FAFB; }
+[data-theme="dark"] .resume-card { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .resume-card-header { background: #374151; border-color: #4B5563; }
+[data-theme="dark"] .resume-card-actions-row { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .resume-card-body { background: #1F2937; }
+[data-theme="dark"] .btn-action { background: #374151; border-color: #4B5563; color: #F9FAFB; }
+[data-theme="dark"] .btn-action:hover { background: rgba(108,99,255,.2); color: #818cf8; border-color: #818cf8; }
+[data-theme="dark"] .resume-title { color: #F9FAFB; }
+
+/* Feature cards */
+[data-theme="dark"] .feature-card { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .feature-card h3 { color: #F9FAFB; }
+[data-theme="dark"] .feature-card p { color: #9CA3AF; }
+
+/* Testimonial cards */
+[data-theme="dark"] .testimonial-card { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .testimonial-text { color: #D1D5DB; }
+[data-theme="dark"] .author-name { color: #F9FAFB; }
+
+/* Form elements */
+[data-theme="dark"] .form-control { background: #1F2937; border-color: #374151; color: #F9FAFB; }
+[data-theme="dark"] .form-control:focus { border-color: #818cf8; background: #1F2937; }
+[data-theme="dark"] .form-control::placeholder { color: #6B7280; }
+[data-theme="dark"] .form-group label { color: #D1D5DB; }
+[data-theme="dark"] select.form-control { background: #1F2937; color: #F9FAFB; }
+[data-theme="dark"] textarea.form-control { background: #1F2937; color: #F9FAFB; }
+[data-theme="dark"] input[type="date"].form-control { background: #1F2937; color: #F9FAFB; }
+[data-theme="dark"] .form-section { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .section-heading { color: #F9FAFB; border-color: #374151; }
+[data-theme="dark"] .dynamic-item { background: #374151; border-color: #4B5563; }
+
+/* Buttons */
+[data-theme="dark"] .btn-outline { border-color: #374151; color: #D1D5DB; }
+[data-theme="dark"] .btn-outline:hover { border-color: #818cf8; background: rgba(108,99,255,.15); color: #818cf8; }
+[data-theme="dark"] .btn-ghost { background: #374151; color: #D1D5DB; }
+[data-theme="dark"] .btn-ghost:hover { background: #4B5563; color: #F9FAFB; }
+[data-theme="dark"] .btn-white { background: #374151; color: #F9FAFB; }
+[data-theme="dark"] .btn-white:hover { background: #4B5563; color: #F9FAFB; }
+
+/* Tables */
+[data-theme="dark"] table { color: #F9FAFB; }
+[data-theme="dark"] th { background: #374151; color: #D1D5DB; border-color: #4B5563; }
+[data-theme="dark"] td { border-color: #374151; color: #E5E7EB; }
+[data-theme="dark"] tr:hover td { background: #374151; }
+[data-theme="dark"] .table-striped tr:nth-child(even) { background: #1F2937; }
+
+/* Alerts */
+[data-theme="dark"] .alert-success { background: rgba(16,185,129,.15); color: #6EE7B7; border-color: rgba(16,185,129,.4); }
+[data-theme="dark"] .alert-error { background: rgba(239,68,68,.15); color: #FCA5A5; border-color: rgba(239,68,68,.4); }
+
+/* Modals */
+[data-theme="dark"] .modal-content { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .modal-header { border-color: #374151; }
+[data-theme="dark"] .modal-body { color: #E5E7EB; }
+[data-theme="dark"] .modal-footer { border-color: #374151; }
+
+/* Preview/Resume */
+[data-theme="dark"] .preview-toolbar { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .tpl-chip { background: #374151; color: #D1D5DB; border-color: #4B5563; }
+[data-theme="dark"] .tpl-chip:hover { background: rgba(108,99,255,.2); color: #818cf8; }
+[data-theme="dark"] .ats-score-badge { background: #374151; border-color: #4B5563; color: #F9FAFB; }
+
+/* Dashboard specific */
+[data-theme="dark"] .dash-section-title { color: #F9FAFB; }
+[data-theme="dark"] .welcome-card-text h2 { color: white; }
+[data-theme="dark"] .quick-tips { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .quick-tips-title { color: #F9FAFB; }
+[data-theme="dark"] .tip-item { color: #D1D5DB; }
+[data-theme="dark"] .filter-form { background: #1F2937; border-color: #374151; }
+
+/* Section headings */
+[data-theme="dark"] .section-title { color: #F9FAFB; }
+[data-theme="dark"] .section-subtitle { color: #9CA3AF; }
+[data-theme="dark"] .step-title { color: #F9FAFB; }
+[data-theme="dark"] .step-desc { color: #9CA3AF; }
+
+/* Auth pages */
+[data-theme="dark"] .auth-card { background: #1F2937; }
+[data-theme="dark"] .auth-title { color: #F9FAFB; }
+[data-theme="dark"] .auth-subtitle { color: #9CA3AF; }
+[data-theme="dark"] .auth-footer { color: #9CA3AF; }
+[data-theme="dark"] .auth-header h1 { color: #F9FAFB; }
+[data-theme="dark"] .auth-header p { color: #9CA3AF; }
+
+/* Error pages */
+[data-theme="dark"] .error-content h1 { color: #F9FAFB; }
+[data-theme="dark"] .error-content p { color: #9CA3AF; }
+
+/* Quick tips / info boxes */
+[data-theme="dark"] .ats-tips-box { background: rgba(108,99,255,.12); border-color: rgba(108,99,255,.3); }
+[data-theme="dark"] .ats-tips-box ul li { color: #D1D5DB; }
+[data-theme="dark"] .ats-panel { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .ats-resume-item { background: #374151; border-color: #4B5563; }
+[data-theme="dark"] .ats-resume-item:hover, [data-theme="dark"] .ats-resume-item.selected { background: rgba(108,99,255,.2); border-color: #818cf8; }
+[data-theme="dark"] .ats-score-display { background: #374151; border-color: #4B5563; }
+[data-theme="dark"] .ats-category-bar { background: #4B5563; }
+[data-theme="dark"] .ats-list-item { background: #374151; }
+
+/* Stats cards in Jobs page */
+[data-theme="dark"] .stat-card { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .stat-number { color: #F9FAFB; }
+[data-theme="dark"] .stat-label { color: #9CA3AF; }
+
+/* Job cards */
+[data-theme="dark"] .job-card { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .job-title { color: #F9FAFB; }
+[data-theme="dark"] .job-company { color: #818cf8; }
+[data-theme="dark"] .job-location { color: #9CA3AF; }
+[data-theme="dark"] .job-notes { color: #9CA3AF; }
+[data-theme="dark"] .job-dates p { color: #9CA3AF; }
+[data-theme="dark"] .filter-section { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .search-input, [data-theme="dark"] .filter-select { background: #374151; border-color: #4B5563; color: #F9FAFB; }
+[data-theme="dark"] .upcoming-interviews { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .upcoming-interviews h2 { color: #F9FAFB; }
+[data-theme="dark"] .interview-item { background: #374151; }
+[data-theme="dark"] .interview-info h3 { color: #F9FAFB; }
+[data-theme="dark"] .pagination { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .pagination-info { color: #9CA3AF; }
+
+/* Cover letter preview */
+[data-theme="dark"] .cover-letter-preview { background: #1F2937; color: #F9FAFB; }
+
+/* Dashboard container */
+[data-theme="dark"] .dashboard-container { background: #111827; }
+[data-theme="dark"] .dashboard-layout { background: #111827; }
+[data-theme="dark"] .page-content { background: #111827; }
+
+/* Skills / Interview / Career pages */
+[data-theme="dark"] .skill-card, [data-theme="dark"] .question-card { background: #1F2937; border-color: #374151; color: #F9FAFB; }
+[data-theme="dark"] .question-text { color: #F9FAFB; }
+[data-theme="dark"] .answer-text { color: #D1D5DB; }
+[data-theme="dark"] .roadmap-phase { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .roadmap-phase h3 { color: #F9FAFB; }
+[data-theme="dark"] .roadmap-phase p { color: #D1D5DB; }
+[data-theme="dark"] .resource-link { color: #818cf8; }
+[data-theme="dark"] .resource-link:hover { color: #a5b4fc; }
+
+/* Misc */
+[data-theme="dark"] .empty-state { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .empty-state h3 { color: #F9FAFB; }
+[data-theme="dark"] .empty-state p { color: #9CA3AF; }
+[data-theme="dark"] .sidebar-tooltip { background: #F9FAFB; color: #111827; }
+[data-theme="dark"] .dashboard-header h1 { color: #F9FAFB; }
+[data-theme="dark"] .dashboard-header p { color: #9CA3AF; }
+[data-theme="dark"] .resume-person-name, [data-theme="dark"] .resume-job-title { color: #9CA3AF; }
+[data-theme="dark"] .resume-meta { color: #9CA3AF; }
+[data-theme="dark"] .resume-template-badge { filter: brightness(0.9); }
+
+/* Toast in dark mode */
+[data-theme="dark"] .toast { background: #1F2937; color: #F9FAFB; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
+[data-theme="dark"] .toast-title { color: #F9FAFB; }
+[data-theme="dark"] .toast-message { color: #9CA3AF; }
+
+/* Loading spinner overlay in dark mode */
+[data-theme="dark"] .spinner-overlay { background: rgba(17,24,39,.9); }
+
+/* Footer in dark mode (already dark background - needs text adjustments) */
+[data-theme="dark"] .footer { background: #0d1117; }
+
+/* Theme switcher button */
+[data-theme="dark"] .theme-switcher { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .theme-switcher i { color: #F9FAFB; }
+[data-theme="dark"] .theme-toggle-btn { background: #374151; border-color: #4B5563; color: #F9FAFB; }
+
+/* Score card */
+[data-theme="dark"] .ats-score-circle::before { background: #1F2937; }
+[data-theme="dark"] .ats-score-number { color: #F9FAFB; }
+
+/* Sidebar collapse btn */
+[data-theme="dark"] .sidebar-collapse-btn { background: #374151; color: #D1D5DB; }
+[data-theme="dark"] .sidebar-collapse-btn:hover { background: rgba(108,99,255,.2); color: #818cf8; }
+
+/* Trust bar */
+[data-theme="dark"] .trust-bar { background: #1F2937; border-color: #374151; }
+[data-theme="dark"] .trust-company { color: #4B5563; }
+[data-theme="dark"] .trust-label { color: #6B7280; }
+
+/* Features section */
+[data-theme="dark"] .features { background: #111827; }
+[data-theme="dark"] .how-it-works { background: #1F2937; }
+[data-theme="dark"] .templates-section { background: #111827; }
+[data-theme="dark"] .testimonials { background: #1F2937; }
+
+/* Mobile nav menu */
+[data-theme="dark"] .navbar-menu { background: #111827; }
+

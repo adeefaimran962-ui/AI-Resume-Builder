@@ -62,6 +62,10 @@ router.use(ensureAuthenticated);
 // ── AI generation ──────────────────────────────────────────────────────
 router.post('/ai/generate', rc.aiGenerate);
 
+// ── ATS Checker (static routes MUST come before /:id dynamic routes) ───
+router.get('/ats-checker', rc.atsChecker);
+router.post('/ats/check',  rc.atsCheck);
+
 // ── Create ─────────────────────────────────────────────────────────────
 router.get('/new', rc.showCreateForm);
 router.post('/',   rc.create);

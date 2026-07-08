@@ -1,0 +1,461 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="dashSidebar">
+    <div class="sidebar-logo">
+      <a href="/">
+        <span class="brand-icon-wrap"><i class="fas fa-bolt"></i></span>
+        <span>ResumeAI<span style="color:var(--accent)">.</span></span>
+      </a>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="sidebar-nav-section">Main</span>
+      <a href="/dashboard" class="sidebar-nav-item" data-tooltip="Dashboard">
+        <span class="sidebar-nav-icon"><i class="fas fa-th-large"></i></span>
+        <span class="sidebar-nav-text">Dashboard</span>
+      </a>
+      <span class="sidebar-nav-section" style="margin-top:12px">AI Tools</span>
+      <a href="/resume/ats-checker" class="sidebar-nav-item active" data-tooltip="ATS Checker">
+        <span class="sidebar-nav-icon"><i class="fas fa-check-circle"></i></span>
+        <span class="sidebar-nav-text">ATS Checker</span>
+      </a>
+      <a href="/interview" class="sidebar-nav-item" data-tooltip="Interview Prep">
+        <span class="sidebar-nav-icon"><i class="fas fa-question-circle"></i></span>
+        <span class="sidebar-nav-text">Interview Prep</span>
+      </a>
+      <a href="/skill-gap" class="sidebar-nav-item" data-tooltip="Skill Gap">
+        <span class="sidebar-nav-icon"><i class="fas fa-chart-line"></i></span>
+        <span class="sidebar-nav-text">Skill Gap</span>
+      </a>
+      <a href="/career-roadmap" class="sidebar-nav-item" data-tooltip="Career Roadmap">
+        <span class="sidebar-nav-icon"><i class="fas fa-map-marked-alt"></i></span>
+        <span class="sidebar-nav-text">Career Roadmap</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar"><%= currentUser.name.charAt(0).toUpperCase() %></div>
+        <div style="overflow:hidden">
+          <div class="sidebar-user-name"><%= currentUser.name %></div>
+          <div class="sidebar-user-email"><%= currentUser.email %></div>
+        </div>
+      </div>
+      <a href="/auth/logout" class="sidebar-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="dashboard-main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:14px">
+        <span class="topbar-title"><i class="fas fa-check-circle" style="color:var(--primary);margin-right:8px"></i>ATS Resume Checker</span>
+      </div>
+      <div class="topbar-actions">
+        <a href="/dashboard" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Dashboard</a>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <%- include('../partials/flash') %>
+
+      <!-- HERO BANNER -->
+      <div class="welcome-card" style="margin-bottom:28px">
+        <div class="welcome-card-text">
+          <h2>ATS Resume Checker</h2>
+          <p>Analyze your resume against Applicant Tracking System criteria. Get a detailed score breakdown with actionable improvement tips.</p>
+        </div>
+        <div class="welcome-card-art">
+          <i class="fas fa-chart-pie" style="font-size:80px;opacity:.15;color:white"></i>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start">
+
+        <!-- LEFT: Select Resume -->
+        <div class="ats-panel">
+          <div class="ats-panel-header">
+            <i class="fas fa-file-alt"></i>
+            <h3>Select Your Resume</h3>
+          </div>
+
+          <% if (resumes.length === 0) { %>
+            <div class="empty-state" style="padding:40px 20px">
+              <div class="empty-state-icon"><i class="fas fa-file-alt"></i></div>
+              <h3>No resumes yet</h3>
+              <p>Create a resume first to check its ATS score.</p>
+              <a href="/resume/new" class="btn btn-primary" style="margin-top:12px">
+                <i class="fas fa-plus"></i> Create Resume
+              </a>
+            </div>
+          <% } else { %>
+            <p style="color:var(--muted);font-size:14px;margin-bottom:20px">Choose a resume to get a detailed ATS analysis with improvement suggestions.</p>
+
+            <div class="ats-resume-list" id="resumeList">
+              <% resumes.forEach(function(r) { %>
+              <div class="ats-resume-item" data-id="<%= r._id %>" onclick="selectResume('<%= r._id %>', this)">
+                <div class="ats-resume-icon">
+                  <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="ats-resume-info">
+                  <div class="ats-resume-title"><%= r.title %></div>
+                  <div class="ats-resume-name">
+                    <%= r.personalInfo && r.personalInfo.fullName ? r.personalInfo.fullName : 'Name not set' %>
+                  </div>
+                </div>
+                <% if (r.atsScore) { %>
+                <div class="ats-score-chip" style="background:<%= r.atsScore >= 80 ? '#D1FAE5' : r.atsScore >= 60 ? '#FEF3C7' : '#FEE2E2' %>;color:<%= r.atsScore >= 80 ? '#065F46' : r.atsScore >= 60 ? '#92400E' : '#991B1B' %>">
+                  <%= r.atsScore %>%
+                </div>
+                <% } %>
+              </div>
+              <% }); %>
+            </div>
+
+            <button id="analyzeBtn" class="btn btn-primary" style="width:100%;margin-top:20px" onclick="analyzeResume()" disabled>
+              <i class="fas fa-chart-pie"></i> Analyze ATS Score
+            </button>
+          <% } %>
+        </div>
+
+        <!-- RIGHT: Results -->
+        <div id="atsResults" style="display:none">
+          <div class="ats-panel">
+            <div class="ats-panel-header">
+              <i class="fas fa-tachometer-alt"></i>
+              <h3>ATS Score Results</h3>
+            </div>
+
+            <!-- Overall Score -->
+            <div class="ats-score-display" id="overallScore">
+              <div class="ats-score-circle" id="scoreCircle">
+                <div class="ats-score-number" id="scoreNumber">—</div>
+                <div class="ats-score-label">ATS Score</div>
+              </div>
+              <div class="ats-score-meta">
+                <div class="ats-grade" id="scoreGrade">—</div>
+                <div id="scoreResumeTitle" style="font-size:14px;color:var(--muted);margin-top:4px"></div>
+                <a href="#" id="viewFullScore" class="btn btn-outline btn-sm" style="margin-top:12px;display:none">
+                  <i class="fas fa-external-link-alt"></i> Full Report
+                </a>
+              </div>
+            </div>
+
+            <!-- Category Breakdown -->
+            <div id="categoryBreakdown" style="margin-top:20px"></div>
+
+            <!-- Keywords -->
+            <div id="keywordsSection" style="margin-top:20px;display:none">
+              <h4 style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px">
+                <i class="fas fa-key" style="color:var(--primary)"></i> ATS Keywords
+              </h4>
+              <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <div style="flex:1;min-width:140px">
+                  <div style="font-size:12px;font-weight:600;color:var(--success);margin-bottom:8px">✓ Found</div>
+                  <div id="foundKeywords" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+                </div>
+                <div style="flex:1;min-width:140px">
+                  <div style="font-size:12px;font-weight:600;color:var(--danger);margin-bottom:8px">✗ Missing</div>
+                  <div id="missingKeywords" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Strengths & Improvements -->
+            <div id="strengthsSection" style="margin-top:20px;display:none">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div>
+                  <h4 style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:8px">
+                    <i class="fas fa-check-circle"></i> Strengths
+                  </h4>
+                  <ul id="strengthsList" style="list-style:none;padding:0;margin:0"></ul>
+                </div>
+                <div>
+                  <h4 style="font-size:13px;font-weight:700;color:var(--warning);margin-bottom:8px">
+                    <i class="fas fa-exclamation-circle"></i> Improvements
+                  </h4>
+                  <ul id="improvementsList" style="list-style:none;padding:0;margin:0"></ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- ATS Tips -->
+            <div class="ats-tips-box" style="margin-top:20px">
+              <h4><i class="fas fa-lightbulb"></i> Pro ATS Tips</h4>
+              <ul>
+                <li>Use standard section headings: Summary, Experience, Education, Skills</li>
+                <li>Avoid tables, graphics, or multi-column layouts in your resume file</li>
+                <li>Mirror keywords from the job description naturally in your content</li>
+                <li>Use full spellings before acronyms: "Machine Learning (ML)"</li>
+                <li>Include measurable achievements with numbers and percentages</li>
+                <li>Save as plain PDF or .docx — avoid fancy formatting</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading / Placeholder -->
+        <div id="atsPlaceholder">
+          <div class="ats-panel">
+            <div style="text-align:center;padding:60px 20px;color:var(--muted)">
+              <i class="fas fa-chart-pie" style="font-size:48px;margin-bottom:16px;opacity:.3"></i>
+              <p style="font-size:16px">Select a resume and click <strong>Analyze ATS Score</strong> to get your results</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.ats-panel {
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: var(--transition);
+}
+.ats-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.ats-panel-header i { color: var(--primary); font-size: 18px; }
+.ats-panel-header h3 { font-size: 16px; font-weight: 700; color: var(--text); margin: 0; }
+
+.ats-resume-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; }
+.ats-resume-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+  background: var(--bg);
+}
+.ats-resume-item:hover { border-color: var(--primary); background: var(--primary-light); }
+.ats-resume-item.selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 2px rgba(108,99,255,.15);
+}
+.ats-resume-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: var(--gradient-soft);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 16px; flex-shrink: 0;
+}
+.ats-resume-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.ats-resume-name { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.ats-score-chip {
+  padding: 4px 10px; border-radius: 50px;
+  font-size: 12px; font-weight: 700;
+  margin-left: auto; flex-shrink: 0;
+}
+
+.ats-score-display {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.ats-score-circle {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: conic-gradient(var(--primary) 0%, var(--bg-2) 0%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(108,99,255,.25);
+}
+.ats-score-circle::before {
+  content: '';
+  position: absolute;
+  width: 78px; height: 78px;
+  border-radius: 50%;
+  background: var(--card-bg);
+}
+.ats-score-number {
+  position: relative; z-index: 1;
+  font-size: 22px; font-weight: 800; color: var(--text);
+}
+.ats-score-label {
+  position: relative; z-index: 1;
+  font-size: 10px; color: var(--muted); font-weight: 600;
+}
+.ats-grade {
+  font-size: 36px; font-weight: 900;
+  background: var(--gradient);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ats-category-row {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 12px;
+}
+.ats-category-name {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  min-width: 120px;
+}
+.ats-category-bar {
+  flex: 1; height: 8px; background: var(--bg-2);
+  border-radius: 50px; overflow: hidden;
+}
+.ats-category-fill {
+  height: 100%; border-radius: 50px;
+  transition: width 0.8s ease;
+}
+.ats-category-score {
+  font-size: 12px; font-weight: 700; color: var(--text);
+  min-width: 40px; text-align: right;
+}
+
+.ats-kw-tag {
+  padding: 3px 8px; border-radius: 50px;
+  font-size: 11px; font-weight: 600;
+}
+.ats-kw-found { background: #D1FAE5; color: #065F46; }
+.ats-kw-missing { background: #FEE2E2; color: #991B1B; }
+
+.ats-list-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 12px; color: var(--text-2); margin-bottom: 6px;
+  padding: 6px 10px; border-radius: 6px; background: var(--bg);
+}
+.ats-list-item.strength i { color: var(--success); }
+.ats-list-item.improvement i { color: var(--warning); }
+
+.ats-tips-box {
+  background: linear-gradient(135deg, rgba(108,99,255,.08), rgba(168,85,247,.08));
+  border: 1px solid rgba(108,99,255,.2);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+}
+.ats-tips-box h4 {
+  font-size: 14px; font-weight: 700; color: var(--primary);
+  margin-bottom: 12px;
+}
+.ats-tips-box ul { list-style: none; padding: 0; margin: 0; }
+.ats-tips-box ul li {
+  font-size: 13px; color: var(--text-2);
+  padding: 4px 0 4px 18px; position: relative;
+}
+.ats-tips-box ul li::before {
+  content: '→'; position: absolute; left: 0;
+  color: var(--primary); font-weight: 700;
+}
+</style>
+
+<script>
+let selectedResumeId = null;
+
+function selectResume(id, el) {
+  selectedResumeId = id;
+  document.querySelectorAll('.ats-resume-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('analyzeBtn').disabled = false;
+}
+
+async function analyzeResume() {
+  if (!selectedResumeId) return;
+
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+
+  try {
+    const res = await fetch('/resume/ats/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ resumeId: selectedResumeId }),
+    });
+
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Analysis failed');
+
+    displayResults(data.result, data.resume);
+
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-chart-pie"></i> Re-Analyze';
+  }
+}
+
+function displayResults(result, resumeInfo) {
+  document.getElementById('atsPlaceholder').style.display = 'none';
+  document.getElementById('atsResults').style.display = 'block';
+
+  // Score circle
+  const pct = result.score;
+  const scoreColor = pct >= 80 ? '#10B981' : pct >= 60 ? '#F59E0B' : '#EF4444';
+  const circle = document.getElementById('scoreCircle');
+  circle.style.background = `conic-gradient(${scoreColor} ${pct * 3.6}deg, var(--bg-2) ${pct * 3.6}deg)`;
+  document.getElementById('scoreNumber').textContent = pct;
+  document.getElementById('scoreNumber').style.color = scoreColor;
+  document.getElementById('scoreGrade').textContent = result.grade;
+  document.getElementById('scoreGrade').style.background = scoreColor;
+  document.getElementById('scoreGrade').style['-webkit-background-clip'] = 'unset';
+  document.getElementById('scoreGrade').style['-webkit-text-fill-color'] = 'white';
+  document.getElementById('scoreGrade').style.padding = '4px 16px';
+  document.getElementById('scoreGrade').style.borderRadius = '50px';
+  document.getElementById('scoreResumeTitle').textContent = resumeInfo.title;
+
+  const viewLink = document.getElementById('viewFullScore');
+  viewLink.href = '/resume/' + resumeInfo.id + '/score';
+  viewLink.style.display = 'inline-flex';
+
+  // Category breakdown
+  const cbEl = document.getElementById('categoryBreakdown');
+  cbEl.innerHTML = '<h4 style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px"><i class="fas fa-list-check" style="color:var(--primary)"></i> Category Breakdown</h4>';
+  result.categories.forEach(cat => {
+    const catColor = cat.pct >= 80 ? '#10B981' : cat.pct >= 60 ? '#F59E0B' : '#EF4444';
+    cbEl.innerHTML += `
+      <div class="ats-category-row">
+        <div class="ats-category-name"><i class="${cat.icon}" style="color:${cat.color};margin-right:6px;width:14px"></i>${cat.name}</div>
+        <div class="ats-category-bar">
+          <div class="ats-category-fill" style="width:${cat.pct}%;background:${catColor}"></div>
+        </div>
+        <div class="ats-category-score" style="color:${catColor}">${cat.score}/${cat.max}</div>
+      </div>
+    `;
+  });
+
+  // Keywords
+  const kwSection = document.getElementById('keywordsSection');
+  kwSection.style.display = 'block';
+  const foundEl = document.getElementById('foundKeywords');
+  const missingEl = document.getElementById('missingKeywords');
+  foundEl.innerHTML = result.keywords.found.slice(0,8).map(k =>
+    `<span class="ats-kw-tag ats-kw-found">${k}</span>`
+  ).join('');
+  missingEl.innerHTML = result.keywords.missing.slice(0,6).map(k =>
+    `<span class="ats-kw-tag ats-kw-missing">${k}</span>`
+  ).join('');
+
+  // Strengths & Improvements
+  const strSection = document.getElementById('strengthsSection');
+  strSection.style.display = 'block';
+  document.getElementById('strengthsList').innerHTML = (result.strengths || []).map(s =>
+    `<li class="ats-list-item strength"><i class="fas fa-check-circle"></i>${s}</li>`
+  ).join('');
+  document.getElementById('improvementsList').innerHTML = (result.improvements || []).map(s =>
+    `<li class="ats-list-item improvement"><i class="fas fa-exclamation-circle"></i>${s}</li>`
+  ).join('');
+}
+</script>
+
+<%- include('../partials/closing') %>

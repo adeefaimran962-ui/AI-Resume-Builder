@@ -533,7 +533,63 @@ exports.score = async (req, res) => {
   }
 };
 
-/* ── PDF download (template-aware) ── */
+/**
+ * GET /resume/ats-checker
+ * Shows the standalone ATS checker page (select from saved resumes or paste text).
+ */
+exports.atsChecker = async (req, res) => {
+  try {
+    const resumes = await Resume.find({
+      user: req.session.userId,
+      isDeleted: { $ne: true },
+    }).select('title personalInfo.fullName atsScore').sort({ updatedAt: -1 }).lean();
+
+    res.render('resume/ats-checker', {
+      title: 'ATS Resume Checker – ResumeAI',
+      resumes,
+      result: null,
+    });
+  } catch (err) {
+    console.error('ATS Checker Error:', err);
+    req.flash('error', 'Could not load ATS Checker.');
+    res.redirect('/dashboard');
+  }
+};
+
+/**
+ * POST /resume/ats/check
+ * Scores a selected resume and returns the result.
+ */
+exports.atsCheck = async (req, res) => {
+  try {
+    const { resumeId } = req.body;
+    if (!resumeId) {
+      return res.status(400).json({ success: false, error: 'Resume ID is required.' });
+    }
+
+    const resume = await Resume.findOne({
+      _id: resumeId,
+      user: req.session.userId,
+      isDeleted: { $ne: true },
+    }).lean();
+
+    if (!resume) {
+      return res.status(404).json({ success: false, error: 'Resume not found.' });
+    }
+
+    const result = scoreResume(resume);
+
+    // Persist the score
+    await Resume.findByIdAndUpdate(resumeId, { $set: { atsScore: result.score } });
+
+    return res.json({ success: true, result, resume: { title: resume.title, id: resume._id } });
+  } catch (err) {
+    console.error('ATS Check Error:', err);
+    return res.status(500).json({ success: false, error: 'Could not score resume.' });
+  }
+};
+
+
 exports.downloadPDF = async (req, res) => {
   try {
     const resume = await ownsResume(req,res); if (!resume) return;

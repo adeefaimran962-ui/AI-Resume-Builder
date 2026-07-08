@@ -187,6 +187,77 @@
   gap: 2rem;
 }
 
+.badge-difficulty {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.badge-easy {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+.badge-medium {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+.badge-hard {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+[data-theme="dark"] .generator-section,
+[data-theme="dark"] .results-section,
+[data-theme="dark"] .tips-section {
+  background: #1f2937;
+  border-color: #374151;
+}
+[data-theme="dark"] .section-title {
+  color: #f9fafb;
+}
+[data-theme="dark"] .checkbox-item {
+  border-color: #374151;
+}
+[data-theme="dark"] .checkbox-item:hover {
+  background: #374151;
+}
+[data-theme="dark"] .category-header {
+  background: #374151;
+  border-color: #4b5563;
+}
+[data-theme="dark"] .category-title {
+  color: #f9fafb;
+}
+[data-theme="dark"] .question-text {
+  color: #f9fafb;
+}
+[data-theme="dark"] .question-details {
+  background: #374151;
+}
+[data-theme="dark"] .question-section h4 {
+  color: #e5e7eb;
+}
+[data-theme="dark"] .question-section p,
+[data-theme="dark"] .question-section ul {
+  color: #9ca3af;
+}
+[data-theme="dark"] .tip-card {
+  background: #374151;
+  border-color: #4b5563;
+}
+[data-theme="dark"] .tip-content h3 {
+  color: #f9fafb;
+}
+[data-theme="dark"] .tip-content p {
+  color: #9ca3af;
+}
+
 .generator-section, .results-section, .tips-section {
   background: white;
   border: 1px solid #e5e7eb;
@@ -637,9 +708,20 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     
     questions.forEach((q, index) => {
+      const difficultyLower = q.difficulty ? q.difficulty.toLowerCase() : 'medium';
       html += `
         <li class="question-item">
           <h4 class="question-text">Q${index + 1}: ${q.question}</h4>
+          
+          <div style="display:flex; gap:8px; margin-bottom:14px; align-items:center; flex-wrap:wrap;">
+            <span class="badge-difficulty badge-${difficultyLower}">
+              ${q.difficulty || 'Medium'}
+            </span>
+            <span style="font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: 500; background: var(--bg-3); color: var(--muted); border: 1px solid var(--border); display: inline-flex; align-items: center; gap: 4px;">
+              <i class="far fa-clock"></i> ${q.time || '3 mins'}
+            </span>
+          </div>
+
           <div class="question-details">
             <div class="question-section">
               <h4>What They're Looking For:</h4>
