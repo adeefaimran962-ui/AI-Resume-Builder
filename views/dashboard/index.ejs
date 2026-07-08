@@ -17,29 +17,29 @@
     <nav class="sidebar-nav">
       <span class="sidebar-nav-section">Main</span>
       <a href="/dashboard" class="sidebar-nav-item active" data-tooltip="Dashboard">
-        <span class="sidebar-nav-icon"><i class="fas fa-th-large"></i></span>
+        <span class="sidebar-nav-icon">📊</span>
         <span class="sidebar-nav-text">Dashboard</span>
       </a>
       <a href="/resume/new" class="sidebar-nav-item" data-tooltip="New Resume">
-        <span class="sidebar-nav-icon"><i class="fas fa-file-plus"></i></span>
+        <span class="sidebar-nav-icon">➕</span>
         <span class="sidebar-nav-text">New Resume</span>
       </a>
 
       <span class="sidebar-nav-section" style="margin-top:12px">Documents</span>
       <a href="/dashboard" class="sidebar-nav-item" data-tooltip="My Resumes">
-        <span class="sidebar-nav-icon"><i class="fas fa-folder-open"></i></span>
+        <span class="sidebar-nav-icon">📁</span>
         <span class="sidebar-nav-text">My Resumes</span>
       </a>
       <a href="/cover-letter/new" class="sidebar-nav-item" data-tooltip="Cover Letters">
-        <span class="sidebar-nav-icon"><i class="fas fa-envelope"></i></span>
+        <span class="sidebar-nav-icon">✉️</span>
         <span class="sidebar-nav-text">Cover Letters</span>
       </a>
       <a href="/certificates" class="sidebar-nav-item" data-tooltip="Certificates">
-        <span class="sidebar-nav-icon"><i class="fas fa-award"></i></span>
+        <span class="sidebar-nav-icon">🎖️</span>
         <span class="sidebar-nav-text">Certificates</span>
       </a>
       <a href="/dashboard/trash" class="sidebar-nav-item" data-tooltip="Trash">
-        <span class="sidebar-nav-icon"><i class="fas fa-trash-2"></i></span>
+        <span class="sidebar-nav-icon">🗑️</span>
         <span class="sidebar-nav-text">Trash</span>
         <% if (typeof trashCount !== 'undefined' && trashCount > 0) { %>
           <span class="sidebar-badge"><%= trashCount %></span>
@@ -48,43 +48,43 @@
 
       <span class="sidebar-nav-section" style="margin-top:12px">Career Tools</span>
       <a href="/jobs" class="sidebar-nav-item" data-tooltip="Job Tracker">
-        <span class="sidebar-nav-icon"><i class="fas fa-briefcase"></i></span>
+        <span class="sidebar-nav-icon">💼</span>
         <span class="sidebar-nav-text">Job Tracker</span>
       </a>
       <a href="/interview" class="sidebar-nav-item" data-tooltip="Interview Prep">
-        <span class="sidebar-nav-icon"><i class="fas fa-message-code"></i></span>
+        <span class="sidebar-nav-icon">💬</span>
         <span class="sidebar-nav-text">Interview Prep</span>
       </a>
       <a href="/skill-gap" class="sidebar-nav-item" data-tooltip="Skill Analysis">
-        <span class="sidebar-nav-icon"><i class="fas fa-brain-circuit"></i></span>
+        <span class="sidebar-nav-icon">📈</span>
         <span class="sidebar-nav-text">Skill Analysis</span>
       </a>
       <a href="/career-roadmap" class="sidebar-nav-item" data-tooltip="Career Roadmap">
-        <span class="sidebar-nav-icon"><i class="fas fa-map"></i></span>
+        <span class="sidebar-nav-icon">🗺️</span>
         <span class="sidebar-nav-text">Career Roadmap</span>
       </a>
 
       <span class="sidebar-nav-section" style="margin-top:12px">AI Tools</span>
       <a href="/resume/ats-checker" class="sidebar-nav-item" data-tooltip="ATS Resume Checker">
-        <span class="sidebar-nav-icon"><i class="fas fa-badge-check"></i></span>
+        <span class="sidebar-nav-icon">✅</span>
         <span class="sidebar-nav-text">ATS Checker</span>
       </a>
       <a href="/resume/new" class="sidebar-nav-item" data-tooltip="AI Resume Builder">
-        <span class="sidebar-nav-icon"><i class="fas fa-sparkles"></i></span>
+        <span class="sidebar-nav-icon">✨</span>
         <span class="sidebar-nav-text">AI Resume</span>
       </a>
       <a href="/cover-letter/new" class="sidebar-nav-item" data-tooltip="AI Cover Letter">
-        <span class="sidebar-nav-icon"><i class="fas fa-pen-square"></i></span>
+        <span class="sidebar-nav-icon">📝</span>
         <span class="sidebar-nav-text">AI Cover Letter</span>
       </a>
 
       <span class="sidebar-nav-section" style="margin-top:12px">Account</span>
       <a href="/dashboard/profile" class="sidebar-nav-item" data-tooltip="Profile">
-        <span class="sidebar-nav-icon"><i class="fas fa-user-circle-2"></i></span>
+        <span class="sidebar-nav-icon">👤</span>
         <span class="sidebar-nav-text">Profile</span>
       </a>
       <a href="/dashboard/settings" class="sidebar-nav-item" data-tooltip="Settings">
-        <span class="sidebar-nav-icon"><i class="fas fa-settings"></i></span>
+        <span class="sidebar-nav-icon">⚙️</span>
         <span class="sidebar-nav-text">Settings</span>
       </a>
     </nav>
@@ -114,13 +114,13 @@
     <header class="topbar">
       <div style="display:flex;align-items:center;gap:14px">
         <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle sidebar">
-          <i class="fas fa-bars"></i>
+          <span>☰</span>
         </button>
         <span class="topbar-title">Dashboard</span>
       </div>
       <div class="topbar-actions">
         <button class="btn btn-outline btn-sm" id="dashboardThemeToggle" aria-label="Toggle theme" style="padding:8px 12px;">
-          <i class="fas fa-moon" id="dashboardThemeIcon"></i>
+          <span id="dashboardThemeIcon">🌙</span>
         </button>
         <a href="/resume/new" class="btn btn-primary btn-sm">
           <i class="fas fa-plus"></i> New Resume
@@ -511,14 +511,25 @@
   const themeToggle = document.getElementById('dashboardThemeToggle');
   const themeIcon = document.getElementById('dashboardThemeIcon');
 
-  // Load saved theme or default to light
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  html.setAttribute('data-theme', savedTheme);
-  updateThemeIcon(savedTheme);
+  // Detect system preference on first visit
+  function getSystemTheme() {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  // Load saved theme or detect system preference
+  const savedTheme = localStorage.getItem('theme');
+  let theme = savedTheme;
+
+  if (!theme || theme === 'system') {
+    theme = getSystemTheme();
+  }
+
+  html.setAttribute('data-theme', theme);
+  updateThemeIcon(theme);
 
   function updateThemeIcon(theme) {
     if (themeIcon) {
-      themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+      themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
     }
   }
 
@@ -531,6 +542,15 @@
       updateThemeIcon(newTheme);
     });
   }
+
+  // Listen for system theme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (localStorage.getItem('theme') === 'system') {
+      const newTheme = e.matches ? 'dark' : 'light';
+      html.setAttribute('data-theme', newTheme);
+      updateThemeIcon(newTheme);
+    }
+  });
 })();
 
 // Sidebar Tooltips
