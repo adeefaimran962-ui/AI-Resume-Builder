@@ -1,1 +1,199 @@
-:root{--primary:#6C63FF}
+:root {
+  /* Primary Colors */
+  --primary: #6C63FF;
+  --primary-hover: #5a52d5;
+  --primary-light: #e8e6ff;
+  --primary-dark: #4a42c2;
+
+  /* Semantic Colors */
+  --success: #10B981;
+  --success-light: #D1FAE5;
+  --warning: #F59E0B;
+  --warning-light: #FEF3C7;
+  --danger: #EF4444;
+  --danger-light: #FEE2E2;
+  --info: #3B82F6;
+  --info-light: #DBEAFE;
+
+  /* Light Mode Variables */
+  --bg: #ffffff;
+  --bg-1: #ffffff;
+  --bg-2: #f8fafc;
+  --bg-3: #f1f5f9;
+  --text: #1e293b;
+  --text-2: #475569;
+  --text-3: #64748b;
+  --muted: #94a3b8;
+  --border: #e2e8f0;
+  --border-2: #cbd5e1;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --shadow-lg: rgba(0, 0, 0, 0.15);
+  --shadow-xl: rgba(0, 0, 0, 0.2);
+
+  /* Card Colors */
+  --card-bg: #ffffff;
+  --card-hover: #f8fafc;
+  --card-border: #e2e8f0;
+
+  /* Input Colors */
+  --input-bg: #ffffff;
+  --input-border: #e2e8f0;
+  --input-focus: #6C63FF;
+  --input-placeholder: #94a3b8;
+
+  /* Button Colors */
+  --btn-primary: #6C63FF;
+  --btn-primary-hover: #5a52d5;
+  --btn-primary-text: #ffffff;
+  --btn-secondary: #64748b;
+  --btn-secondary-hover: #475569;
+  --btn-secondary-text: #ffffff;
+  --btn-outline: #6C63FF;
+  --btn-outline-hover: #5a52d5;
+  --btn-outline-text: #6C63FF;
+  --btn-ghost: #f1f5f9;
+  --btn-ghost-hover: #e2e8f0;
+  --btn-ghost-text: #475569;
+
+  /* Sidebar Colors */
+  --sidebar-bg: #ffffff;
+  --sidebar-text: #475569;
+  --sidebar-hover: #f1f5f9;
+  --sidebar-active: #6C63FF;
+  --sidebar-border: #e2e8f0;
+
+  /* Navbar Colors */
+  --navbar-bg: #ffffff;
+  --navbar-text: #1e293b;
+  --navbar-border: #e2e8f0;
+
+  /* Table Colors */
+  --table-bg: #ffffff;
+  --table-header-bg: #f8fafc;
+  --table-border: #e2e8f0;
+  --table-hover: #f1f5f9;
+  --table-text: #1e293b;
+  --table-text-muted: #64748b;
+
+  /* Modal Colors */
+  --modal-bg: #ffffff;
+  --modal-overlay: rgba(0, 0, 0, 0.5);
+  --modal-border: #e2e8f0;
+
+  /* Dropdown Colors */
+  --dropdown-bg: #ffffff;
+  --dropdown-border: #e2e8f0;
+  --dropdown-hover: #f1f5f9;
+  --dropdown-text: #1e293b;
+
+  /* Tooltip Colors */
+  --tooltip-bg: #1e293b;
+  --tooltip-text: #ffffff;
+
+  /* Code/Pre Colors */
+  --code-bg: #f1f5f9;
+  --code-text: #1e293b;
+  --code-border: #e2e8f0;
+
+  /* Gradient */
+  --gradient: linear-gradient(135deg, #6C63FF, #A855F7);
+  --gradient-soft: linear-gradient(135deg, rgba(108, 99, 255, 0.1), rgba(168, 85, 247, 0.1));
+
+  /* Radius */
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition: all 0.3s ease;
+  --transition-fast: all 0.15s ease;
+  --transition-slow: all 0.5s ease;
+}
+
+/* Dark Mode Variables */
+[data-theme="dark"] {
+  /* Background Colors */
+  --bg: #0F172A;
+  --bg-1: #0F172A;
+  --bg-2: #1E293B;
+  --bg-3: #334155;
+  --text: #F8FAFC;
+  --text-2: #E2E8F0;
+  --text-3: #CBD5E1;
+  --muted: #94A3B8;
+  --border: #334155;
+  --border-2: #475569;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-lg: rgba(0, 0, 0, 0.5);
+  --shadow-xl: rgba(0, 0, 0, 0.7);
+
+  /* Card Colors */
+  --card-bg: #1E293B;
+  --card-hover: #334155;
+  --card-border: #334155;
+
+  /* Input Colors */
+  --input-bg: #1E293B;
+  --input-border: #475569;
+  --input-focus: #6C63FF;
+  --input-placeholder: #64748B;
+
+  /* Button Colors */
+  --btn-primary: #6C63FF;
+  --btn-primary-hover: #7C73FF;
+  --btn-primary-text: #ffffff;
+  --btn-secondary: #475569;
+  --btn-secondary-hover: #64748B;
+  --btn-secondary-text: #ffffff;
+  --btn-outline: #6C63FF;
+  --btn-outline-hover: #7C73FF;
+  --btn-outline-text: #6C63FF;
+  --btn-ghost: #334155;
+  --btn-ghost-hover: #475569;
+  --btn-ghost-text: #E2E8F0;
+
+  /* Sidebar Colors */
+  --sidebar-bg: #111827;
+  --sidebar-text: #E2E8F0;
+  --sidebar-hover: #1F2937;
+  --sidebar-active: #6C63FF;
+  --sidebar-border: #1F2937;
+
+  /* Navbar Colors */
+  --navbar-bg: #111827;
+  --navbar-text: #F8FAFC;
+  --navbar-border: #1F2937;
+
+  /* Table Colors */
+  --table-bg: #1E293B;
+  --table-header-bg: #334155;
+  --table-border: #334155;
+  --table-hover: #334155;
+  --table-text: #F8FAFC;
+  --table-text-muted: #94A3B8;
+
+  /* Modal Colors */
+  --modal-bg: #1E293B;
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+  --modal-border: #334155;
+
+  /* Dropdown Colors */
+  --dropdown-bg: #1E293B;
+  --dropdown-border: #334155;
+  --dropdown-hover: #334155;
+  --dropdown-text: #F8FAFC;
+
+  /* Tooltip Colors */
+  --tooltip-bg: #F8FAFC;
+  --tooltip-text: #0F172A;
+
+  /* Code/Pre Colors */
+  --code-bg: #1E293B;
+  --code-text: #F8FAFC;
+  --code-border: #334155;
+
+  /* Gradient */
+  --gradient: linear-gradient(135deg, #6C63FF, #A855F7);
+  --gradient-soft: linear-gradient(135deg, rgba(108, 99, 255, 0.15), rgba(168, 85, 247, 0.15));
+}

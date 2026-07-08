@@ -31,5 +31,6 @@ router.get('/',         ensureAuthenticated, dc.index);
 router.get('/trash',    ensureAuthenticated, dc.trash);
 router.get('/profile',  ensureAuthenticated, dc.getProfile);
 router.post('/profile', ensureAuthenticated, uploadAvatar.single('avatar'), dc.updateProfile);
+router.get('/settings', ensureAuthenticated, dc.settings);
 
 module.exports = router;

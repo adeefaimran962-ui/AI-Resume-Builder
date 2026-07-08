@@ -13,6 +13,7 @@
 const express        = require('express');
 const router         = express.Router();
 const authController = require('../controllers/authController');
+const passwordController = require('../controllers/passwordController');
 const { ensureGuest } = require('../middleware/auth');
 
 // Register
@@ -25,5 +26,11 @@ router.post('/login', ensureGuest, authController.login);
 
 // Logout (GET is fine – no state change via form, just a link)
 router.get('/logout', authController.logout);
+
+// Password Reset
+router.get('/forgot-password', ensureGuest, passwordController.showForgotPasswordForm);
+router.post('/forgot-password', ensureGuest, passwordController.forgotPassword);
+router.get('/reset-password/:token', ensureGuest, passwordController.showResetPasswordForm);
+router.post('/reset-password/:token', ensureGuest, passwordController.resetPassword);
 
 module.exports = router;

@@ -1,0 +1,277 @@
+<%- include("../partials/header") %>
+<%- include("../partials/navbar") %>
+
+<style>
+.settings-page {
+  padding: 40px 0;
+  background-color: var(--bg-2);
+  min-height: calc(100vh - 140px);
+}
+.settings-header {
+  margin-bottom: 30px;
+}
+.settings-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dark);
+}
+.settings-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: var(--shadow-card);
+  max-width: 600px;
+  margin: 0 auto 24px;
+}
+.settings-section {
+  margin-bottom: 30px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.settings-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.settings-section-title i {
+  color: var(--primary);
+}
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 12px;
+}
+.theme-option:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+.theme-option.active {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+}
+.theme-option input[type="radio"] {
+  display: none;
+}
+.theme-option-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.theme-option-icon.light {
+  background: #F8FAFC;
+  color: #64748B;
+}
+.theme-option-icon.dark {
+  background: #1E293B;
+  color: #F8FAFC;
+}
+.theme-option-icon.system {
+  background: linear-gradient(135deg, #F8FAFC 50%, #1E293B 50%);
+  color: #64748B;
+}
+.theme-option-label {
+  flex: 1;
+}
+.theme-option-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 4px;
+}
+.theme-option-desc {
+  font-size: 12px;
+  color: var(--muted);
+}
+.theme-option-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.theme-option.active .theme-option-check {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.theme-option-check i {
+  font-size: 12px;
+  color: white;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.theme-option.active .theme-option-check i {
+  opacity: 1;
+  transform: scale(1);
+}
+</style>
+
+<main class="settings-page">
+  <div class="container">
+    <div class="settings-header">
+      <h1 class="settings-title">Settings</h1>
+      <p class="text-muted">Manage your account preferences and application settings.</p>
+    </div>
+
+    <!-- Appearance Section -->
+    <div class="settings-card">
+      <div class="settings-section">
+        <h2 class="settings-section-title">
+          <i class="fas fa-palette"></i> Appearance
+        </h2>
+        
+        <label class="theme-option" id="themeLight">
+          <input type="radio" name="theme" value="light">
+          <div class="theme-option-icon light">
+            <i class="fas fa-sun"></i>
+          </div>
+          <div class="theme-option-label">
+            <div class="theme-option-name">Light Mode</div>
+            <div class="theme-option-desc">Clean and bright interface</div>
+          </div>
+          <div class="theme-option-check">
+            <i class="fas fa-check"></i>
+          </div>
+        </label>
+
+        <label class="theme-option" id="themeDark">
+          <input type="radio" name="theme" value="dark">
+          <div class="theme-option-icon dark">
+            <i class="fas fa-moon"></i>
+          </div>
+          <div class="theme-option-label">
+            <div class="theme-option-name">Dark Mode</div>
+            <div class="theme-option-desc">Easy on the eyes, perfect for night</div>
+          </div>
+          <div class="theme-option-check">
+            <i class="fas fa-check"></i>
+          </div>
+        </label>
+
+        <label class="theme-option" id="themeSystem">
+          <input type="radio" name="theme" value="system">
+          <div class="theme-option-icon system">
+            <i class="fas fa-desktop"></i>
+          </div>
+          <div class="theme-option-label">
+            <div class="theme-option-name">System Default</div>
+            <div class="theme-option-desc">Follow your device's theme preference</div>
+          </div>
+          <div class="theme-option-check">
+            <i class="fas fa-check"></i>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Account Section -->
+    <div class="settings-card">
+      <div class="settings-section">
+        <h2 class="settings-section-title">
+          <i class="fas fa-user"></i> Account
+        </h2>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" class="form-control" value="<%= currentUser.name %>" readonly>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" class="form-control" value="<%= currentUser.email %>" readonly>
+        </div>
+        <a href="/dashboard/profile" class="btn btn-outline btn-sm">
+          <i class="fas fa-edit"></i> Edit Profile
+        </a>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+(function() {
+  const html = document.documentElement;
+  const themeLight = document.getElementById('themeLight');
+  const themeDark = document.getElementById('themeDark');
+  const themeSystem = document.getElementById('themeSystem');
+
+  // Get current theme
+  const savedTheme = localStorage.getItem('theme') || 'system';
+  
+  // Set active state
+  function setActiveTheme(theme) {
+    [themeLight, themeDark, themeSystem].forEach(el => {
+      el.classList.remove('active');
+      el.querySelector('input').checked = false;
+    });
+
+    if (theme === 'light') {
+      themeLight.classList.add('active');
+      themeLight.querySelector('input').checked = true;
+    } else if (theme === 'dark') {
+      themeDark.classList.add('active');
+      themeDark.querySelector('input').checked = true;
+    } else {
+      themeSystem.classList.add('active');
+      themeSystem.querySelector('input').checked = true;
+    }
+  }
+
+  setActiveTheme(savedTheme);
+
+  // Handle theme selection
+  [themeLight, themeDark, themeSystem].forEach(el => {
+    el.addEventListener('click', () => {
+      const selectedTheme = el.querySelector('input').value;
+      localStorage.setItem('theme', selectedTheme);
+      
+      // Apply theme immediately
+      if (selectedTheme === 'system') {
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        html.setAttribute('data-theme', systemTheme);
+      } else {
+        html.setAttribute('data-theme', selectedTheme);
+      }
+      
+      setActiveTheme(selectedTheme);
+      
+      // Dispatch event for other components
+      window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: selectedTheme } }));
+    });
+  });
+
+  // Listen for system theme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (localStorage.getItem('theme') === 'system') {
+      const newTheme = e.matches ? 'dark' : 'light';
+      html.setAttribute('data-theme', newTheme);
+    }
+  });
+})();
+</script>
+
+<%- include("../partials/closing") %>

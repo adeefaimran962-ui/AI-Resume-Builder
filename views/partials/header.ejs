@@ -1,11 +1,22 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="AI Resume Builder - Create professional resumes in minutes" />
-  <meta name="theme-color" content="#6366F1" />
+  <meta name="description" content="AI Resume Builder - Create professional resumes in minutes with AI-powered suggestions" />
+  <meta name="theme-color" content="#6C63FF" />
   <title><%= title %> | ResumeAI</title>
+  <!-- Open Graph Tags -->
+  <meta property="og:title" content="<%= title %> | ResumeAI" />
+  <meta property="og:description" content="Create professional resumes in minutes with AI-powered suggestions" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="<%= process.env.APP_URL || 'http://localhost:3000' %>" />
+  <!-- Twitter Card Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="<%= title %> | ResumeAI" />
+  <meta name="twitter:description" content="Create professional resumes in minutes with AI-powered suggestions" />
+  <!-- Canonical URL -->
+  <link rel="canonical" href="<%= process.env.APP_URL || 'http://localhost:3000' %>" />
   <!-- Google Fonts: Plus Jakarta Sans + Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,5 +25,217 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <!-- App Styles -->
   <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* Theme Switcher Styles */
+    .theme-switcher {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 8px;
+      box-shadow: 0 2px 8px var(--shadow);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .theme-switcher:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px var(--shadow-lg);
+    }
+    .theme-switcher i {
+      font-size: 18px;
+      color: var(--text);
+    }
+    /* Loading Spinner */
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .btn.loading {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .btn.loading .loading-spinner {
+      margin-right: 8px;
+    }
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      box-shadow: 0 4px 12px var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 300px;
+      animation: slideIn 0.3s ease;
+      transition: var(--transition);
+    }
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+    .toast.warning { border-left: 4px solid var(--warning); }
+    .toast.info { border-left: 4px solid var(--info); }
+    .toast i { font-size: 18px; }
+    .toast.success i { color: var(--success); }
+    .toast.error i { color: var(--danger); }
+    .toast.warning i { color: var(--warning); }
+    .toast.info i { color: var(--info); }
+    .toast-content { flex: 1; }
+    .toast-title { font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .toast-message { font-size: 14px; color: var(--text-2); }
+    .toast-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px;
+      font-size: 16px;
+    }
+    .toast-close:hover { color: var(--text); }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+    /* Skeleton Loader */
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-2) 25%, var(--bg-3) 50%, var(--bg-2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: var(--radius);
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
 </head>
 <body>
+  <!-- Theme Switcher -->
+  <button class="theme-switcher" id="themeSwitcher" aria-label="Toggle theme">
+    <i class="fas fa-moon" id="themeIcon"></i>
+  </button>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // Theme Management
+    (function() {
+      const html = document.documentElement;
+      const themeSwitcher = document.getElementById('themeSwitcher');
+      const themeIcon = document.getElementById('themeIcon');
+
+      // Detect system preference on first visit
+      function getSystemTheme() {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+
+      // Load saved theme or detect system preference
+      const savedTheme = localStorage.getItem('theme');
+      let theme = savedTheme;
+
+      if (!theme || theme === 'system') {
+        theme = getSystemTheme();
+      }
+
+      html.setAttribute('data-theme', theme);
+      updateThemeIcon(theme);
+
+      function updateThemeIcon(theme) {
+        if (themeIcon) {
+          themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+      }
+
+      if (themeSwitcher) {
+        themeSwitcher.addEventListener('click', () => {
+          const currentTheme = html.getAttribute('data-theme');
+          const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+          html.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+          updateThemeIcon(newTheme);
+        });
+      }
+
+      // Listen for system theme changes
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        if (localStorage.getItem('theme') === 'system') {
+          const newTheme = e.matches ? 'dark' : 'light';
+          html.setAttribute('data-theme', newTheme);
+          updateThemeIcon(newTheme);
+        }
+      });
+    })();
+
+    // Toast Notification System
+    function showToast(type, title, message, duration = 5000) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      const iconMap = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+      };
+
+      toast.innerHTML = `
+        <i class="fas ${iconMap[type]}"></i>
+        <div class="toast-content">
+          <div class="toast-title">${title}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, duration);
+    }
+
+    // Button Loading State
+    function setButtonLoading(btn, loading) {
+      if (loading) {
+        btn.classList.add('loading');
+        const originalText = btn.innerHTML;
+        btn.setAttribute('data-original-text', originalText);
+        btn.innerHTML = '<span class="loading-spinner"></span> Loading...';
+      } else {
+        btn.classList.remove('loading');
+        const originalText = btn.getAttribute('data-original-text');
+        if (originalText) {
+          btn.innerHTML = originalText;
+        }
+      }
+    }
+  </script>

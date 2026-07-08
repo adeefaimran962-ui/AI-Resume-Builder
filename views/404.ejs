@@ -1,11 +1,77 @@
 ﻿<%- include("partials/header") %>
-<%- include("partials/navbar") %>
+<style>
+  .error-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-2);
+    padding: 40px 20px;
+  }
+  .error-content {
+    text-align: center;
+    max-width: 600px;
+  }
+  .error-illustration {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 30px;
+    background: var(--bg-3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 80px;
+    color: var(--muted);
+  }
+  .error-code {
+    font-size: 120px;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+    margin-bottom: 20px;
+  }
+  .error-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+  .error-message {
+    font-size: 18px;
+    color: var(--text-2);
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+  .error-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .error-actions .btn {
+    min-width: 140px;
+  }
+</style>
 <main class="error-page">
-  <div class="container error-content">
+  <div class="error-content">
+    <div class="error-illustration">
+      <i class="fas fa-search"></i>
+    </div>
     <div class="error-code">404</div>
-    <h1>Page Not Found</h1>
-    <p>The page you are looking for does not exist or has been moved.</p>
-    <a href="/" class="btn btn-primary"><i class="fas fa-home"></i> Go Home</a>
+    <h1 class="error-title">Page Not Found</h1>
+    <p class="error-message">
+      The page you are looking for doesn't exist or has been moved to a different location.
+      Don't worry, let's get you back on track.
+    </p>
+    <div class="error-actions">
+      <a href="/dashboard" class="btn btn-primary">
+        <i class="fas fa-th-large"></i> Dashboard
+      </a>
+      <a href="/" class="btn btn-outline">
+        <i class="fas fa-home"></i> Home
+      </a>
+    </div>
   </div>
 </main>
 <%- include("partials/footer") %>

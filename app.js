@@ -37,6 +37,9 @@ const path           = require('path');
 const session        = require('express-session');
 const flash          = require('connect-flash');
 const methodOverride = require('method-override');
+const helmet         = require('helmet');
+const rateLimit      = require('express-rate-limit');
+const compression    = require('compression');
 
 const connectDB  = require('./config/db');
 const setLocals  = require('./middleware/locals');
@@ -98,6 +101,33 @@ app.use(session({
 
 app.use(flash());
 app.use(setLocals);
+
+// ── PERFORMANCE MIDDLEWARE ───────────────────────────────────────────────────
+// Compression middleware for gzip
+app.use(compression());
+
+// ── SECURITY MIDDLEWARE ─────────────────────────────────────────────────────
+// Helmet for security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
+    },
+  },
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+});
+app.use('/auth', limiter);
 
 // ── ROUTES ───────────────────────────────────────────────────────────────
 app.use('/',             indexRouter);

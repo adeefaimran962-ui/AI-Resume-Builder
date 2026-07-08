@@ -170,3 +170,20 @@ exports.updateProfile = async (req, res) => {
     return res.redirect('/dashboard/profile');
   }
 };
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Settings
+───────────────────────────────────────────────────────────────────────── */
+exports.settings = async (req, res) => {
+  try {
+    const user = await User.findById(req.session.userId).lean();
+    return res.render('dashboard/settings', {
+      title: 'Settings – ResumeAI',
+      currentUser: user,
+    });
+  } catch (err) {
+    console.error('Settings Error:', err);
+    req.flash('error', 'Could not load settings.');
+    return res.redirect('/dashboard');
+  }
+};
