@@ -6,7 +6,7 @@
   <aside class="sidebar" id="dashSidebar">
     <div class="sidebar-logo">
       <a href="/">
-        <span class="brand-icon-wrap"><i class="fas fa-bolt"></i></span>
+        <span class="brand-icon-wrap">⚡</span>
         <span>ResumeAI<span style="color:var(--accent)">.</span></span>
       </a>
     </div>
@@ -14,18 +14,18 @@
     <nav class="sidebar-nav">
       <span class="sidebar-nav-section">Main</span>
       <a href="/dashboard" class="sidebar-nav-item">
-        <i class="fas fa-th-large"></i> Dashboard
+        📊 Dashboard
       </a>
       <a href="/resume/new" class="sidebar-nav-item">
-        <i class="fas fa-plus-circle"></i> New Resume
+        ➕ New Resume
       </a>
 
       <span class="sidebar-nav-section" style="margin-top:12px">Manage</span>
       <a href="/dashboard" class="sidebar-nav-item">
-        <i class="fas fa-folder-open"></i> My Resumes
+        📁 My Resumes
       </a>
       <a href="/dashboard/trash" class="sidebar-nav-item active">
-        <i class="fas fa-trash-alt"></i> Trash
+        🗑️ Trash
         <% if (typeof trashCount !== 'undefined' && trashCount > 0) { %>
           <span style="margin-left:auto;background:var(--danger);color:white;font-size:11px;font-weight:700;padding:2px 7px;border-radius:50px;"><%= trashCount %></span>
         <% } %>
@@ -33,10 +33,10 @@
 
       <span class="sidebar-nav-section" style="margin-top:12px">Account</span>
       <a href="/dashboard/profile" class="sidebar-nav-item">
-        <i class="fas fa-user-circle"></i> Profile
+        👤 Profile
       </a>
       <a href="/dashboard/profile" class="sidebar-nav-item">
-        <i class="fas fa-cog"></i> Settings
+        ⚙️ Settings
       </a>
     </nav>
 
@@ -56,7 +56,7 @@
         </div>
       <% } %>
       <a href="/auth/logout" class="sidebar-logout">
-        <i class="fas fa-sign-out-alt"></i> Logout
+        🚪 Logout
       </a>
     </div>
   </aside>
@@ -68,15 +68,15 @@
     <header class="topbar">
       <div style="display:flex;align-items:center;gap:14px">
         <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle sidebar">
-          <i class="fas fa-bars"></i>
+          <span>☰</span>
         </button>
         <span class="topbar-title">
-          <i class="fas fa-trash-alt" style="color:var(--danger);margin-right:6px;"></i> Trash
+          🗑️ Trash
         </span>
       </div>
       <div class="topbar-actions">
         <a href="/dashboard" class="btn btn-outline btn-sm">
-          <i class="fas fa-arrow-left"></i> Back to Dashboard
+          ◀ Back to Dashboard
         </a>
       </div>
     </header>
@@ -90,14 +90,14 @@
         <!-- EMPTY TRASH STATE -->
         <div style="text-align:center;padding:80px 20px;">
           <div style="width:90px;height:90px;background:#FEE2E2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">
-            <i class="fas fa-trash-alt" style="font-size:36px;color:var(--danger);"></i>
+            🗑️
           </div>
           <h3 style="font-size:22px;font-weight:700;color:var(--dark);margin-bottom:8px;">Trash is empty</h3>
           <p style="color:var(--muted);font-size:15px;margin-bottom:28px;">
             Deleted resumes and cover letters will appear here.<br>You can restore them or permanently delete them.
           </p>
           <a href="/dashboard" class="btn btn-primary">
-            <i class="fas fa-th-large"></i> Back to Dashboard
+            📊 Back to Dashboard
           </a>
         </div>
 
@@ -106,8 +106,7 @@
         <!-- INFO BAR -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;background:var(--white);padding:14px 20px;border-radius:var(--radius);border:1.5px solid #FEE2E2;">
           <p style="color:var(--muted);font-size:14px;margin:0;">
-            <i class="fas fa-info-circle" style="color:var(--warning);margin-right:6px;"></i>
-            <strong><%= (resumes ? resumes.length : 0) + (coverLetters ? coverLetters.length : 0) %></strong> item<%= (resumes ? resumes.length : 0) + (coverLetters ? coverLetters.length : 0) !== 1 ? 's' : '' %> in Trash.
+            ℹ️ <strong><%= (resumes ? resumes.length : 0) + (coverLetters ? coverLetters.length : 0) %></strong> item<%= (resumes ? resumes.length : 0) + (coverLetters ? coverLetters.length : 0) !== 1 ? 's' : '' %> in Trash.
             Restore or permanently delete them below.
           </p>
         </div>
@@ -127,7 +126,7 @@
               <!-- Card Header -->
               <div class="resume-card-header">
                 <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:50px;background:rgba(239,68,68,0.1);color:var(--danger);display:inline-flex;align-items:center;gap:6px;">
-                  <i class="fas fa-file-alt"></i>
+                  📄
                   <%= resume.template ? resume.template.charAt(0).toUpperCase() + resume.template.slice(1) : 'Resume' %>
                 </span>
               </div>
@@ -136,17 +135,15 @@
               <div class="resume-card-body">
                 <h3 class="resume-title"><%= resume.title %></h3>
                 <p class="resume-person-name">
-                  <i class="fas fa-user"></i>
-                  <%= (resume.personalInfo && resume.personalInfo.fullName) ? resume.personalInfo.fullName : 'Name not set' %>
+                  👤 <%= (resume.personalInfo && resume.personalInfo.fullName) ? resume.personalInfo.fullName : 'Name not set' %>
                 </p>
                 <% if (resume.personalInfo && resume.personalInfo.jobTitle) { %>
                   <p class="resume-job-title">
-                    <i class="fas fa-briefcase"></i> <%= resume.personalInfo.jobTitle %>
+                    💼 <%= resume.personalInfo.jobTitle %>
                   </p>
                 <% } %>
                 <p class="resume-meta" style="margin-top:6px;">
-                  <i class="fas fa-calendar-times" style="color:var(--danger);"></i>
-                  Deleted: <%= resume.deletedAt
+                  📅 Deleted: <%= resume.deletedAt
                     ? new Date(resume.deletedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                     : 'Unknown date' %>
                 </p>
@@ -159,7 +156,7 @@
                 <form action="/resume/<%= resume._id %>/restore" method="POST" style="margin:0;">
                   <button type="submit" class="btn btn-sm btn-outline"
                     style="color:var(--success);border-color:var(--success);">
-                    <i class="fas fa-undo-alt"></i> Restore
+                    ↩️ Restore
                   </button>
                 </form>
 
@@ -170,7 +167,7 @@
                   onsubmit="return confirm('Permanently delete this resume? This cannot be undone.')"
                   style="margin:0;">
                   <button type="submit" class="btn btn-sm btn-danger">
-                    <i class="fas fa-times-circle"></i> Delete Forever
+                    ❌ Delete Forever
                   </button>
                 </form>
 
@@ -196,7 +193,7 @@
               <!-- Card Header -->
               <div class="resume-card-header">
                 <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:50px;background:rgba(236,72,153,0.1);color:#EC4899;display:inline-flex;align-items:center;gap:6px;">
-                  <i class="fas fa-envelope"></i>
+                  ✉️
                   Cover Letter
                 </span>
               </div>
@@ -205,17 +202,15 @@
               <div class="resume-card-body">
                 <h3 class="resume-title"><%= letter.title %></h3>
                 <p class="resume-person-name">
-                  <i class="fas fa-user"></i>
-                  <%= (letter.personalInfo && letter.personalInfo.fullName) ? letter.personalInfo.fullName : 'Name not set' %>
+                  👤 <%= (letter.personalInfo && letter.personalInfo.fullName) ? letter.personalInfo.fullName : 'Name not set' %>
                 </p>
                 <% if (letter.jobTitle) { %>
                   <p class="resume-job-title">
-                    <i class="fas fa-briefcase"></i> <%= letter.jobTitle %>
+                    💼 <%= letter.jobTitle %>
                   </p>
                 <% } %>
                 <p class="resume-meta" style="margin-top:6px;">
-                  <i class="fas fa-calendar-times" style="color:var(--danger);"></i>
-                  Deleted: <%= letter.deletedAt
+                  📅 Deleted: <%= letter.deletedAt
                     ? new Date(letter.deletedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                     : 'Unknown date' %>
                 </p>
@@ -228,7 +223,7 @@
                 <form action="/cover-letter/<%= letter._id %>/restore" method="POST" style="margin:0;">
                   <button type="submit" class="btn btn-sm btn-outline"
                     style="color:var(--success);border-color:var(--success);">
-                    <i class="fas fa-undo-alt"></i> Restore
+                    ↩️ Restore
                   </button>
                 </form>
 
@@ -239,7 +234,7 @@
                   onsubmit="return confirm('Permanently delete this cover letter? This cannot be undone.')"
                   style="margin:0;">
                   <button type="submit" class="btn btn-sm btn-danger">
-                    <i class="fas fa-times-circle"></i> Delete Forever
+                    ❌ Delete Forever
                   </button>
                 </form>
 

@@ -6,40 +6,40 @@
   <aside class="sidebar" id="dashSidebar">
     <div class="sidebar-logo">
       <a href="/">
-        <span class="brand-icon-wrap"><i class="fas fa-bolt"></i></span>
+        <span class="brand-icon-wrap">⚡</span>
         <span>ResumeAI<span style="color:var(--accent)">.</span></span>
       </a>
       <button class="sidebar-collapse-btn" id="sidebarCollapse" aria-label="Toggle sidebar">
-        <i class="fas fa-chevron-left"></i>
+        ◀
       </button>
     </div>
 
     <nav class="sidebar-nav">
       <span class="sidebar-nav-section">Main</span>
       <a href="/dashboard" class="sidebar-nav-item active" data-tooltip="Dashboard">
-        <span class="sidebar-nav-icon"><i class="fas fa-th-large"></i></span>
+        <span class="sidebar-nav-icon">📊</span>
         <span class="sidebar-nav-text">Dashboard</span>
       </a>
       <a href="/resume/new" class="sidebar-nav-item" data-tooltip="New Resume">
-        <span class="sidebar-nav-icon"><i class="fas fa-plus"></i></span>
+        <span class="sidebar-nav-icon">➕</span>
         <span class="sidebar-nav-text">New Resume</span>
       </a>
 
       <span class="sidebar-nav-section" style="margin-top:12px">Documents</span>
       <a href="/dashboard" class="sidebar-nav-item" data-tooltip="My Resumes">
-        <span class="sidebar-nav-icon"><i class="fas fa-file-alt"></i></span>
+        <span class="sidebar-nav-icon">📁</span>
         <span class="sidebar-nav-text">My Resumes</span>
       </a>
       <a href="/cover-letter/new" class="sidebar-nav-item" data-tooltip="Cover Letters">
-        <span class="sidebar-nav-icon"><i class="fas fa-envelope"></i></span>
+        <span class="sidebar-nav-icon">✉️</span>
         <span class="sidebar-nav-text">Cover Letters</span>
       </a>
       <a href="/certificates" class="sidebar-nav-item" data-tooltip="Certificates">
-        <span class="sidebar-nav-icon"><i class="fas fa-certificate"></i></span>
+        <span class="sidebar-nav-icon">🎖️</span>
         <span class="sidebar-nav-text">Certificates</span>
       </a>
       <a href="/dashboard/trash" class="sidebar-nav-item" data-tooltip="Trash">
-        <span class="sidebar-nav-icon"><i class="fas fa-trash-alt"></i></span>
+        <span class="sidebar-nav-icon">🗑️</span>
         <span class="sidebar-nav-text">Trash</span>
         <% if (typeof trashCount !== 'undefined' && trashCount > 0) { %>
           <span class="sidebar-badge"><%= trashCount %></span>
@@ -48,43 +48,43 @@
 
       <span class="sidebar-nav-section" style="margin-top:12px">Career Tools</span>
       <a href="/jobs" class="sidebar-nav-item" data-tooltip="Job Tracker">
-        <span class="sidebar-nav-icon"><i class="fas fa-briefcase"></i></span>
+        <span class="sidebar-nav-icon">💼</span>
         <span class="sidebar-nav-text">Job Tracker</span>
       </a>
       <a href="/interview" class="sidebar-nav-item" data-tooltip="Interview Prep">
-        <span class="sidebar-nav-icon"><i class="fas fa-question-circle"></i></span>
+        <span class="sidebar-nav-icon">💬</span>
         <span class="sidebar-nav-text">Interview Prep</span>
       </a>
       <a href="/skill-gap" class="sidebar-nav-item" data-tooltip="Skill Analysis">
-        <span class="sidebar-nav-icon"><i class="fas fa-chart-line"></i></span>
+        <span class="sidebar-nav-icon">📈</span>
         <span class="sidebar-nav-text">Skill Analysis</span>
       </a>
       <a href="/career-roadmap" class="sidebar-nav-item" data-tooltip="Career Roadmap">
-        <span class="sidebar-nav-icon"><i class="fas fa-map-marked-alt"></i></span>
+        <span class="sidebar-nav-icon">🗺️</span>
         <span class="sidebar-nav-text">Career Roadmap</span>
       </a>
 
       <span class="sidebar-nav-section" style="margin-top:12px">AI Tools</span>
       <a href="/resume/ats-checker" class="sidebar-nav-item" data-tooltip="ATS Resume Checker">
-        <span class="sidebar-nav-icon"><i class="fas fa-check-circle"></i></span>
+        <span class="sidebar-nav-icon">✅</span>
         <span class="sidebar-nav-text">ATS Checker</span>
       </a>
       <a href="/resume/new" class="sidebar-nav-item" data-tooltip="AI Resume Builder">
-        <span class="sidebar-nav-icon"><i class="fas fa-magic"></i></span>
+        <span class="sidebar-nav-icon">✨</span>
         <span class="sidebar-nav-text">AI Resume</span>
       </a>
       <a href="/cover-letter/new" class="sidebar-nav-item" data-tooltip="AI Cover Letter">
-        <span class="sidebar-nav-icon"><i class="fas fa-pen-fancy"></i></span>
+        <span class="sidebar-nav-icon">📝</span>
         <span class="sidebar-nav-text">AI Cover Letter</span>
       </a>
 
       <span class="sidebar-nav-section" style="margin-top:12px">Account</span>
       <a href="/dashboard/profile" class="sidebar-nav-item" data-tooltip="Profile">
-        <span class="sidebar-nav-icon"><i class="fas fa-user"></i></span>
+        <span class="sidebar-nav-icon">👤</span>
         <span class="sidebar-nav-text">Profile</span>
       </a>
       <a href="/dashboard/settings" class="sidebar-nav-item" data-tooltip="Settings">
-        <span class="sidebar-nav-icon"><i class="fas fa-cog"></i></span>
+        <span class="sidebar-nav-icon">⚙️</span>
         <span class="sidebar-nav-text">Settings</span>
       </a>
     </nav>
@@ -102,7 +102,7 @@
         </div>
       </div>
       <a href="/auth/logout" class="sidebar-logout">
-        <i class="fas fa-sign-out-alt"></i> Logout
+        🚪 Logout
       </a>
     </div>
   </aside>
@@ -123,7 +123,7 @@
           <span id="dashboardThemeIcon">🌙</span>
         </button>
         <a href="/resume/new" class="btn btn-primary btn-sm">
-          <i class="fas fa-plus"></i> New Resume
+          ➕ New Resume
         </a>
         <a href="/dashboard/profile">
           <% if (currentUser.avatar) { %>
@@ -149,11 +149,11 @@
           <% if (stats.totalResumes === 0) { %>Start building your first one today.<% } else { %>Keep them updated to stay competitive.<% } %>
           </p>
           <a href="/resume/new" class="btn btn-white btn-sm" style="margin-top:14px">
-            <i class="fas fa-plus"></i> Create New Resume
+            ➕ Create New Resume
           </a>
         </div>
         <div class="welcome-card-art">
-          <i class="fas fa-file-alt" style="font-size:80px;opacity:.15;color:white"></i>
+          📄
         </div>
       </div>
 
@@ -161,7 +161,7 @@
       <div class="stats-row">
         <div class="stat-card-dash">
           <div class="icon-box" style="background:linear-gradient(135deg,#6C63FF,#A855F7)">
-            <i class="fas fa-file-lines" style="color:white"></i>
+            📄
           </div>
           <div>
             <div class="stat-value"><%= stats.totalResumes %></div>
@@ -170,7 +170,7 @@
         </div>
         <div class="stat-card-dash">
           <div class="icon-box" style="background:linear-gradient(135deg,#10B981,#34D399)">
-            <i class="fas fa-download" style="color:white"></i>
+            ⬇️
           </div>
           <div>
             <div class="stat-value"><%= stats.totalDownloads %></div>
@@ -179,7 +179,7 @@
         </div>
         <div class="stat-card-dash">
           <div class="icon-box" style="background:linear-gradient(135deg,#3B82F6,#60A5FA)">
-            <i class="fas fa-bullseye" style="color:white"></i>
+            🎯
           </div>
           <div>
             <div class="stat-value"><%= stats.avgAtsScore %>%</div>
@@ -188,7 +188,7 @@
         </div>
         <div class="stat-card-dash">
           <div class="icon-box" style="background:linear-gradient(135deg,#EF4444,#F87171)">
-            <i class="fas fa-calendar-alt" style="color:white"></i>
+            📅
           </div>
           <div>
             <div class="stat-value" style="font-size:15px"><%= stats.lastUpdated %></div>
@@ -220,13 +220,13 @@
               <option value="oldest" <%= filters.sort === 'oldest' ? 'selected' : '' %>>Oldest Created</option>
               <option value="score" <%= filters.sort === 'score' ? 'selected' : '' %>>ATS Score</option>
             </select>
-            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Filter</button>
+            <button type="submit" class="btn btn-primary">🔍 Filter</button>
             <a href="/dashboard" class="btn btn-outline" style="line-height: 2.2;">Reset</a>
           </form>
         </div>
 
         <div style="background:var(--white);padding:16px;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow-card);">
-          <h4 style="margin-top:0;margin-bottom:12px;font-size:14px;color:var(--dark);"><i class="fas fa-history" style="color:var(--primary);"></i> Recent Activity</h4>
+          <h4 style="margin-top:0;margin-bottom:12px;font-size:14px;color:var(--dark);">🕐 Recent Activity</h4>
           <% if (recentActivity.length === 0) { %>
             <p style="font-size:12px;color:var(--muted);margin:0;">No recent activity.</p>
           <% } else { %>
@@ -246,7 +246,7 @@
       <div class="dash-section-header">
         <h3 class="dash-section-title">My Resumes</h3>
         <% if (resumes.length > 0) { %>
-          <a href="/resume/new" class="btn btn-outline btn-sm"><i class="fas fa-plus"></i> Add New</a>
+          <a href="/resume/new" class="btn btn-outline btn-sm">➕ Add New</a>
         <% } %>
       </div>
 
@@ -254,12 +254,12 @@
         <!-- EMPTY STATE -->
         <div class="empty-state">
           <div class="empty-state-icon">
-            <i class="fas fa-file-alt"></i>
+            📄
           </div>
           <h3>No resumes yet</h3>
           <p>Create your first professional resume and start landing interviews.</p>
           <a href="/resume/new" class="btn btn-primary btn-lg" style="margin-top:8px">
-            <i class="fas fa-plus"></i> Create My First Resume
+            ➕ Create My First Resume
           </a>
         </div>
 
@@ -297,14 +297,14 @@
                   resume.template === 'executive' ? '#111827' :
                   resume.template === 'creative' ? '#10B981' : 'var(--dark)'
                 %>; font-size:12px; font-weight:600; padding:4px 8px; border-radius:4px; display:inline-flex; align-items:center; gap:6px;">
-                  <i class="fas <%= 
-                    resume.template === 'modern' ? 'fa-magic' :
-                    resume.template === 'classic' ? 'fa-crown' :
-                    resume.template === 'minimal' ? 'fa-feather' :
-                    resume.template === 'professional' ? 'fa-briefcase' :
-                    resume.template === 'executive' ? 'fa-user-tie' :
-                    resume.template === 'creative' ? 'fa-palette' : 'fa-file-alt'
-                  %>"></i>
+                  <span><%=
+                    resume.template === 'modern' ? '✨' :
+                    resume.template === 'classic' ? '👑' :
+                    resume.template === 'minimal' ? '🪶' :
+                    resume.template === 'professional' ? '💼' :
+                    resume.template === 'executive' ? '👔' :
+                    resume.template === 'creative' ? '🎨' : '📄'
+                  %></span>
                   <%= resume.template.charAt(0).toUpperCase() + resume.template.slice(1) %>
                 </span>
               </div>
@@ -313,35 +313,35 @@
             <!-- Action Buttons Row -->
             <div class="resume-card-actions-row">
               <a href="/resume/<%= resume._id %>/edit" class="btn-action" title="Edit Resume">
-                <i class="fas fa-pencil-alt"></i> Edit
+                ✏️ Edit
               </a>
               <a href="/resume/<%= resume._id %>/preview" class="btn-action" title="Preview">
-                <i class="fas fa-eye"></i> Preview
+                👁️ Preview
               </a>
               <a href="/resume/<%= resume._id %>/download" class="btn-action" title="Download PDF">
-                <i class="fas fa-file-pdf"></i> PDF
+                📄 PDF
               </a>
               <a href="/cover-letter/new?resumeId=<%= resume._id %>" class="btn-action" title="Create Cover Letter" style="color:#EC4899">
-                <i class="fas fa-envelope"></i> Cover
+                ✉️ Cover
               </a>
               <a href="/resume/<%= resume._id %>/score" class="btn-action" title="ATS Score" style="color:var(--accent)">
-                <i class="fas fa-chart-pie"></i> Score
+                📊 Score
               </a>
               <a href="/resume/<%= resume._id %>/versions" class="btn-action" title="Version History" style="color:var(--accent)">
-                <i class="fas fa-history"></i> History
+                🕐 History
               </a>
               <form action="/resume/<%= resume._id %>/duplicate" method="POST" style="display:inline;margin:0;">
                 <button type="submit" class="btn-action" title="Duplicate">
-                  <i class="fas fa-copy"></i> Duplicate
+                  📋 Duplicate
                 </button>
               </form>
               <button type="button" class="btn-action" title="Rename" onclick="renameResume('<%= resume._id %>', '<%= resume.title.replace(/'/g, "\\'") %>')">
-                <i class="fas fa-i-cursor"></i> Rename
+                ✏️ Rename
               </button>
               <form action="/resume/<%= resume._id %>?_method=DELETE" method="POST" style="display:inline;margin:0;"
                 onsubmit="return confirm('Are you sure you want to delete this resume? This cannot be undone.')">
                 <button type="submit" class="btn-action btn-action-danger" title="Delete">
-                  <i class="fas fa-trash-alt"></i> Delete
+                  🗑️ Delete
                 </button>
               </form>
             </div>

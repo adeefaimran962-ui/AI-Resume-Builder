@@ -41,7 +41,7 @@ const helmet         = require('helmet');
 const rateLimit      = require('express-rate-limit');
 const compression    = require('compression');
 
-const connectDB  = require('./config/db');
+const { connectDB, disconnectDB } = require('./config/db');
 const setLocals  = require('./middleware/locals');
 
 const indexRouter        = require('./routes/index');
@@ -54,8 +54,6 @@ const certificatesRouter = require('./routes/certificates');
 const interviewRouter    = require('./routes/interview');
 const skillGapRouter     = require('./routes/skillGap');
 const careerRouter       = require('./routes/career');
-
-connectDB();
 
 const app = express();
 
@@ -157,8 +155,99 @@ app.use((err, req, res, next) => {
   });
 });
 
+// ── START SERVER ─────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`ResumeAI running on http://localhost:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+
+// ── ENVIRONMENT VALIDATION ───────────────────────────────────────────────
+const validateEnvironment = () => {
+  const required = ['SESSION_SECRET'];
+  const missing = [];
+
+  required.forEach(envVar => {
+    if (!process.env[envVar]) {
+      missing.push(envVar);
+    }
+  });
+
+  if (missing.length > 0) {
+    console.error('❌ Missing required environment variables:');
+    missing.forEach(v => console.error(`   - ${v}`));
+    console.error('\nPlease add these to your .env file');
+    process.exit(1);
+  }
+
+  // Warn if MONGODB_URI is not set (but allow local fallback)
+  if (!process.env.MONGODB_URI && process.env.USE_LOCAL_DB !== 'true') {
+    console.warn('⚠️  MONGODB_URI not set. Will attempt local MongoDB fallback.');
+    console.warn('   Set USE_LOCAL_DB=true to explicitly use local MongoDB');
+  }
+};
+
+// ── GRACEFUL SHUTDOWN ─────────────────────────────────────────────────────
+const gracefulShutdown = async (signal) => {
+  console.log(`\n${signal} received. Starting graceful shutdown...`);
+  
+  try {
+    // Close MongoDB connection
+    await disconnectDB();
+    
+    // Exit process
+    console.log('✅ Graceful shutdown completed');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Error during graceful shutdown:', error.message);
+    process.exit(1);
+  }
+};
+
+// Handle shutdown signals
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error.message);
+  console.error(error.stack);
+  gracefulShutdown('uncaughtException');
 });
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  gracefulShutdown('unhandledRejection');
+});
+
+// ── START SERVER ─────────────────────────────────────────────────────────
+const startServer = async () => {
+  try {
+    // Validate environment variables
+    validateEnvironment();
+    
+    // Connect to MongoDB
+    await connectDB();
+    
+    // Start the server
+    const server = app.listen(PORT, () => {
+      console.log(`✅ ResumeAI running on http://localhost:${PORT}`);
+      console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`   Press Ctrl+C to stop the server`);
+    });
+
+    // Handle server errors
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${PORT} is already in use`);
+        console.error(`   Either stop the process using port ${PORT} or use a different PORT`);
+      } else {
+        console.error('❌ Server error:', error.message);
+      }
+      process.exit(1);
+    });
+
+  } catch (error) {
+    console.error('❌ Failed to start server:', error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
