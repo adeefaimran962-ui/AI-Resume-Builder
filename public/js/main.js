@@ -725,7 +725,16 @@ function initAJAXCardSystem() {
   if (!form) return;
 
   const resumeId = extractResumeId();
-  if (!resumeId) return;
+  if (!resumeId) {
+    console.log('[AJAX Cards] No resume ID found - skipping AJAX initialization (new resume mode)');
+    return;
+  }
+
+  // Don't initialize AJAX on the 'new' page
+  if (window.location.pathname.includes('/resume/new')) {
+    console.log('[AJAX Cards] Skipping AJAX initialization on new resume page');
+    return;
+  }
 
   console.log('[AJAX Cards] Initializing for resume:', resumeId);
 
@@ -1265,7 +1274,24 @@ function enhanceAddButtons(resumeId) {
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize AJAX card system if on resume edit page
   if (document.querySelector('.resume-form')) {
-    initAJAXCardSystem();
+    const isNewPage = window.location.pathname.includes('/resume/new');
+    const isEditPage = window.location.pathname.match(/\/resume\/[a-f0-9]{24}\/edit/);
+    
+    console.log('[Page Load] Resume form detected');
+    console.log('[Page Load] Is new page:', isNewPage);
+    console.log('[Page Load] Is edit page:', !!isEditPage);
+    console.log('[Page Load] Current URL:', window.location.pathname);
+    
+    if (isNewPage) {
+      console.log('[Page Load] New resume mode - using traditional form submission');
+      console.log('[Page Load] Add buttons will add items to form, saved on Submit');
+    } else if (isEditPage) {
+      console.log('[Page Load] Edit mode - initializing AJAX card system');
+      initAJAXCardSystem();
+    } else {
+      console.log('[Page Load] Unknown mode - attempting AJAX initialization');
+      initAJAXCardSystem();
+    }
   }
 });
 

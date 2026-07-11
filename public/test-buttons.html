@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Add Buttons</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .form-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: 2px solid #6c63ff;
+      background: white;
+      color: #6c63ff;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: #6c63ff;
+      color: white;
+    }
+    .dynamic-item {
+      margin: 15px 0;
+      padding: 15px;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .item-title {
+      font-weight: 600;
+      color: #333;
+    }
+    .btn-remove-item {
+      background: #ff4444;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .form-group {
+      flex: 1;
+      min-width: 200px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #555;
+    }
+    .form-control {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .col-6 {
+      flex: 0 0 calc(50% - 7.5px);
+    }
+    .col-12 {
+      flex: 0 0 100%;
+    }
+    textarea.form-control {
+      resize: vertical;
+    }
+    #console {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #222;
+      color: #0f0;
+      padding: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Test Add Buttons</h1>
+  <p>This is a standalone test to verify the addItem() function works correctly.</p>
+
+  <!-- Certifications Section -->
+  <div class="form-section">
+    <h2><i class="fas fa-certificate"></i> Certifications</h2>
+    <div id="certList"></div>
+    <button type="button" class="btn" onclick="addItem('certList','certifications',['name','issuer','issueDate','url'])">
+      <i class="fas fa-plus"></i> Add Certification
+    </button>
+  </div>
+
+  <!-- Languages Section -->
+  <div class="form-section">
+    <h2><i class="fas fa-language"></i> Languages</h2>
+    <div id="langList"></div>
+    <button type="button" class="btn" onclick="addItem('langList','languages',['language','proficiency'])">
+      <i class="fas fa-plus"></i> Add Language
+    </button>
+  </div>
+
+  <!-- Achievements Section -->
+  <div class="form-section">
+    <h2><i class="fas fa-trophy"></i> Achievements</h2>
+    <div id="achieveList"></div>
+    <button type="button" class="btn" onclick="addItem('achieveList','achievements',['title','date','description'])">
+      <i class="fas fa-plus"></i> Add Achievement
+    </button>
+  </div>
+
+  <!-- Education Section -->
+  <div class="form-section">
+    <h2><i class="fas fa-graduation-cap"></i> Education</h2>
+    <div id="eduList"></div>
+    <button type="button" class="btn" onclick="addItem('eduList','education',['institution','degree','fieldOfStudy','startDate','endDate','description'])">
+      <i class="fas fa-plus"></i> Add Education
+    </button>
+  </div>
+
+  <!-- Console Output -->
+  <div id="console">
+    <strong>[Test Console]</strong> Waiting for button clicks...<br>
+  </div>
+
+  <script>
+    // Intercept console.log to show in page
+    const consoleDiv = document.getElementById('console');
+    const originalLog = console.log;
+    console.log = function(...args) {
+      originalLog.apply(console, args);
+      const message = args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ');
+      consoleDiv.innerHTML += message + '<br>';
+      consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    };
+
+    // The exact addItem function from form.ejs
+    window.addItem = function(listId, arrayName, fields) {
+      console.log('[addItem] Called:', listId, arrayName, fields);
+      const list = document.getElementById(listId);
+      if (!list) {
+        console.error('[addItem] List not found:', listId);
+        return;
+      }
+
+      const index = list.children.length;
+      const item = document.createElement('div');
+      item.className = 'dynamic-item';
+      item.dataset.index = index;
+
+      // FIXED: Using bracket notation [field] instead of dot notation .field
+      let html = '<div class="item-header"><span class="item-title">New Item</span><button type="button" class="btn-remove-item" onclick="removeItem(this)"><i class="fas fa-times"></i></button></div><div class="form-row">';
+
+      fields.forEach(field => {
+        const label = field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        let inputType = 'text';
+        let placeholder = '';
+        let colClass = 'col-12';
+
+        if (field === 'startDate' || field === 'endDate' || field === 'issueDate' || field === 'date') {
+          placeholder = 'Jan 2020';
+          colClass = 'col-6';
+        } else if (field === 'description') {
+          inputType = 'textarea';
+          placeholder = 'Description...';
+        } else if (field === 'link' || field === 'url') {
+          inputType = 'url';
+          placeholder = 'https://...';
+        } else if (field === 'email') {
+          inputType = 'email';
+          placeholder = 'email@example.com';
+          colClass = 'col-6';
+        } else if (field === 'phone') {
+          inputType = 'tel';
+          placeholder = '+1 234 567 8900';
+          colClass = 'col-6';
+        } else if (field === 'proficiency') {
+          inputType = 'select';
+          colClass = 'col-6';
+        } else if (field === 'platform') {
+          colClass = 'col-4';
+          placeholder = 'LinkedIn';
+        } else if (['jobTitle', 'company', 'institution', 'degree', 'name', 'organization', 'role'].includes(field)) {
+          colClass = 'col-6';
+          placeholder = label;
+        } else if (['location', 'fieldOfStudy', 'techStack', 'issuer', 'language', 'title'].includes(field)) {
+          colClass = field === 'title' ? 'col-8' : 'col-6';
+          placeholder = label;
+        } else {
+          placeholder = label;
+          colClass = 'col-12';
+        }
+
+        html += '<div class="form-group ' + colClass + '"><label>' + label + '</label>';
+        
+        if (inputType === 'textarea') {
+          html += '<textarea name="' + arrayName + '[' + index + '][' + field + ']" class="form-control" placeholder="' + placeholder + '" rows="3"></textarea>';
+        } else if (inputType === 'select' && field === 'proficiency') {
+          html += '<select name="' + arrayName + '[' + index + '][' + field + ']" class="form-control">';
+          html += '<option value="">Select proficiency</option>';
+          html += '<option value="Beginner">Beginner</option>';
+          html += '<option value="Elementary">Elementary</option>';
+          html += '<option value="Intermediate">Intermediate</option>';
+          html += '<option value="Upper-Intermediate">Upper-Intermediate</option>';
+          html += '<option value="Advanced">Advanced</option>';
+          html += '<option value="Native">Native</option>';
+          html += '</select>';
+        } else {
+          html += '<input type="' + inputType + '" name="' + arrayName + '[' + index + '][' + field + ']" class="form-control" placeholder="' + placeholder + '" />';
+        }
+        
+        html += '</div>';
+      });
+
+      html += '</div>';
+      item.innerHTML = html;
+      list.appendChild(item);
+
+      console.log('[addItem] Item added successfully to', listId);
+      console.log('[addItem] Field names created:');
+      const inputs = item.querySelectorAll('input, textarea, select');
+      inputs.forEach(input => console.log('  - ' + input.name));
+    };
+
+    window.removeItem = function(button) {
+      const item = button.closest('.dynamic-item');
+      if (!item) return;
+      
+      console.log('[removeItem] Removing item');
+      item.remove();
+    };
+
+    console.log('[Test] Ready! Click any Add button above.');
+    console.log('[Test] Watch this console for debug output.');
+  </script>
+</body>
+</html>

@@ -621,6 +621,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script src="/js/resume-form.js?v=1.0.0"></script>
 <script>
 function togglePreview() {
   const panel = document.getElementById('previewPanel');
@@ -981,8 +982,17 @@ window.reindexList = function(listId) {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('[DOMContentLoaded] Event fired');
+  console.log('[DOMContentLoaded] window.addItem exists:', typeof window.addItem);
+  console.log('[DOMContentLoaded] window.removeItem exists:', typeof window.removeItem);
+  
   const resumeForm = document.querySelector('.resume-form');
-  if (!resumeForm) return;
+  if (!resumeForm) {
+    console.log('[DOMContentLoaded] No .resume-form found on this page');
+    return;
+  }
+  
+  console.log('[DOMContentLoaded] Resume form found, initializing...');
 
   // 1. Progress Indicator
   resumeForm.addEventListener('input', window.updateProgress);
