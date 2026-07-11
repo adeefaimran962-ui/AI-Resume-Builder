@@ -69,13 +69,36 @@ var FIELDS = {
     { name:'platform', label:'Platform', type:'text', placeholder:'LinkedIn',                         col:'col-4' },
     { name:'url',      label:'URL',      type:'url',  placeholder:'https://linkedin.com/in/yourname', col:'col-8' },
   ],
+  skills: [
+    { name:'skill',       label:'Skill Name',    type:'text',     placeholder:'JavaScript',           col:'col-6' },
+    { name:'proficiency', label:'Proficiency',   type:'select',   placeholder:'',                    col:'col-6',
+      options:['Beginner','Intermediate','Advanced','Expert'] },
+  ],
+  references: [
+    { name:'name',        label:'Reference Name', type:'text',     placeholder:'John Smith',           col:'col-6' },
+    { name:'position',    label:'Position',       type:'text',     placeholder:'Hiring Manager',       col:'col-6' },
+    { name:'company',     label:'Company',        type:'text',     placeholder:'Company Name',         col:'col-6' },
+    { name:'email',       label:'Email',          type:'email',    placeholder:'john@example.com',    col:'col-6' },
+    { name:'phone',       label:'Phone',          type:'tel',      placeholder:'+1 234 567 8900',     col:'col-6' },
+  ],
+  volunteerExperience: [
+    { name:'organization', label:'Organization',  type:'text',     placeholder:'Red Cross',              col:'col-6' },
+    { name:'role',         label:'Role',          type:'text',     placeholder:'Volunteer',             col:'col-6' },
+    { name:'startDate',    label:'Start Date',    type:'text',     placeholder:'Jan 2020',              col:'col-4' },
+    { name:'endDate',      label:'End Date',      type:'text',     placeholder:'Present',              col:'col-4' },
+    { name:'description',  label:'Description',   type:'textarea', placeholder:'Describe your volunteer work...', col:'col-12' },
+  ],
+  interests: [
+    { name:'interest', label:'Interest', type:'text', placeholder:'Photography', col:'col-12' },
+  ],
 };
 
 /** Human-readable labels */
 var LABELS = {
   workExperience:'Work Experience', education:'Education', projects:'Project',
   certifications:'Certification',   languages:'Language',  achievements:'Achievement',
-  socialLinks:'Social Link'
+  socialLinks:'Social Link', skills:'Skill', references:'Reference',
+  volunteerExperience:'Volunteer Experience', interests:'Interest'
 };
 
 /**
@@ -682,3 +705,567 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
 }); // end DOMContentLoaded
+
+
+/* ============================================================
+   C. AJAX CARD SYSTEM FOR RESUME SECTIONS
+   Production-quality individual item management with:
+   - View/Edit modes
+   - Save/Cancel/Delete/Duplicate actions
+   - Drag-and-drop reordering
+   - Loading states and animations
+   - Toast notifications
+   ============================================================ */
+
+/**
+ * Initialize AJAX card system for resume edit page
+ */
+function initAJAXCardSystem() {
+  const form = document.querySelector('.resume-form');
+  if (!form) return;
+
+  const resumeId = extractResumeId();
+  if (!resumeId) return;
+
+  console.log('[AJAX Cards] Initializing for resume:', resumeId);
+
+  // Convert existing static items to editable cards
+  convertExistingItemsToCards(resumeId);
+
+  // Initialize drag-and-drop for all sections
+  initializeDragAndDrop(resumeId);
+
+  // Update Add buttons to create editable cards
+  enhanceAddButtons(resumeId);
+}
+
+/**
+ * Extract resume ID from URL or form action
+ */
+function extractResumeId() {
+  const match = window.location.pathname.match(/\/resume\/([a-f0-9]{24})/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Convert existing server-rendered items to editable card format
+ */
+function convertExistingItemsToCards(resumeId) {
+  const sections = ['workExperience', 'education', 'projects', 'certifications', 'languages', 'achievements', 'socialLinks'];
+  
+  sections.forEach(section => {
+    const listId = getSectionListId(section);
+    const container = document.getElementById(listId);
+    if (!container) return;
+
+    const items = container.querySelectorAll('.dynamic-item');
+    items.forEach(item => {
+      const itemId = extractItemId(item);
+      if (itemId) {
+        convertToEditableCard(item, section, itemId, resumeId);
+      }
+    });
+  });
+}
+
+/**
+ * Convert a dynamic item to an editable card with actions
+ */
+function convertToEditableCard(item, section, itemId, resumeId) {
+  // Add data attributes
+  item.dataset.section = section;
+  item.dataset.itemId = itemId;
+  item.dataset.resumeId = resumeId;
+
+  // Add action buttons if not already present
+  if (!item.querySelector('.card-actions')) {
+    const header = item.querySelector('.item-header');
+    if (header) {
+      const actions = createCardActions();
+      header.appendChild(actions);
+
+      // Attach event listeners
+      attachCardEventListeners(item, resumeId);
+    }
+  }
+
+  // Wrap form content in view/edit modes
+  if (!item.querySelector('.card-view-mode')) {
+    const formRow = item.querySelector('.form-row');
+    if (formRow) {
+      formRow.style.display = 'block'; // Always show in edit mode initially
+    }
+  }
+}
+
+/**
+ * Create action buttons for a card
+ */
+function createCardActions() {
+  const actionsDiv = document.createElement('div');
+  actionsDiv.className = 'card-actions';
+  actionsDiv.innerHTML = `
+    <button type="button" class="btn-card-action btn-save" title="Save" style="display:none;">
+      <i class="fas fa-check"></i>
+    </button>
+    <button type="button" class="btn-card-action btn-cancel" title="Cancel" style="display:none;">
+      <i class="fas fa-times"></i>
+    </button>
+    <button type="button" class="btn-card-action btn-edit" title="Edit">
+      <i class="fas fa-edit"></i>
+    </button>
+    <button type="button" class="btn-card-action btn-duplicate" title="Duplicate">
+      <i class="fas fa-copy"></i>
+    </button>
+    <button type="button" class="btn-card-action btn-delete" title="Delete">
+      <i class="fas fa-trash"></i>
+    </button>
+    <button type="button" class="btn-card-action btn-drag" title="Drag to reorder" style="cursor:grab;">
+      <i class="fas fa-grip-vertical"></i>
+    </button>
+  `;
+  return actionsDiv;
+}
+
+/**
+ * Attach event listeners to card action buttons
+ */
+function attachCardEventListeners(card, resumeId) {
+  const section = card.dataset.section;
+  const itemId = card.dataset.itemId;
+
+  // Edit button
+  const editBtn = card.querySelector('.btn-edit');
+  if (editBtn) {
+    editBtn.addEventListener('click', () => enterEditMode(card));
+  }
+
+  // Save button
+  const saveBtn = card.querySelector('.btn-save');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => saveCard(card, resumeId));
+  }
+
+  // Cancel button
+  const cancelBtn = card.querySelector('.btn-cancel');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => cancelEdit(card));
+  }
+
+  // Delete button
+  const deleteBtn = card.querySelector('.btn-delete');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', () => deleteCard(card, resumeId));
+  }
+
+  // Duplicate button
+  const duplicateBtn = card.querySelector('.btn-duplicate');
+  if (duplicateBtn) {
+    duplicateBtn.addEventListener('click', () => duplicateCard(card, resumeId));
+  }
+}
+
+/**
+ * Enter edit mode for a card
+ */
+function enterEditMode(card) {
+  card.classList.add('editing');
+  card.querySelector('.btn-edit').style.display = 'none';
+  card.querySelector('.btn-duplicate').style.display = 'none';
+  card.querySelector('.btn-delete').style.display = 'none';
+  card.querySelector('.btn-save').style.display = 'inline-block';
+  card.querySelector('.btn-cancel').style.display = 'inline-block';
+
+  // Focus first input
+  const firstInput = card.querySelector('input, textarea, select');
+  if (firstInput) setTimeout(() => firstInput.focus(), 100);
+}
+
+/**
+ * Cancel edit mode
+ */
+function cancelEdit(card) {
+  card.classList.remove('editing');
+  card.querySelector('.btn-edit').style.display = 'inline-block';
+  card.querySelector('.btn-duplicate').style.display = 'inline-block';
+  card.querySelector('.btn-delete').style.display = 'inline-block';
+  card.querySelector('.btn-save').style.display = 'none';
+  card.querySelector('.btn-cancel').style.display = 'none';
+}
+
+/**
+ * Save card data via AJAX
+ */
+async function saveCard(card, resumeId) {
+  const section = card.dataset.section;
+  const itemId = card.dataset.itemId;
+  const isNew = !itemId || itemId === 'new';
+
+  // Extract form data
+  const formData = extractCardFormData(card);
+
+  // Show loading state
+  card.classList.add('saving');
+  const saveBtn = card.querySelector('.btn-save');
+  const originalHTML = saveBtn.innerHTML;
+  saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  saveBtn.disabled = true;
+
+  try {
+    const url = isNew
+      ? `/resume/${resumeId}/section/${section}`
+      : `/resume/${resumeId}/section/${section}/${itemId}`;
+    const method = isNew ? 'POST' : 'PUT';
+
+    const response = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Update card with returned item ID if new
+      if (isNew && data.item._id) {
+        card.dataset.itemId = data.item._id;
+      }
+
+      // Exit edit mode
+      cancelEdit(card);
+
+      // Show success toast
+      if (window.showToast) {
+        window.showToast(isNew ? 'Item added successfully!' : 'Changes saved!', 'success');
+      }
+
+      // Update card title
+      updateCardTitle(card, formData);
+    } else {
+      throw new Error(data.message || 'Save failed');
+    }
+  } catch (err) {
+    console.error('Save card error:', err);
+    if (window.showToast) {
+      window.showToast('Failed to save. Please try again.', 'error');
+    }
+  } finally {
+    card.classList.remove('saving');
+    saveBtn.innerHTML = originalHTML;
+    saveBtn.disabled = false;
+  }
+}
+
+/**
+ * Delete card via AJAX
+ */
+async function deleteCard(card, resumeId) {
+  const section = card.dataset.section;
+  const itemId = card.dataset.itemId;
+
+  if (!confirm('Are you sure you want to delete this item?')) return;
+
+  // Show loading state
+  card.style.opacity = '0.5';
+  card.style.pointerEvents = 'none';
+
+  try {
+    const response = await fetch(`/resume/${resumeId}/section/${section}/${itemId}`, {
+      method: 'DELETE'
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Animate out
+      card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(20px)';
+
+      setTimeout(() => {
+        card.remove();
+        if (window.showToast) {
+          window.showToast('Item deleted successfully!', 'success');
+        }
+      }, 300);
+    } else {
+      throw new Error(data.message || 'Delete failed');
+    }
+  } catch (err) {
+    console.error('Delete card error:', err);
+    card.style.opacity = '1';
+    card.style.pointerEvents = 'auto';
+    if (window.showToast) {
+      window.showToast('Failed to delete. Please try again.', 'error');
+    }
+  }
+}
+
+/**
+ * Duplicate card via AJAX
+ */
+async function duplicateCard(card, resumeId) {
+  const section = card.dataset.section;
+  const itemId = card.dataset.itemId;
+
+  // Show loading state
+  if (window.showToast) {
+    window.showToast('Duplicating...', 'info');
+  }
+
+  try {
+    const response = await fetch(`/resume/${resumeId}/section/${section}/${itemId}/duplicate`, {
+      method: 'POST'
+    });
+
+    const data = await response.json();
+
+    if (data.success && data.item) {
+      // Create new card element
+      const container = card.parentNode;
+      const newCard = card.cloneNode(true);
+      
+      // Update with new item ID
+      newCard.dataset.itemId = data.item._id;
+      
+      // Update form values with duplicated data
+      Object.keys(data.item).forEach(key => {
+        const input = newCard.querySelector(`[name*="[${key}]"]`);
+        if (input && data.item[key]) {
+          input.value = data.item[key];
+        }
+      });
+
+      // Re-attach event listeners
+      attachCardEventListeners(newCard, resumeId);
+
+      // Insert after original card
+      card.after(newCard);
+
+      // Animate in
+      newCard.style.opacity = '0';
+      newCard.style.transform = 'translateY(-10px)';
+      requestAnimationFrame(() => {
+        newCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        newCard.style.opacity = '1';
+        newCard.style.transform = 'translateY(0)';
+      });
+
+      if (window.showToast) {
+        window.showToast('Item duplicated successfully!', 'success');
+      }
+    } else {
+      throw new Error(data.message || 'Duplicate failed');
+    }
+  } catch (err) {
+    console.error('Duplicate card error:', err);
+    if (window.showToast) {
+      window.showToast('Failed to duplicate. Please try again.', 'error');
+    }
+  }
+}
+
+/**
+ * Extract form data from a card
+ */
+function extractCardFormData(card) {
+  const formData = {};
+  const inputs = card.querySelectorAll('input, textarea, select');
+  
+  inputs.forEach(input => {
+    if (input.name) {
+      // Extract field name from name attribute (e.g., "workExperience[0][jobTitle]" -> "jobTitle")
+      const match = input.name.match(/\[([^\]]+)\]$/);
+      if (match) {
+        const fieldName = match[1];
+        formData[fieldName] = input.type === 'checkbox' ? input.checked : input.value;
+      }
+    }
+  });
+
+  return formData;
+}
+
+/**
+ * Update card title based on form data
+ */
+function updateCardTitle(card, formData) {
+  const titleSpan = card.querySelector('.item-title');
+  if (!titleSpan) return;
+
+  // Determine which field to use for title
+  const titleValue = formData.jobTitle || formData.institution || formData.name || 
+                     formData.title || formData.language || formData.platform || 'Item';
+  
+  titleSpan.textContent = titleValue;
+}
+
+/**
+ * Get list container ID for a section
+ */
+function getSectionListId(section) {
+  const map = {
+    workExperience: 'workList',
+    education: 'eduList',
+    projects: 'projectList',
+    certifications: 'certList',
+    languages: 'langList',
+    achievements: 'achieveList',
+    socialLinks: 'socialList'
+  };
+  return map[section] || section + 'List';
+}
+
+/**
+ * Extract item ID from a card element
+ */
+function extractItemId(card) {
+  // Try to extract from data attribute or hidden input
+  const inputs = card.querySelectorAll('input, textarea, select');
+  for (let input of inputs) {
+    if (input.name && input.name.includes('[_id]')) {
+      return input.value;
+    }
+  }
+  return null;
+}
+
+/**
+ * Initialize drag-and-drop for section reordering
+ */
+function initializeDragAndDrop(resumeId) {
+  const sections = ['workExperience', 'education', 'projects', 'certifications', 'languages', 'achievements', 'socialLinks'];
+  
+  sections.forEach(section => {
+    const listId = getSectionListId(section);
+    const container = document.getElementById(listId);
+    if (!container) return;
+
+    container.dataset.section = section;
+    let draggedCard = null;
+
+    // Make cards draggable
+    container.addEventListener('dragstart', function(e) {
+      const dragHandle = e.target.closest('.btn-drag');
+      if (!dragHandle) return;
+
+      draggedCard = e.target.closest('.dynamic-item');
+      if (draggedCard) {
+        draggedCard.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      }
+    });
+
+    container.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      if (!draggedCard) return;
+
+      const afterElement = getDragAfterElement(container, e.clientY);
+      if (afterElement == null) {
+        container.appendChild(draggedCard);
+      } else {
+        container.insertBefore(draggedCard, afterElement);
+      }
+    });
+
+    container.addEventListener('dragend', function(e) {
+      if (draggedCard) {
+        draggedCard.classList.remove('dragging');
+        saveNewOrder(container, resumeId);
+        draggedCard = null;
+      }
+    });
+  });
+}
+
+/**
+ * Get the element after which the dragged element should be placed
+ */
+function getDragAfterElement(container, y) {
+  const draggableElements = [...container.querySelectorAll('.dynamic-item:not(.dragging)')];
+
+  return draggableElements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+
+    if (offset < 0 && offset > closest.offset) {
+      return { offset: offset, element: child };
+    } else {
+      return closest;
+    }
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+/**
+ * Save new order after drag-and-drop
+ */
+async function saveNewOrder(container, resumeId) {
+  const section = container.dataset.section;
+  const cards = container.querySelectorAll('.dynamic-item');
+  const order = Array.from(cards).map(card => card.dataset.itemId).filter(Boolean);
+
+  try {
+    const response = await fetch(`/resume/${resumeId}/section/${section}/reorder`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      if (window.showToast) {
+        window.showToast('Order saved!', 'success');
+      }
+    }
+  } catch (err) {
+    console.error('Reorder error:', err);
+  }
+}
+
+/**
+ * Enhance Add buttons to create new editable cards
+ */
+function enhanceAddButtons(resumeId) {
+  // Override the global addItem function to create editable cards
+  const originalAddItem = window.addItem;
+  
+  window.addItem = function(listId, prefix, _fields) {
+    // Call original to create the DOM structure
+    originalAddItem(listId, prefix, _fields);
+
+    // Get the newly created item
+    const container = document.getElementById(listId);
+    if (!container) return;
+
+    const items = container.querySelectorAll('.dynamic-item');
+    const newItem = items[items.length - 1];
+
+    if (newItem) {
+      // Mark as new (no itemId yet)
+      newItem.dataset.section = prefix;
+      newItem.dataset.itemId = 'new';
+      newItem.dataset.resumeId = resumeId;
+
+      // Add action buttons
+      const header = newItem.querySelector('.item-header');
+      if (header && !header.querySelector('.card-actions')) {
+        const actions = createCardActions();
+        header.appendChild(actions);
+        attachCardEventListeners(newItem, resumeId);
+
+        // Start in edit mode
+        enterEditMode(newItem);
+      }
+    }
+  };
+}
+
+/* ─── Initialize on page load ─── */
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize AJAX card system if on resume edit page
+  if (document.querySelector('.resume-form')) {
+    initAJAXCardSystem();
+  }
+});
+

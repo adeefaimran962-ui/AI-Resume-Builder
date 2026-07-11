@@ -1,0 +1,230 @@
+diff --git a/public/css/style.css b/public/css/style.css
+index 8f206b2..861f770 100644
+--- a/public/css/style.css
++++ b/public/css/style.css
+@@ -1906,3 +1906,225 @@ tr:hover {
+ /* Mobile nav menu */
+ [data-theme="dark"] .navbar-menu { background: #111827; }
+ 
++
++
++/* ═══════════════════════════════════════════════════════════════════════════
++   AJAX EDITABLE CARDS - Resume Form Enhancements
++   ═══════════════════════════════════════════════════════════════════════════ */
++
++/* Card Actions Container */
++.card-actions {
++  display: flex;
++  gap: 6px;
++  align-items: center;
++  margin-left: auto;
++}
++
++/* Card Action Buttons */
++.btn-card-action {
++  background: transparent;
++  border: 1px solid var(--border);
++  border-radius: 6px;
++  padding: 6px 10px;
++  cursor: pointer;
++  color: var(--text-secondary);
++  font-size: 13px;
++  transition: all 0.2s ease;
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++}
++
++.btn-card-action:hover {
++  background: var(--bg-2);
++  border-color: var(--primary);
++  color: var(--primary);
++  transform: translateY(-1px);
++}
++
++.btn-card-action.btn-save {
++  background: var(--success);
++  border-color: var(--success);
++  color: white;
++}
++
++.btn-card-action.btn-save:hover {
++  background: var(--success-dark, #059669);
++  border-color: var(--success-dark, #059669);
++}
++
++.btn-card-action.btn-cancel {
++  background: transparent;
++  border-color: var(--text-tertiary);
++  color: var(--text-tertiary);
++}
++
++.btn-card-action.btn-cancel:hover {
++  background: var(--bg-2);
++  border-color: var(--text-secondary);
++  color: var(--text-secondary);
++}
++
++.btn-card-action.btn-delete {
++  color: var(--danger);
++  border-color: var(--danger);
++}
++
++.btn-card-action.btn-delete:hover {
++  background: var(--danger);
++  color: white;
++}
++
++.btn-card-action.btn-drag {
++  cursor: grab;
++}
++
++.btn-card-action.btn-drag:active {
++  cursor: grabbing;
++}
++
++/* Card States */
++.dynamic-item {
++  position: relative;
++  transition: all 0.3s ease;
++}
++
++.dynamic-item.editing {
++  box-shadow: 0 0 0 2px var(--primary);
++  border-radius: 8px;
++}
++
++.dynamic-item.saving {
++  opacity: 0.6;
++  pointer-events: none;
++}
++
++.dynamic-item.dragging {
++  opacity: 0.5;
++  transform: rotate(2deg);
++}
++
++/* Card Loading Overlay */
++.card-loading {
++  position: absolute;
++  top: 0;
++  left: 0;
++  right: 0;
++  bottom: 0;
++  background: rgba(255, 255, 255, 0.9);
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  font-size: 14px;
++  color: var(--primary);
++  border-radius: 8px;
++  z-index: 10;
++}
++
++/* Dark mode adjustments */
++[data-theme="dark"] .card-loading {
++  background: rgba(30, 41, 59, 0.95);
++}
++
++[data-theme="dark"] .btn-card-action {
++  border-color: var(--border);
++  color: var(--text-secondary);
++}
++
++[data-theme="dark"] .btn-card-action:hover {
++  background: var(--bg-3);
++}
++
++/* Animation for new cards */
++@keyframes cardFadeIn {
++  from {
++    opacity: 0;
++    transform: translateY(-10px);
++  }
++  to {
++    opacity: 1;
++    transform: translateY(0);
++  }
++}
++
++.dynamic-item.new-card {
++  animation: cardFadeIn 0.3s ease;
++}
++
++/* Drag and Drop Visual Feedback */
++.dynamic-item.drag-over {
++  border-top: 2px solid var(--primary);
++}
++
++/* Mobile Responsive Adjustments */
++@media (max-width: 768px) {
++  .card-actions {
++    flex-wrap: wrap;
++    gap: 4px;
++  }
++
++  .btn-card-action {
++    padding: 5px 8px;
++    font-size: 12px;
++  }
++
++  .btn-card-action .fas {
++    font-size: 11px;
++  }
++}
++
++/* Item Header Enhancement */
++.item-header {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  padding: 12px;
++  background: var(--bg-2);
++  border-radius: 8px 8px 0 0;
++  margin-bottom: 12px;
++  flex-wrap: wrap;
++  gap: 10px;
++}
++
++.item-title {
++  font-weight: 600;
++  color: var(--text-primary);
++  font-size: 15px;
++  flex: 1;
++  min-width: 150px;
++}
++
++/* Button States */
++.btn-card-action:disabled {
++  opacity: 0.5;
++  cursor: not-allowed;
++}
++
++.btn-card-action:active {
++  transform: scale(0.95);
++}
++
++/* Success/Error States */
++.dynamic-item.save-success {
++  animation: pulseSuccess 0.5s ease;
++}
++
++@keyframes pulseSuccess {
++  0%, 100% {
++    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
++  }
++  50% {
++    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3);
++  }
++}
++
++.dynamic-item.save-error {
++  animation: shakeError 0.5s ease;
++}
++
++@keyframes shakeError {
++  0%, 100% { transform: translateX(0); }
++  25% { transform: translateX(-5px); }
++  75% { transform: translateX(5px); }
++}
++

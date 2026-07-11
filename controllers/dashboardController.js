@@ -66,7 +66,7 @@ exports.index = async (req, res) => {
     const trashCount = await Resume.countDocuments({ user: req.session.userId, isDeleted: true });
 
     /* Cover letters */
-    const coverLetters = await CoverLetter.find({ user: req.session.userId })
+    const coverLetters = await CoverLetter.find({ user: req.session.userId, isDeleted: { $ne: true } })
       .sort({ updatedAt: -1 })
       .lean();
 

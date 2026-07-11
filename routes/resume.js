@@ -75,6 +75,8 @@ router.get('/:id/preview',       rc.preview);
 router.get('/:id/download',      rc.downloadPDF);
 router.get('/:id/download-docx', rc.downloadDOCX);
 router.get('/:id/score',         rc.score);
+router.get('/:id/share',         rc.share);
+router.get('/:id/share/:token', rc.viewShared);
 router.get('/:id/match',         rc.renderMatch);
 router.post('/:id/match',        rc.calculateMatch);
 router.post('/:id/toggle-share', rc.toggleShare);
@@ -83,6 +85,13 @@ router.post('/:id/set-template', rc.setTemplate);
 // ── Update ─────────────────────────────────────────────────────────────
 router.get('/:id/edit', rc.showEditForm);
 router.put('/:id',      rc.update);         // plain urlencoded — no file
+
+// ── AJAX Section Management (Individual CRUD for dynamic sections) ────
+router.post('/:id/section/:sectionName',            rc.addSectionItem);
+router.put('/:id/section/:sectionName/:itemId',     rc.updateSectionItem);
+router.delete('/:id/section/:sectionName/:itemId',  rc.deleteSectionItem);
+router.post('/:id/section/:sectionName/reorder',    rc.reorderSection);
+router.post('/:id/section/:sectionName/:itemId/duplicate', rc.duplicateSectionItem);
 
 // ── Profile photo (dedicated AJAX multipart endpoints) ─────────────────
 router.post('/:id/upload-photo', handleUpload, rc.uploadPhoto);

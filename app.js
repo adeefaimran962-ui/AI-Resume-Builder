@@ -155,9 +155,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ── START SERVER ─────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 3000;
-
 // ── ENVIRONMENT VALIDATION ───────────────────────────────────────────────
 const validateEnvironment = () => {
   const required = ['SESSION_SECRET'];
@@ -183,11 +180,71 @@ const validateEnvironment = () => {
   }
 };
 
+// ── PORT AVAILABILITY CHECK ───────────────────────────────────────────────
+const findAvailablePort = async (startPort, maxAttempts = 10) => {
+  const net = require('net');
+  
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const port = startPort + attempt;
+    
+    const isAvailable = await new Promise((resolve) => {
+      const server = net.createServer();
+      
+      const timeout = setTimeout(() => {
+        server.close();
+        resolve(false);
+      }, 1000); // 1 second timeout per port check
+      
+      server.once('error', (err) => {
+        clearTimeout(timeout);
+        if (err.code === 'EADDRINUSE') {
+          resolve(false);
+        } else {
+          console.error(`⚠️  Unexpected error checking port ${port}:`, err.message);
+          resolve(false);
+        }
+      });
+      
+      server.once('listening', () => {
+        clearTimeout(timeout);
+        server.close(() => {
+          resolve(true);
+        });
+      });
+      
+      server.listen(port, '127.0.0.1').on('error', (err) => {
+        clearTimeout(timeout);
+        resolve(false);
+      });
+    });
+    
+    if (isAvailable) {
+      return port;
+    } else {
+      console.log(`   Port ${port} is in use, trying next...`);
+    }
+  }
+  
+  throw new Error(`No available ports found between ${startPort} and ${startPort + maxAttempts - 1}`);
+};
+
 // ── GRACEFUL SHUTDOWN ─────────────────────────────────────────────────────
+let serverInstance = null;
+
 const gracefulShutdown = async (signal) => {
   console.log(`\n${signal} received. Starting graceful shutdown...`);
   
   try {
+    // Close server
+    if (serverInstance) {
+      await new Promise((resolve) => {
+        serverInstance.close(() => {
+          console.log('✅ Server closed');
+          resolve();
+        });
+      });
+    }
+    
     // Close MongoDB connection
     await disconnectDB();
     
@@ -226,26 +283,52 @@ const startServer = async () => {
     // Connect to MongoDB
     await connectDB();
     
+    // Get desired port from environment or default to 3000
+    const desiredPort = parseInt(process.env.PORT, 10) || 3000;
+    
+    // Find available port (will try desiredPort first, then increment)
+    console.log(`\n🚀 Starting ResumeAI...`);
+    console.log(`🔍 Checking port availability starting from ${desiredPort}...`);
+    const PORT = await findAvailablePort(desiredPort);
+    
+    // Update process.env.PORT to the selected port for consistency
+    process.env.PORT = PORT.toString();
+    
+    if (PORT !== desiredPort) {
+      console.log(`⚠️  Port ${desiredPort} was occupied`);
+      console.log(`✅ Automatically using port ${PORT} instead`);
+    } else {
+      console.log(`✅ Port ${desiredPort} is available`);
+    }
+    
     // Start the server
-    const server = app.listen(PORT, () => {
-      console.log(`✅ ResumeAI running on http://localhost:${PORT}`);
-      console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`   Press Ctrl+C to stop the server`);
+    console.log(`🌐 Starting Express server on port ${PORT}...`);
+    serverInstance = app.listen(PORT, '127.0.0.1', () => {
+      console.log(`\n${'='.repeat(50)}`);
+      console.log(`✅ ResumeAI is running successfully!`);
+      console.log(`${'='.repeat(50)}`);
+      console.log(`📍 URL: http://localhost:${PORT}`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🔌 Port: ${PORT}`);
+      console.log(`${'='.repeat(50)}`);
+      console.log(`   Press Ctrl+C to stop the server\n`);
     });
 
-    // Handle server errors
-    server.on('error', (error) => {
+    // Handle server errors (should not happen due to port check, but just in case)
+    serverInstance.on('error', (error) => {
       if (error.code === 'EADDRINUSE') {
-        console.error(`❌ Port ${PORT} is already in use`);
-        console.error(`   Either stop the process using port ${PORT} or use a different PORT`);
+        console.error(`❌ Port ${PORT} is already in use (race condition detected)`);
+        console.error(`   This should not happen after port detection`);
+        console.error(`   Another process may have grabbed the port`);
       } else {
         console.error('❌ Server error:', error.message);
       }
-      process.exit(1);
+      gracefulShutdown('server-error');
     });
 
   } catch (error) {
-    console.error('❌ Failed to start server:', error.message);
+    console.error('\n❌ Failed to start server:', error.message);
+    console.error('   Please check the error above and try again\n');
     process.exit(1);
   }
 };

@@ -432,6 +432,125 @@
         </button>
       </div>
 
+      <!-- Skills -->
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-star"></i> Skills</h2>
+        <div id="skillsList">
+          <% if (resume && resume.skills && resume.skills.length > 0) { %>
+            <% resume.skills.forEach(function(s, i){ %>
+            <div class="dynamic-item" data-index="<%= i %>">
+              <div class="item-header">
+                <span class="item-title"><%= s.skill || 'Skill ' + (i+1) %></span>
+                <button type="button" class="btn-remove-item" onclick="removeItem(this)"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-6"><label>Skill Name</label>
+                  <input type="text" name="skills[<%= i %>][skill]" class="form-control" value="<%= s.skill %>" /></div>
+                <div class="form-group col-6"><label>Proficiency</label>
+                  <select name="skills[<%= i %>][proficiency]" class="form-control">
+                    <% ['Beginner','Intermediate','Advanced','Expert'].forEach(function(level){ %>
+                    <option value="<%= level %>" <%= s.proficiency===level?'selected':'' %>><%= level %></option>
+                    <% }) %>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <% }) %>
+          <% } %>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addItem('skillsList','skills',['skill','proficiency'])">
+          <i class="fas fa-plus"></i> Add Skill
+        </button>
+      </div>
+
+      <!-- References -->
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-users"></i> References</h2>
+        <div id="referencesList">
+          <% if (resume && resume.references && resume.references.length > 0) { %>
+            <% resume.references.forEach(function(r, i){ %>
+            <div class="dynamic-item" data-index="<%= i %>">
+              <div class="item-header">
+                <span class="item-title"><%= r.name || 'Reference ' + (i+1) %></span>
+                <button type="button" class="btn-remove-item" onclick="removeItem(this)"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-6"><label>Name</label>
+                  <input type="text" name="references[<%= i %>][name]" class="form-control" value="<%= r.name %>" /></div>
+                <div class="form-group col-6"><label>Position</label>
+                  <input type="text" name="references[<%= i %>][position]" class="form-control" value="<%= r.position %>" /></div>
+                <div class="form-group col-6"><label>Company</label>
+                  <input type="text" name="references[<%= i %>][company]" class="form-control" value="<%= r.company %>" /></div>
+                <div class="form-group col-6"><label>Email</label>
+                  <input type="email" name="references[<%= i %>][email]" class="form-control" value="<%= r.email %>" /></div>
+                <div class="form-group col-6"><label>Phone</label>
+                  <input type="tel" name="references[<%= i %>][phone]" class="form-control" value="<%= r.phone %>" /></div>
+              </div>
+            </div>
+            <% }) %>
+          <% } %>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addItem('referencesList','references',['name','position','company','email','phone'])">
+          <i class="fas fa-plus"></i> Add Reference
+        </button>
+      </div>
+
+      <!-- Volunteer Experience -->
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-hand-holding-heart"></i> Volunteer Experience</h2>
+        <div id="volunteerList">
+          <% if (resume && resume.volunteerExperience && resume.volunteerExperience.length > 0) { %>
+            <% resume.volunteerExperience.forEach(function(v, i){ %>
+            <div class="dynamic-item" data-index="<%= i %>">
+              <div class="item-header">
+                <span class="item-title"><%= v.organization || 'Volunteer Experience ' + (i+1) %></span>
+                <button type="button" class="btn-remove-item" onclick="removeItem(this)"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-6"><label>Organization</label>
+                  <input type="text" name="volunteerExperience[<%= i %>][organization]" class="form-control" value="<%= v.organization %>" /></div>
+                <div class="form-group col-6"><label>Role</label>
+                  <input type="text" name="volunteerExperience[<%= i %>][role]" class="form-control" value="<%= v.role %>" /></div>
+                <div class="form-group col-4"><label>Start Date</label>
+                  <input type="text" name="volunteerExperience[<%= i %>][startDate]" class="form-control" placeholder="Jan 2020" value="<%= v.startDate %>" /></div>
+                <div class="form-group col-4"><label>End Date</label>
+                  <input type="text" name="volunteerExperience[<%= i %>][endDate]" class="form-control" placeholder="Present" value="<%= v.endDate %>" /></div>
+                <div class="form-group col-12"><label>Description</label>
+                  <textarea name="volunteerExperience[<%= i %>][description]" class="form-control" rows="2"><%= v.description %></textarea></div>
+              </div>
+            </div>
+            <% }) %>
+          <% } %>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addItem('volunteerList','volunteerExperience',['organization','role','startDate','endDate','description'])">
+          <i class="fas fa-plus"></i> Add Volunteer Experience
+        </button>
+      </div>
+
+      <!-- Interests -->
+      <div class="form-section">
+        <h2 class="section-heading"><i class="fas fa-heart"></i> Interests</h2>
+        <div id="interestsList">
+          <% if (resume && resume.interests && resume.interests.length > 0) { %>
+            <% resume.interests.forEach(function(i, idx){ %>
+            <div class="dynamic-item" data-index="<%= idx %>">
+              <div class="item-header">
+                <span class="item-title"><%= i.interest || 'Interest ' + (idx+1) %></span>
+                <button type="button" class="btn-remove-item" onclick="removeItem(this)"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-12"><label>Interest</label>
+                  <input type="text" name="interests[<%= idx %>][interest]" class="form-control" value="<%= i.interest %>" /></div>
+              </div>
+            </div>
+            <% }) %>
+          <% } %>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addItem('interestsList','interests',['interest'])">
+          <i class="fas fa-plus"></i> Add Interest
+        </button>
+      </div>
+
       <!-- Cover Letter Section -->
       <% if (resume && resume._id) { %>
       <div class="form-section" style="background:linear-gradient(135deg,rgba(236,72,153,0.05),rgba(236,72,153,0.02));border:1px solid rgba(236,72,153,0.2);border-radius:12px;padding:20px;">
@@ -702,35 +821,175 @@ function setAutoSaveStatus(state, time) {
 }());
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ── Add Item Function for Dynamic Sections ─────────────────────────────────────
+window.addItem = function(listId, arrayName, fields) {
+  console.log('[addItem] Called:', listId, arrayName, fields);
+  const list = document.getElementById(listId);
+  if (!list) {
+    console.error('[addItem] List not found:', listId);
+    return;
+  }
+
+  const index = list.children.length;
+  const item = document.createElement('div');
+  item.className = 'dynamic-item';
+  item.dataset.index = index;
+
+  // FIXED: Using bracket notation [field] instead of dot notation .field
+  let html = '<div class="item-header"><span class="item-title">New Item</span><button type="button" class="btn-remove-item" onclick="removeItem(this)"><i class="fas fa-times"></i></button></div><div class="form-row">';
+
+  fields.forEach(field => {
+    const label = field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    let inputType = 'text';
+    let placeholder = '';
+    let colClass = 'col-12';
+
+    if (field === 'startDate' || field === 'endDate' || field === 'issueDate' || field === 'date') {
+      placeholder = 'Jan 2020';
+      colClass = 'col-6';
+    } else if (field === 'description') {
+      inputType = 'textarea';
+      placeholder = 'Description...';
+    } else if (field === 'link' || field === 'url') {
+      inputType = 'url';
+      placeholder = 'https://...';
+    } else if (field === 'email') {
+      inputType = 'email';
+      placeholder = 'email@example.com';
+      colClass = 'col-6';
+    } else if (field === 'phone') {
+      inputType = 'tel';
+      placeholder = '+1 234 567 8900';
+      colClass = 'col-6';
+    } else if (field === 'proficiency') {
+      inputType = 'select';
+      colClass = 'col-6';
+    } else if (field === 'platform') {
+      colClass = 'col-4';
+      placeholder = 'LinkedIn';
+    } else if (['jobTitle', 'company', 'institution', 'degree', 'name', 'organization', 'role'].includes(field)) {
+      colClass = 'col-6';
+      placeholder = label;
+    } else if (['location', 'fieldOfStudy', 'techStack', 'issuer', 'language', 'title'].includes(field)) {
+      colClass = field === 'title' ? 'col-8' : 'col-6';
+      placeholder = label;
+    } else {
+      placeholder = label;
+      colClass = 'col-12';
+    }
+
+    html += '<div class="form-group ' + colClass + '"><label>' + label + '</label>';
+    
+    if (inputType === 'textarea') {
+      html += '<textarea name="' + arrayName + '[' + index + '][' + field + ']" class="form-control" placeholder="' + placeholder + '" rows="3"></textarea>';
+    } else if (inputType === 'select' && field === 'proficiency') {
+      html += '<select name="' + arrayName + '[' + index + '][' + field + ']" class="form-control">';
+      html += '<option value="">Select proficiency</option>';
+      html += '<option value="Beginner">Beginner</option>';
+      html += '<option value="Elementary">Elementary</option>';
+      html += '<option value="Intermediate">Intermediate</option>';
+      html += '<option value="Upper-Intermediate">Upper-Intermediate</option>';
+      html += '<option value="Advanced">Advanced</option>';
+      html += '<option value="Native">Native</option>';
+      html += '</select>';
+    } else {
+      html += '<input type="' + inputType + '" name="' + arrayName + '[' + index + '][' + field + ']" class="form-control" placeholder="' + placeholder + '" />';
+    }
+    
+    html += '</div>';
+  });
+
+  html += '</div>';
+  item.innerHTML = html;
+  list.appendChild(item);
+
+  // Trigger form change
+  const form = document.querySelector('.resume-form');
+  if (form) {
+    form.dispatchEvent(new Event('change'));
+  }
+
+  // Update progress
+  if (window.updateProgress) window.updateProgress();
+
+  console.log('[addItem] Item added successfully to', listId);
+};
+
+// ── Remove Item Function ───────────────────────────────────────────────────────
+window.removeItem = function(button) {
+  const item = button.closest('.dynamic-item');
+  if (!item) return;
+  
+  const container = item.parentNode;
+  item.remove();
+  
+  // Reindex remaining items
+  if (container) {
+    const listId = container.id;
+    if (listId) window.reindexList(listId);
+  }
+  
+  // Trigger form change
+  const form = document.querySelector('.resume-form');
+  if (form) {
+    form.dispatchEvent(new Event('change'));
+  }
+
+  // Update progress
+  if (window.updateProgress) window.updateProgress();
+};
+
+// ── Global Functions ───────────────────────────────────────────────────────────
+window.updateProgress = function() {
+  const fields = ['fullName', 'email', 'phone', 'summary', 'skillsRaw'];
+  let filled = 0;
+  fields.forEach(f => {
+    const el = document.querySelector(`[name="${f}"]`);
+    if (el && el.value.trim() !== '') filled++;
+  });
+  const lists = ['workList', 'eduList'];
+  lists.forEach(l => {
+    const el = document.getElementById(l);
+    if (el && el.children.length > 0) filled++;
+  });
+  const total = fields.length + lists.length; // 7
+  const percentage = Math.round((filled / total) * 100);
+  const progressText = document.getElementById('progressText');
+  const progressFill = document.getElementById('progressFill');
+  if (progressText) progressText.innerText = `${percentage}%`;
+  if (progressFill) progressFill.style.width = `${percentage}%`;
+};
+
+window.reindexList = function(listId) {
+  const list = document.getElementById(listId);
+  if (!list) return;
+  const items = list.querySelectorAll('.dynamic-item');
+  items.forEach((item, index) => {
+    const inputs = item.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      const name = input.name;
+      if (name) {
+        input.name = name.replace(/\[\d+\]/, `[${index}]`);
+      }
+    });
+    item.dataset.index = index;
+    
+    // Update item number
+    const numberEl = item.querySelector('.item-number');
+    if (numberEl) numberEl.textContent = index + 1;
+  });
+};
+
 document.addEventListener('DOMContentLoaded', function() {
   const resumeForm = document.querySelector('.resume-form');
   if (!resumeForm) return;
 
   // 1. Progress Indicator
-  function updateProgress() {
-    const fields = ['fullName', 'email', 'phone', 'summary', 'skillsRaw'];
-    let filled = 0;
-    fields.forEach(f => {
-      const el = document.querySelector(`[name="${f}"]`);
-      if (el && el.value.trim() !== '') filled++;
-    });
-    const lists = ['workList', 'eduList'];
-    lists.forEach(l => {
-      const el = document.getElementById(l);
-      if (el && el.children.length > 0) filled++;
-    });
-    const total = fields.length + lists.length; // 7
-    const percentage = Math.round((filled / total) * 100);
-    const progressText = document.getElementById('progressText');
-    const progressFill = document.getElementById('progressFill');
-    if (progressText) progressText.innerText = `${percentage}%`;
-    if (progressFill) progressFill.style.width = `${percentage}%`;
-  }
-  resumeForm.addEventListener('input', updateProgress);
-  setTimeout(updateProgress, 100);
+  resumeForm.addEventListener('input', window.updateProgress);
+  setTimeout(window.updateProgress, 100);
 
   // 2. Sortable JS
-  const listsToSort = ['workList', 'eduList', 'projectList', 'certList', 'langList', 'achieveList', 'socialList'];
+  const listsToSort = ['workList', 'eduList', 'projectList', 'certList', 'langList', 'achieveList', 'socialList', 'skillsList', 'referencesList', 'volunteerList', 'interestsList'];
   listsToSort.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
@@ -739,27 +998,12 @@ document.addEventListener('DOMContentLoaded', function() {
         handle: '.item-header',
         onEnd: function() {
           formChanged = true;
-          reindexList(id);
+          window.reindexList(id);
           triggerLivePreview();
         }
       });
     }
   });
-
-  function reindexList(listId) {
-    const list = document.getElementById(listId);
-    const items = list.querySelectorAll('.dynamic-item');
-    items.forEach((item, index) => {
-      const inputs = item.querySelectorAll('input, select, textarea');
-      inputs.forEach(input => {
-        const name = input.name;
-        if (name) {
-          input.name = name.replace(/\[\d+\]/, `[${index}]`);
-        }
-      });
-      item.dataset.index = index;
-    });
-  }
 
   // 3. Unsaved Changes, Auto-save & Live Preview
   let formChanged = false;

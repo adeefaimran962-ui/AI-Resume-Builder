@@ -10,7 +10,7 @@ const PDFDocument = require('pdfkit');
 const { generateContent } = require('../lib/aiService');
 
 const ownsCoverLetter = async (req, res) => {
-  const letter = await CoverLetter.findById(req.params.id).lean();
+  const letter = await CoverLetter.findById(req.params.id);
   if (!letter) {
     req.flash('error', 'Cover letter not found.');
     res.redirect('/dashboard');

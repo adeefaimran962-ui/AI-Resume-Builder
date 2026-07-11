@@ -92,11 +92,16 @@
     <!-- Certificates Grid -->
     <div class="certificates-grid">
       <% if (certificates.length === 0) { %>
-      <div class="empty-state">
-        <i class="fas fa-certificate"></i>
-        <h3>No certificates yet</h3>
-        <p>Add your professional certifications to showcase your skills and expertise to employers.</p>
-        <a href="/certificates/new" class="btn btn-primary">Add Your First Certificate</a>
+      <div class="premium-empty-state animate-fade-in-up">
+        <div class="empty-state-icon">
+          <i class="fas fa-award"></i>
+        </div>
+        <h3 class="empty-state-title">No certificates yet</h3>
+        <p class="empty-state-description">Add your professional certifications to showcase your skills and expertise to employers.</p>
+        <a href="/certificates/new" class="btn btn-primary btn-lg hover-lift">
+          <i class="fas fa-plus"></i>
+          <span>Add Your First Certificate</span>
+        </a>
       </div>
       <% } else { %>
         <% certificates.forEach(function(cert) { %>

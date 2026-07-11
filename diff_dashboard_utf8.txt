@@ -1,0 +1,1566 @@
+diff --git a/views/dashboard/index.ejs b/views/dashboard/index.ejs
+index 5e86d3a..be4e1cd 100644
+--- a/views/dashboard/index.ejs
++++ b/views/dashboard/index.ejs
+@@ -1,622 +1,1064 @@
+ <%- include("../partials/header") %>
+ 
+-<div class="dashboard-layout">
++<style>
++/* Modern Dashboard Styles */
++:root {
++  --bg-primary: #ffffff;
++  --bg-secondary: #f8fafc;
++  --bg-tertiary: #f1f5f9;
++  --border-color: #e2e8f0;
++  --text-primary: #0f172a;
++  --text-secondary: #475569;
++  --text-tertiary: #94a3b8;
++  --primary: #6366f1;
++  --primary-hover: #4f46e5;
++  --success: #10b981;
++  --warning: #f59e0b;
++  --danger: #ef4444;
++  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
++  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
++  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
++  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
++  --radius: 12px;
++  --radius-sm: 8px;
++  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
++}
++
++* {
++  margin: 0;
++  padding: 0;
++  box-sizing: border-box;
++}
++
++body {
++  font-family: var(--font-family);
++  background: var(--bg-secondary);
++  color: var(--text-primary);
++  line-height: 1.5;
++}
++
++.dashboard-layout {
++  display: flex;
++  min-height: 100vh;
++}
++
++/* Sidebar */
++.sidebar {
++  width: 260px;
++  background: var(--bg-primary);
++  border-right: 1px solid var(--border-color);
++  display: flex;
++  flex-direction: column;
++  position: fixed;
++  height: 100vh;
++  left: 0;
++  top: 0;
++  z-index: 50;
++  transition: width 0.3s ease;
++}
++
++.sidebar.collapsed {
++  width: 70px;
++}
++
++.sidebar-logo {
++  padding: 24px;
++  border-bottom: 1px solid var(--border-color);
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++}
++
++.sidebar-logo a {
++  display: flex;
++  align-items: center;
++  gap: 12px;
++  text-decoration: none;
++  color: var(--text-primary);
++  font-weight: 700;
++  font-size: 1.25rem;
++}
++
++.sidebar-logo a span {
++  white-space: nowrap;
++}
++
++.sidebar.collapsed .sidebar-logo a span:last-child {
++  display: none;
++}
++
++.sidebar-collapse-btn {
++  background: none;
++  border: none;
++  cursor: pointer;
++  padding: 8px;
++  border-radius: var(--radius-sm);
++  color: var(--text-secondary);
++  transition: all 0.2s;
++}
++
++.sidebar-collapse-btn:hover {
++  background: var(--bg-tertiary);
++  color: var(--text-primary);
++}
++
++.sidebar-nav {
++  flex: 1;
++  padding: 16px;
++  overflow-y: auto;
++}
++
++.sidebar-nav-section {
++  font-size: 0.75rem;
++  font-weight: 600;
++  color: var(--text-tertiary);
++  text-transform: uppercase;
++  letter-spacing: 0.05em;
++  margin-bottom: 8px;
++  margin-top: 16px;
++}
++
++.sidebar.collapsed .sidebar-nav-section {
++  display: none;
++}
++
++.sidebar-nav-item {
++  display: flex;
++  align-items: center;
++  gap: 12px;
++  padding: 12px;
++  border-radius: var(--radius-sm);
++  text-decoration: none;
++  color: var(--text-secondary);
++  transition: all 0.2s;
++  margin-bottom: 4px;
++  white-space: nowrap;
++}
++
++.sidebar-nav-item:hover {
++  background: var(--bg-tertiary);
++  color: var(--text-primary);
++}
++
++.sidebar-nav-item.active {
++  background: var(--primary);
++  color: white;
++}
++
++.sidebar-nav-icon {
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  width: 20px;
++  height: 20px;
++  flex-shrink: 0;
++}
++
++.sidebar-nav-text {
++  flex: 1;
++}
++
++.sidebar.collapsed .sidebar-nav-text {
++  display: none;
++}
++
++.sidebar-badge {
++  background: var(--danger);
++  color: white;
++  font-size: 0.75rem;
++  padding: 2px 8px;
++  border-radius: 9999px;
++  font-weight: 600;
++}
++
++.sidebar.collapsed .sidebar-badge {
++  position: absolute;
++  top: 8px;
++  right: 8px;
++}
++
++.sidebar-footer {
++  padding: 16px;
++  border-top: 1px solid var(--border-color);
++}
++
++.sidebar-user {
++  display: flex;
++  align-items: center;
++  gap: 12px;
++  padding: 12px;
++  background: var(--bg-tertiary);
++  border-radius: var(--radius-sm);
++  margin-bottom: 12px;
++}
++
++.sidebar-user-avatar {
++  width: 36px;
++  height: 36px;
++  border-radius: 50%;
++  background: var(--primary);
++  color: white;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  font-weight: 600;
++  font-size: 0.875rem;
++  flex-shrink: 0;
++}
++
++.sidebar-user-name {
++  font-weight: 600;
++  font-size: 0.875rem;
++  color: var(--text-primary);
++  white-space: nowrap;
++  overflow: hidden;
++  text-overflow: ellipsis;
++}
++
++.sidebar-user-email {
++  font-size: 0.75rem;
++  color: var(--text-tertiary);
++  white-space: nowrap;
++  overflow: hidden;
++  text-overflow: ellipsis;
++}
++
++.sidebar.collapsed .sidebar-user-name,
++.sidebar.collapsed .sidebar-user-email {
++  display: none;
++}
++
++.sidebar-logout {
++  display: flex;
++  align-items: center;
++  gap: 8px;
++  padding: 12px;
++  border-radius: var(--radius-sm);
++  text-decoration: none;
++  color: var(--text-secondary);
++  font-size: 0.875rem;
++  transition: all 0.2s;
++}
++
++.sidebar-logout:hover {
++  background: var(--bg-tertiary);
++  color: var(--danger);
++}
++
++.sidebar.collapsed .sidebar-logout {
++  justify-content: center;
++}
++
++.sidebar.collapsed .sidebar-logout span {
++  display: none;
++}
++
++/* Main Content */
++.dashboard-main {
++  flex: 1;
++  margin-left: 260px;
++  display: flex;
++  flex-direction: column;
++  transition: margin-left 0.3s ease;
++}
++
++.sidebar.collapsed + .dashboard-main {
++  margin-left: 70px;
++}
++
++/* Top Bar */
++.topbar {
++  background: var(--bg-primary);
++  border-bottom: 1px solid var(--border-color);
++  padding: 16px 24px;
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  position: sticky;
++  top: 0;
++  z-index: 40;
++}
++
++.topbar-title {
++  font-size: 1.25rem;
++  font-weight: 700;
++  color: var(--text-primary);
++}
++
++.topbar-actions {
++  display: flex;
++  align-items: center;
++  gap: 12px;
++}
++
++.sidebar-toggle-btn {
++  display: none;
++  background: none;
++  border: none;
++  cursor: pointer;
++  padding: 8px;
++  border-radius: var(--radius-sm);
++  font-size: 1.25rem;
++  color: var(--text-secondary);
++}
++
++.nav-avatar {
++  width: 36px;
++  height: 36px;
++  border-radius: 50%;
++  background: var(--primary);
++  color: white;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  font-weight: 600;
++  text-decoration: none;
++}
++
++/* Page Content */
++.page-content {
++  padding: 24px;
++  max-width: 1400px;
++  margin: 0 auto;
++  width: 100%;
++}
++
++/* Hero Section */
++.hero {
++  background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
++  border-radius: var(--radius);
++  padding: 48px;
++  color: white;
++  margin-bottom: 32px;
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  gap: 48px;
++}
++
++.hero-content {
++  flex: 1;
++}
++
++.hero-badge {
++  display: inline-flex;
++  align-items: center;
++  gap: 8px;
++  background: rgba(255, 255, 255, 0.2);
++  padding: 8px 16px;
++  border-radius: 9999px;
++  font-size: 0.875rem;
++  font-weight: 500;
++  margin-bottom: 16px;
++}
++
++.hero-title {
++  font-size: 2.5rem;
++  font-weight: 800;
++  margin-bottom: 16px;
++  line-height: 1.2;
++}
++
++.hero-subtitle {
++  font-size: 1.125rem;
++  opacity: 0.9;
++  margin-bottom: 24px;
++  max-width: 500px;
++}
++
++.hero-actions {
++  display: flex;
++  gap: 12px;
++}
++
++.hero-visual {
++  flex: 1;
++  display: flex;
++  justify-content: center;
++  align-items: center;
++}
++
++.hero-illustration {
++  width: 300px;
++  height: 300px;
++  position: relative;
++}
++
++.hero-circle {
++  position: absolute;
++  border-radius: 50%;
++  background: rgba(255, 255, 255, 0.1);
++}
++
++.hero-circle-1 {
++  width: 200px;
++  height: 200px;
++  top: 50%;
++  left: 50%;
++  transform: translate(-50%, -50%);
++}
++
++.hero-circle-2 {
++  width: 150px;
++  height: 150px;
++  top: 50%;
++  left: 50%;
++  transform: translate(-50%, -50%);
++}
++
++.hero-icon {
++  position: absolute;
++  top: 50%;
++  left: 50%;
++  transform: translate(-50%, -50%);
++  font-size: 4rem;
++  color: white;
++}
++
++/* Buttons */
++.btn {
++  display: inline-flex;
++  align-items: center;
++  gap: 8px;
++  padding: 12px 24px;
++  border-radius: var(--radius-sm);
++  font-weight: 600;
++  font-size: 0.875rem;
++  text-decoration: none;
++  cursor: pointer;
++  border: none;
++  transition: all 0.2s;
++  font-family: var(--font-family);
++}
++
++.btn-primary {
++  background: var(--primary);
++  color: white;
++}
++
++.btn-primary:hover {
++  background: var(--primary-hover);
++  transform: translateY(-2px);
++  box-shadow: var(--shadow-md);
++}
++
++.btn-outline {
++  background: transparent;
++  border: 2px solid var(--border-color);
++  color: var(--text-primary);
++}
++
++.btn-outline:hover {
++  border-color: var(--primary);
++  color: var(--primary);
++}
++
++.btn-sm {
++  padding: 8px 16px;
++  font-size: 0.8125rem;
++}
++
++.btn-lg {
++  padding: 16px 32px;
++  font-size: 1rem;
++}
++
++/* Stats Grid */
++.stats-grid {
++  display: grid;
++  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
++  gap: 24px;
++  margin-bottom: 32px;
++}
++
++.stat-card {
++  background: var(--bg-primary);
++  border: 1px solid var(--border-color);
++  border-radius: var(--radius);
++  padding: 24px;
++  display: flex;
++  align-items: center;
++  gap: 16px;
++  transition: all 0.2s;
++}
++
++.stat-card:hover {
++  transform: translateY(-4px);
++  box-shadow: var(--shadow-lg);
++}
++
++.stat-icon {
++  width: 48px;
++  height: 48px;
++  border-radius: var(--radius-sm);
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  color: white;
++  font-size: 1.5rem;
++}
++
++.stat-value {
++  font-size: 2rem;
++  font-weight: 800;
++  color: var(--text-primary);
++}
++
++.stat-label {
++  font-size: 0.875rem;
++  color: var(--text-secondary);
++  margin-top: 4px;
++}
++
++/* Section Header */
++.section-header {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  margin-bottom: 24px;
++}
++
++.section-title {
++  font-size: 1.5rem;
++  font-weight: 700;
++  color: var(--text-primary);
++}
++
++.section-subtitle {
++  font-size: 0.875rem;
++  color: var(--text-secondary);
++  margin-top: 4px;
++}
++
++/* Resume Grid */
++.resume-grid {
++  display: grid;
++  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
++  gap: 24px;
++  margin-bottom: 32px;
++}
++
++.resume-card {
++  background: var(--bg-primary);
++  border: 1px solid var(--border-color);
++  border-radius: var(--radius);
++  overflow: hidden;
++  transition: all 0.2s;
++}
++
++.resume-card:hover {
++  transform: translateY(-4px);
++  box-shadow: var(--shadow-lg);
++}
++
++.resume-card-header {
++  padding: 16px;
++  border-bottom: 1px solid var(--border-color);
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++}
++
++.resume-template {
++  display: flex;
++  align-items: center;
++  gap: 8px;
++  font-size: 0.875rem;
++  font-weight: 500;
++  color: var(--text-secondary);
++}
++
++.resume-card-body {
++  padding: 16px;
++}
++
++.resume-card-title {
++  font-size: 1.125rem;
++  font-weight: 600;
++  color: var(--text-primary);
++  margin-bottom: 8px;
++}
++
++.resume-card-meta {
++  font-size: 0.875rem;
++  color: var(--text-secondary);
++  margin-bottom: 16px;
++}
++
++.resume-card-stats {
++  display: flex;
++  gap: 16px;
++}
++
++.resume-stat {
++  display: flex;
++  align-items: center;
++  gap: 8px;
++  font-size: 0.875rem;
++  color: var(--text-secondary);
++}
++
++.resume-card-footer {
++  padding: 16px;
++  border-top: 1px solid var(--border-color);
++  display: flex;
++  gap: 8px;
++}
++
++/* Empty State */
++.empty-state {
++  background: var(--bg-primary);
++  border: 1px solid var(--border-color);
++  border-radius: var(--radius);
++  padding: 64px 32px;
++  text-align: center;
++}
++
++.empty-state-icon {
++  font-size: 4rem;
++  margin-bottom: 24px;
++}
++
++.empty-state-title {
++  font-size: 1.5rem;
++  font-weight: 700;
++  color: var(--text-primary);
++  margin-bottom: 12px;
++}
++
++.empty-state-description {
++  font-size: 1rem;
++  color: var(--text-secondary);
++  margin-bottom: 24px;
++  max-width: 400px;
++  margin-left: auto;
++  margin-right: auto;
++}
++
++/* Form Controls */
++.form-control {
++  padding: 12px 16px;
++  border: 1px solid var(--border-color);
++  border-radius: var(--radius-sm);
++  font-size: 0.875rem;
++  font-family: var(--font-family);
++  background: var(--bg-primary);
++  color: var(--text-primary);
++  transition: all 0.2s;
++}
++
++.form-control:focus {
++  outline: none;
++  border-color: var(--primary);
++  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
++}
++
++/* Responsive */
++@media (max-width: 1024px) {
++  .sidebar {
++    transform: translateX(-100%);
++  }
++  
++  .sidebar.open {
++    transform: translateX(0);
++  }
++  
++  .dashboard-main {
++    margin-left: 0;
++  }
++  
++  .sidebar-toggle-btn {
++    display: block;
++  }
++  
++  .hero {
++    flex-direction: column;
++    text-align: center;
++  }
++  
++  .hero-visual {
++    display: none;
++  }
++}
++
++@media (max-width: 768px) {
++  .stats-grid {
++    grid-template-columns: 1fr;
++  }
++  
++  .resume-grid {
++    grid-template-columns: 1fr;
++  }
++  
++  .hero-title {
++    font-size: 2rem;
++  }
++  
++  .topbar-actions {
++    gap: 8px;
++  }
++  
++  .btn {
++    padding: 10px 16px;
++  }
++}
++</style>
+ 
+-  <!-- ═══ SIDEBAR ══════════════════════════════════════════════ -->
+-  <aside class="sidebar" id="dashSidebar">
++<div class="dashboard-layout">
++  <!-- Sidebar -->
++  <aside class="sidebar" id="sidebar">
+     <div class="sidebar-logo">
+       <a href="/">
+-        <span class="brand-icon-wrap">⚡</span>
+-        <span>ResumeAI<span style="color:var(--accent)">.</span></span>
++        <i data-lucide="zap" style="width: 24px; height: 24px;"></i>
++        <span>ResumeAI</span>
+       </a>
+-      <button class="sidebar-collapse-btn" id="sidebarCollapse" aria-label="Toggle sidebar">
+-        ◀
++      <button class="sidebar-collapse-btn" id="sidebarCollapse">
++        <i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i>
+       </button>
+     </div>
+ 
+     <nav class="sidebar-nav">
+-      <span class="sidebar-nav-section">Main</span>
+-      <a href="/dashboard" class="sidebar-nav-item active" data-tooltip="Dashboard">
+-        <span class="sidebar-nav-icon">📊</span>
+-        <span class="sidebar-nav-text">Dashboard</span>
++      <div class="sidebar-nav-section">Main</div>
++      <a href="/dashboard" class="sidebar-nav-item active">
++        <i data-lucide="layout-dashboard" style="width: 20px; height: 20px;"></i>
++        <span>Dashboard</span>
+       </a>
+-      <a href="/resume/new" class="sidebar-nav-item" data-tooltip="New Resume">
+-        <span class="sidebar-nav-icon">➕</span>
+-        <span class="sidebar-nav-text">New Resume</span>
++      <a href="/resume/new" class="sidebar-nav-item">
++        <i data-lucide="file-plus" style="width: 20px; height: 20px;"></i>
++        <span>New Resume</span>
+       </a>
+ 
+-      <span class="sidebar-nav-section" style="margin-top:12px">Documents</span>
+-      <a href="/dashboard" class="sidebar-nav-item" data-tooltip="My Resumes">
+-        <span class="sidebar-nav-icon">📁</span>
+-        <span class="sidebar-nav-text">My Resumes</span>
++      <div class="sidebar-nav-section">Documents</div>
++      <a href="/dashboard" class="sidebar-nav-item">
++        <i data-lucide="folder-open" style="width: 20px; height: 20px;"></i>
++        <span>My Resumes</span>
+       </a>
+-      <a href="/cover-letter/new" class="sidebar-nav-item" data-tooltip="Cover Letters">
+-        <span class="sidebar-nav-icon">✉️</span>
+-        <span class="sidebar-nav-text">Cover Letters</span>
++      <a href="/cover-letter/new" class="sidebar-nav-item">
++        <i data-lucide="mail" style="width: 20px; height: 20px;"></i>
++        <span>Cover Letters</span>
+       </a>
+-      <a href="/certificates" class="sidebar-nav-item" data-tooltip="Certificates">
+-        <span class="sidebar-nav-icon">🎖️</span>
+-        <span class="sidebar-nav-text">Certificates</span>
++      <a href="/certificates" class="sidebar-nav-item">
++        <i data-lucide="award" style="width: 20px; height: 20px;"></i>
++        <span>Certificates</span>
+       </a>
+-      <a href="/dashboard/trash" class="sidebar-nav-item" data-tooltip="Trash">
+-        <span class="sidebar-nav-icon">🗑️</span>
+-        <span class="sidebar-nav-text">Trash</span>
++      <a href="/dashboard/trash" class="sidebar-nav-item">
++        <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
++        <span>Trash</span>
+         <% if (typeof trashCount !== 'undefined' && trashCount > 0) { %>
+           <span class="sidebar-badge"><%= trashCount %></span>
+         <% } %>
+       </a>
+ 
+-      <span class="sidebar-nav-section" style="margin-top:12px">Career Tools</span>
+-      <a href="/jobs" class="sidebar-nav-item" data-tooltip="Job Tracker">
+-        <span class="sidebar-nav-icon">💼</span>
+-        <span class="sidebar-nav-text">Job Tracker</span>
++      <div class="sidebar-nav-section">Career Tools</div>
++      <a href="/jobs" class="sidebar-nav-item">
++        <i data-lucide="briefcase" style="width: 20px; height: 20px;"></i>
++        <span>Job Tracker</span>
+       </a>
+-      <a href="/interview" class="sidebar-nav-item" data-tooltip="Interview Prep">
+-        <span class="sidebar-nav-icon">💬</span>
+-        <span class="sidebar-nav-text">Interview Prep</span>
++      <a href="/interview" class="sidebar-nav-item">
++        <i data-lucide="message-square" style="width: 20px; height: 20px;"></i>
++        <span>Interview Prep</span>
+       </a>
+-      <a href="/skill-gap" class="sidebar-nav-item" data-tooltip="Skill Analysis">
+-        <span class="sidebar-nav-icon">📈</span>
+-        <span class="sidebar-nav-text">Skill Analysis</span>
++      <a href="/skill-gap" class="sidebar-nav-item">
++        <i data-lucide="brain" style="width: 20px; height: 20px;"></i>
++        <span>Skill Analysis</span>
+       </a>
+-      <a href="/career-roadmap" class="sidebar-nav-item" data-tooltip="Career Roadmap">
+-        <span class="sidebar-nav-icon">🗺️</span>
+-        <span class="sidebar-nav-text">Career Roadmap</span>
++      <a href="/career-roadmap" class="sidebar-nav-item">
++        <i data-lucide="compass" style="width: 20px; height: 20px;"></i>
++        <span>Career Roadmap</span>
+       </a>
+ 
+-      <span class="sidebar-nav-section" style="margin-top:12px">AI Tools</span>
+-      <a href="/resume/ats-checker" class="sidebar-nav-item" data-tooltip="ATS Resume Checker">
+-        <span class="sidebar-nav-icon">✅</span>
+-        <span class="sidebar-nav-text">ATS Checker</span>
++      <div class="sidebar-nav-section">AI Tools</div>
++      <a href="/resume/ats-checker" class="sidebar-nav-item">
++        <i data-lucide="crosshair" style="width: 20px; height: 20px;"></i>
++        <span>ATS Checker</span>
+       </a>
+-      <a href="/resume/new" class="sidebar-nav-item" data-tooltip="AI Resume Builder">
+-        <span class="sidebar-nav-icon">✨</span>
+-        <span class="sidebar-nav-text">AI Resume</span>
++      <a href="/resume/new" class="sidebar-nav-item">
++        <i data-lucide="sparkles" style="width: 20px; height: 20px;"></i>
++        <span>AI Resume</span>
+       </a>
+-      <a href="/cover-letter/new" class="sidebar-nav-item" data-tooltip="AI Cover Letter">
+-        <span class="sidebar-nav-icon">📝</span>
+-        <span class="sidebar-nav-text">AI Cover Letter</span>
++      <a href="/cover-letter/new" class="sidebar-nav-item">
++        <i data-lucide="pen-tool" style="width: 20px; height: 20px;"></i>
++        <span>AI Cover Letter</span>
+       </a>
+ 
+-      <span class="sidebar-nav-section" style="margin-top:12px">Account</span>
+-      <a href="/dashboard/profile" class="sidebar-nav-item" data-tooltip="Profile">
+-        <span class="sidebar-nav-icon">👤</span>
+-        <span class="sidebar-nav-text">Profile</span>
++      <div class="sidebar-nav-section">Account</div>
++      <a href="/dashboard/profile" class="sidebar-nav-item">
++        <i data-lucide="user" style="width: 20px; height: 20px;"></i>
++        <span>Profile</span>
+       </a>
+-      <a href="/dashboard/settings" class="sidebar-nav-item" data-tooltip="Settings">
+-        <span class="sidebar-nav-icon">⚙️</span>
+-        <span class="sidebar-nav-text">Settings</span>
++      <a href="/dashboard/settings" class="sidebar-nav-item">
++        <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
++        <span>Settings</span>
+       </a>
+     </nav>
+ 
+     <div class="sidebar-footer">
+       <div class="sidebar-user">
+         <% if (currentUser.avatar) { %>
+-          <img src="<%= currentUser.avatar %>" alt="Avatar" class="sidebar-user-avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
++          <img src="<%= currentUser.avatar %>" alt="Avatar" class="sidebar-user-avatar">
+         <% } else { %>
+           <div class="sidebar-user-avatar"><%= currentUser.name.charAt(0).toUpperCase() %></div>
+         <% } %>
+-        <div style="overflow:hidden">
++        <div>
+           <div class="sidebar-user-name"><%= currentUser.name %></div>
+           <div class="sidebar-user-email"><%= currentUser.email %></div>
+         </div>
+       </div>
+       <a href="/auth/logout" class="sidebar-logout">
+-        🚪 Logout
++        <i data-lucide="log-out" style="width: 20px; height: 20px;"></i>
++        <span>Logout</span>
+       </a>
+     </div>
+   </aside>
+ 
+-  <!-- ═══ MAIN CONTENT ════════════════════════════════════════ -->
++  <!-- Main Content -->
+   <div class="dashboard-main">
+-
+-    <!-- TOP BAR -->
++    <!-- Top Bar -->
+     <header class="topbar">
+-      <div style="display:flex;align-items:center;gap:14px">
+-        <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle sidebar">
+-          <span>☰</span>
++      <div style="display: flex; align-items: center; gap: 16px;">
++        <button class="sidebar-toggle-btn" id="sidebarToggle">
++          <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+         </button>
+         <span class="topbar-title">Dashboard</span>
+       </div>
+       <div class="topbar-actions">
+-        <button class="btn btn-outline btn-sm" id="dashboardThemeToggle" aria-label="Toggle theme" style="padding:8px 12px;">
+-          <span id="dashboardThemeIcon">🌙</span>
+-        </button>
+         <a href="/resume/new" class="btn btn-primary btn-sm">
+-          ➕ New Resume
++          <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
++          <span>New Resume</span>
+         </a>
+-        <a href="/dashboard/profile">
++        <a href="/dashboard/profile" class="nav-avatar">
+           <% if (currentUser.avatar) { %>
+-            <img src="<%= currentUser.avatar %>" alt="Avatar" class="nav-avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" title="<%= currentUser.name %>">
++            <img src="<%= currentUser.avatar %>" alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+           <% } else { %>
+-            <div class="nav-avatar" title="<%= currentUser.name %>">
+-              <%= currentUser.name.charAt(0).toUpperCase() %>
+-            </div>
++            <%= currentUser.name.charAt(0).toUpperCase() %>
+           <% } %>
+         </a>
+       </div>
+     </header>
+ 
+-    <!-- PAGE CONTENT -->
++    <!-- Page Content -->
+     <div class="page-content">
+       <%- include("../partials/flash") %>
+ 
+-      <!-- WELCOME CARD -->
+-      <div class="welcome-card">
+-        <div class="welcome-card-text">
+-          <h2>Welcome back, <%= currentUser.name.split(' ')[0] %>! 👋</h2>
+-          <p>You have <strong><%= stats.totalResumes %></strong> resume<%= stats.totalResumes !== 1 ? 's' : '' %> in your account.
+-          <% if (stats.totalResumes === 0) { %>Start building your first one today.<% } else { %>Keep them updated to stay competitive.<% } %>
+-          </p>
+-          <a href="/resume/new" class="btn btn-white btn-sm" style="margin-top:14px">
+-            ➕ Create New Resume
+-          </a>
+-        </div>
+-        <div class="welcome-card-art">
+-          📄
+-        </div>
+-      </div>
+-
+-      <!-- STATS ROW -->
+-      <div class="stats-row">
+-        <div class="stat-card-dash">
+-          <div class="icon-box" style="background:linear-gradient(135deg,#6C63FF,#A855F7)">
+-            📄
++      <% if (resumes.length === 0) { %>
++        <!-- Hero Section - Empty State -->
++        <div class="hero">
++          <div class="hero-content">
++            <div class="hero-badge">
++              <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i>
++              <span>AI-Powered Resume Builder</span>
++            </div>
++            <h1 class="hero-title">Welcome back, <%= currentUser.name.split(' ')[0] %>!</h1>
++            <p class="hero-subtitle">Create ATS-friendly resumes in minutes with our AI-powered tools and land your dream job faster.</p>
++            <div class="hero-actions">
++              <a href="/resume/new" class="btn btn-primary btn-lg">
++                <i data-lucide="plus" style="width: 20px; height: 20px;"></i>
++                <span>Create Resume</span>
++              </a>
++              <a href="/resume/import" class="btn btn-outline btn-lg">
++                <i data-lucide="upload" style="width: 20px; height: 20px;"></i>
++                <span>Import Resume</span>
++              </a>
++              <a href="/resume/ats-checker" class="btn btn-outline btn-lg">
++                <i data-lucide="crosshair" style="width: 20px; height: 20px;"></i>
++                <span>Check ATS Score</span>
++              </a>
++            </div>
+           </div>
+-          <div>
+-            <div class="stat-value"><%= stats.totalResumes %></div>
+-            <div class="stat-label-dash">Total Resumes</div>
++          <div class="hero-visual">
++            <div class="hero-illustration">
++              <div class="hero-circle hero-circle-1"></div>
++              <div class="hero-circle hero-circle-2"></div>
++              <i data-lucide="file-text" style="width: 64px; height: 64px;" class="hero-icon"></i>
++            </div>
+           </div>
+         </div>
+-        <div class="stat-card-dash">
+-          <div class="icon-box" style="background:linear-gradient(135deg,#10B981,#34D399)">
+-            ⬇️
++      <% } else { %>
++        <!-- Hero Section - With Data -->
++        <div class="hero" style="padding: 32px;">
++          <div class="hero-content" style="flex: none;">
++            <h1 class="hero-title" style="font-size: 1.75rem;">Welcome back, <%= currentUser.name.split(' ')[0] %>!</h1>
++            <p class="hero-subtitle" style="margin-bottom: 0;">You have <%= stats.totalResumes %> resume<%= stats.totalResumes !== 1 ? 's' : '' %>. Keep building your career!</p>
+           </div>
+-          <div>
+-            <div class="stat-value"><%= stats.totalDownloads %></div>
+-            <div class="stat-label-dash">Downloads</div>
++          <div class="hero-actions">
++            <a href="/resume/new" class="btn btn-primary">
++              <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
++              <span>New Resume</span>
++            </a>
+           </div>
+         </div>
+-        <div class="stat-card-dash">
+-          <div class="icon-box" style="background:linear-gradient(135deg,#3B82F6,#60A5FA)">
+-            🎯
++
++        <!-- Stats Grid -->
++        <div class="stats-grid">
++          <div class="stat-card">
++            <div class="stat-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
++              <i data-lucide="file-text" style="width: 24px; height: 24px;"></i>
++            </div>
++            <div>
++              <div class="stat-value"><%= stats.totalResumes %></div>
++              <div class="stat-label">Total Resumes</div>
++            </div>
+           </div>
+-          <div>
+-            <div class="stat-value"><%= stats.avgAtsScore %>%</div>
+-            <div class="stat-label-dash">Avg ATS Score</div>
++          <div class="stat-card">
++            <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
++              <i data-lucide="download" style="width: 24px; height: 24px;"></i>
++            </div>
++            <div>
++              <div class="stat-value"><%= stats.totalDownloads %></div>
++              <div class="stat-label">Downloads</div>
++            </div>
+           </div>
+-        </div>
+-        <div class="stat-card-dash">
+-          <div class="icon-box" style="background:linear-gradient(135deg,#EF4444,#F87171)">
+-            📅
++          <div class="stat-card">
++            <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
++              <i data-lucide="crosshair" style="width: 24px; height: 24px;"></i>
++            </div>
++            <div>
++              <div class="stat-value"><%= stats.avgAtsScore %>%</div>
++              <div class="stat-label">Avg ATS Score</div>
++            </div>
+           </div>
+-          <div>
+-            <div class="stat-value" style="font-size:15px"><%= stats.lastUpdated %></div>
+-            <div class="stat-label-dash">Last Updated</div>
++          <div class="stat-card">
++            <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
++              <i data-lucide="clock" style="width: 24px; height: 24px;"></i>
++            </div>
++            <div>
++              <div class="stat-value" style="font-size: 1.5rem;"><%= stats.lastUpdated %></div>
++              <div class="stat-label">Last Updated</div>
++            </div>
+           </div>
+         </div>
+-      </div>
++      <% } %>
+ 
+-      <!-- RECENT ACTIVITY & FILTERS -->
+-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px;">
++      <!-- Section Header -->
++      <div class="section-header">
+         <div>
+-          <form action="/dashboard" method="GET" class="filter-form" style="display:flex;flex-wrap:wrap;gap:12px;background:var(--white);padding:16px;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow-card);">
+-            <input type="text" name="search" placeholder="Search resumes..." class="form-control" style="flex:1;min-width:180px;" value="<%= filters.search %>">
+-            <select name="template" class="form-control" style="width:150px;">
+-              <option value="">All Templates</option>
+-              <option value="modern" <%= filters.template === 'modern' ? 'selected' : '' %>>Modern</option>
+-              <option value="classic" <%= filters.template === 'classic' ? 'selected' : '' %>>Classic</option>
+-              <option value="minimal" <%= filters.template === 'minimal' ? 'selected' : '' %>>Minimal</option>
+-              <option value="professional" <%= filters.template === 'professional' ? 'selected' : '' %>>Professional</option>
+-              <option value="executive" <%= filters.template === 'executive' ? 'selected' : '' %>>Executive</option>
+-              <option value="creative" <%= filters.template === 'creative' ? 'selected' : '' %>>Creative</option>
+-              <option value="compact" <%= filters.template === 'compact' ? 'selected' : '' %>>Compact</option>
+-              <option value="tech" <%= filters.template === 'tech' ? 'selected' : '' %>>Tech</option>
+-              <option value="elegant" <%= filters.template === 'elegant' ? 'selected' : '' %>>Elegant</option>
+-            </select>
+-            <select name="sort" class="form-control" style="width:150px;">
+-              <option value="latest" <%= filters.sort === 'latest' ? 'selected' : '' %>>Last Updated</option>
+-              <option value="newest" <%= filters.sort === 'newest' ? 'selected' : '' %>>Newest Created</option>
+-              <option value="oldest" <%= filters.sort === 'oldest' ? 'selected' : '' %>>Oldest Created</option>
+-              <option value="score" <%= filters.sort === 'score' ? 'selected' : '' %>>ATS Score</option>
+-            </select>
+-            <button type="submit" class="btn btn-primary">🔍 Filter</button>
+-            <a href="/dashboard" class="btn btn-outline" style="line-height: 2.2;">Reset</a>
+-          </form>
+-        </div>
+-
+-        <div style="background:var(--white);padding:16px;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow-card);">
+-          <h4 style="margin-top:0;margin-bottom:12px;font-size:14px;color:var(--dark);">🕐 Recent Activity</h4>
+-          <% if (recentActivity.length === 0) { %>
+-            <p style="font-size:12px;color:var(--muted);margin:0;">No recent activity.</p>
+-          <% } else { %>
+-            <ul style="list-style:none;padding:0;margin:0;font-size:13px;">
+-              <% recentActivity.forEach(function(act) { %>
+-                <li style="display:flex;justify-content:between;margin-bottom:8px;border-bottom:1px solid var(--bg-2);padding-bottom:4px;">
+-                  <span style="color:var(--dark);"><%= act.text %></span>
+-                  <span style="color:var(--muted);margin-left:auto;"><%= act.time %></span>
+-                </li>
+-              <% }) %>
+-            </ul>
+-          <% } %>
++          <h2 class="section-title">My Resumes</h2>
++          <p class="section-subtitle">Manage and edit your professional resumes</p>
+         </div>
+-      </div>
+-
+-      <!-- MY RESUMES SECTION -->
+-      <div class="dash-section-header">
+-        <h3 class="dash-section-title">My Resumes</h3>
+         <% if (resumes.length > 0) { %>
+-          <a href="/resume/new" class="btn btn-outline btn-sm">➕ Add New</a>
++          <a href="/resume/new" class="btn btn-primary">
++            <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
++            <span>Add New</span>
++          </a>
+         <% } %>
+       </div>
+ 
+       <% if (resumes.length === 0) { %>
+-        <!-- EMPTY STATE -->
++        <!-- Empty State -->
+         <div class="empty-state">
+-          <div class="empty-state-icon">
+-            📄
+-          </div>
+-          <h3>No resumes yet</h3>
+-          <p>Create your first professional resume and start landing interviews.</p>
+-          <a href="/resume/new" class="btn btn-primary btn-lg" style="margin-top:8px">
+-            ➕ Create My First Resume
++          <div class="empty-state-icon">📄</div>
++          <h3 class="empty-state-title">No resumes yet</h3>
++          <p class="empty-state-description">Create your first professional resume with AI-powered suggestions and start landing your dream job.</p>
++          <a href="/resume/new" class="btn btn-primary btn-lg">
++            <i data-lucide="plus" style="width: 20px; height: 20px;"></i>
++            <span>Create My First Resume</span>
+           </a>
+         </div>
+-
+       <% } else { %>
+-        <!-- RESUME GRID -->
++        <!-- Resume Grid -->
+         <div class="resume-grid">
+-          <% resumes.forEach(function(resume, idx){ %>
+-          <div class="resume-card animate-on-scroll" style="animation-delay: <%= idx * 60 %>ms">
+-
+-            <!-- Card Top Bar (colour-coded by template) -->
+-            <div class="resume-card-bar" style="height: 4px; background: <%= 
+-              resume.template === 'modern' ? 'linear-gradient(135deg,#6C63FF,#A855F7)' :
+-              resume.template === 'classic' ? '#1F2937' :
+-              resume.template === 'minimal' ? '#9CA3AF' :
+-              resume.template === 'professional' ? '#2563EB' :
+-              resume.template === 'executive' ? '#111827' :
+-              resume.template === 'creative' ? '#10B981' : 'var(--primary)'
+-            %>"></div>
+-
+-            <!-- Header -->
++          <% resumes.forEach(function(resume){ %>
++          <div class="resume-card">
+             <div class="resume-card-header">
+-              <div style="flex:1;">
+-                <span class="resume-template-badge" style="background: <%= 
+-                  resume.template === 'modern' ? 'rgba(108,99,255,0.1)' :
+-                  resume.template === 'classic' ? 'rgba(31,41,55,0.1)' :
+-                  resume.template === 'minimal' ? 'rgba(156,163,175,0.1)' :
+-                  resume.template === 'professional' ? 'rgba(37,99,235,0.1)' :
+-                  resume.template === 'executive' ? 'rgba(17,24,39,0.1)' :
+-                  resume.template === 'creative' ? 'rgba(16,185,129,0.1)' : 'rgba(0,0,0,0.05)'
+-                %>; color: <%= 
+-                  resume.template === 'modern' ? '#6C63FF' :
+-                  resume.template === 'classic' ? '#1F2937' :
+-                  resume.template === 'minimal' ? '#4B5563' :
+-                  resume.template === 'professional' ? '#2563EB' :
+-                  resume.template === 'executive' ? '#111827' :
+-                  resume.template === 'creative' ? '#10B981' : 'var(--dark)'
+-                %>; font-size:12px; font-weight:600; padding:4px 8px; border-radius:4px; display:inline-flex; align-items:center; gap:6px;">
+-                  <span><%=
+-                    resume.template === 'modern' ? '✨' :
+-                    resume.template === 'classic' ? '👑' :
+-                    resume.template === 'minimal' ? '🪶' :
+-                    resume.template === 'professional' ? '💼' :
+-                    resume.template === 'executive' ? '👔' :
+-                    resume.template === 'creative' ? '🎨' : '📄'
+-                  %></span>
+-                  <%= resume.template.charAt(0).toUpperCase() + resume.template.slice(1) %>
+-                </span>
++              <div class="resume-template">
++                <i data-lucide="palette" style="width: 16px; height: 16px;"></i>
++                <span><%= resume.template ? resume.template.charAt(0).toUpperCase() + resume.template.slice(1) : 'Modern' %></span>
+               </div>
+-            </div>
+-
+-            <!-- Action Buttons Row -->
+-            <div class="resume-card-actions-row">
+-              <a href="/resume/<%= resume._id %>/edit" class="btn-action" title="Edit Resume">
+-                ✏️ Edit
+-              </a>
+-              <a href="/resume/<%= resume._id %>/preview" class="btn-action" title="Preview">
+-                👁️ Preview
+-              </a>
+-              <a href="/resume/<%= resume._id %>/download" class="btn-action" title="Download PDF">
+-                📄 PDF
+-              </a>
+-              <a href="/cover-letter/new?resumeId=<%= resume._id %>" class="btn-action" title="Create Cover Letter" style="color:#EC4899">
+-                ✉️ Cover
+-              </a>
+-              <a href="/resume/<%= resume._id %>/score" class="btn-action" title="ATS Score" style="color:var(--accent)">
+-                📊 Score
+-              </a>
+-              <a href="/resume/<%= resume._id %>/versions" class="btn-action" title="Version History" style="color:var(--accent)">
+-                🕐 History
+-              </a>
+-              <form action="/resume/<%= resume._id %>/duplicate" method="POST" style="display:inline;margin:0;">
+-                <button type="submit" class="btn-action" title="Duplicate">
+-                  📋 Duplicate
+-                </button>
+-              </form>
+-              <button type="button" class="btn-action" title="Rename" onclick="renameResume('<%= resume._id %>', '<%= resume.title.replace(/'/g, "\\'") %>')">
+-                ✏️ Rename
++              <button class="btn btn-outline btn-sm" onclick="toggleMenu('<%= resume._id %>')">
++                <i data-lucide="more-horizontal" style="width: 16px; height: 16px;"></i>
+               </button>
+-              <form action="/resume/<%= resume._id %>?_method=DELETE" method="POST" style="display:inline;margin:0;"
+-                onsubmit="return confirm('Are you sure you want to delete this resume? This cannot be undone.')">
+-                <button type="submit" class="btn-action btn-action-danger" title="Delete">
+-                  🗑️ Delete
+-                </button>
+-              </form>
+             </div>
+-
+-            <!-- Body -->
+             <div class="resume-card-body">
+-              <div style="display:flex;align-items:center;gap:12px;">
+-                <% if (resume.personalInfo && resume.personalInfo.photo) { %>
+-                  <img src="<%= resume.personalInfo.photo %>" alt="Profile" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--border);flex-shrink:0;">
+-                <% } else { %>
+-                  <div style="width:48px;height:48px;border-radius:50%;background:var(--bg-2);display:flex;align-items:center;justify-content:center;border:2px solid var(--border);flex-shrink:0;">
+-                    <i class="fas fa-user" style="color:var(--muted);font-size:18px;"></i>
+-                  </div>
++              <h3 class="resume-card-title"><%= resume.title %></h3>
++              <div class="resume-card-meta">
++                <%= resume.personalInfo && resume.personalInfo.fullName ? resume.personalInfo.fullName : 'Name not set' %>
++                <% if (resume.personalInfo && resume.personalInfo.jobTitle) { %>
++                  • <%= resume.personalInfo.jobTitle %>
+                 <% } %>
+-                <div style="flex:1;min-width:0;">
+-                  <h3 class="resume-title" style="margin:0;"><%= resume.title %></h3>
+-                  <p class="resume-person-name" style="margin:0;">
+-                    <%= resume.personalInfo && resume.personalInfo.fullName ? resume.personalInfo.fullName : 'Name not set' %>
+-                  </p>
+-                </div>
+               </div>
+-              <% if (resume.personalInfo && resume.personalInfo.jobTitle) { %>
+-                <p class="resume-job-title">
+-                  <i class="fas fa-briefcase"></i> <%= resume.personalInfo.jobTitle %>
+-                </p>
+-              <% } %>
+-              <!-- ATS Score inline badge -->
+-              <% const cardScore = resume.atsScore || 0; %>
+-              <% const cardScoreColor = cardScore >= 80 ? '#10B981' : cardScore >= 60 ? '#F59E0B' : cardScore >= 40 ? '#EF4444' : '#DC2626'; %>
+-              <div class="resume-ats-badge" style="display:flex;align-items:center;gap:8px;">
+-                <div style="flex:1;height:6px;background:var(--border);border-radius:10px;overflow:hidden;">
+-                  <div style="width:<%= cardScore %>%;height:100%;background:<%= cardScoreColor %>;border-radius:10px;transition:width 0.8s ease;"></div>
++              <div class="resume-card-stats">
++                <div class="resume-stat">
++                  <i data-lucide="target" style="width: 16px; height: 16px;"></i>
++                  <span><%= resume.atsScore || 0 %>% ATS</span>
++                </div>
++                <div class="resume-stat">
++                  <i data-lucide="download" style="width: 16px; height: 16px;"></i>
++                  <span><%= resume.downloads || 0 %></span>
++                </div>
++                <div class="resume-stat">
++                  <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
++                  <span><%= new Date(resume.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'}) %></span>
+                 </div>
+-                <span style="font-size:12px;font-weight:700;color:<%= cardScoreColor %>;white-space:nowrap">ATS <%= cardScore %>/100</span>
+               </div>
+-              <p class="resume-meta">
+-                <i class="fas fa-clock"></i>
+-                Updated <%= new Date(resume.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %>
+-              </p>
++            </div>
++            <div class="resume-card-footer">
++              <a href="/resume/<%= resume._id %>/edit" class="btn btn-primary btn-sm">
++                <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
++                <span>Edit</span>
++              </a>
++              <a href="/resume/<%= resume._id %>/preview" class="btn btn-outline btn-sm">
++                <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
++                <span>Preview</span>
++              </a>
++              <a href="/resume/<%= resume._id %>/download" class="btn btn-outline btn-sm">
++                <i data-lucide="download" style="width: 14px; height: 14px;"></i>
++                <span>PDF</span>
++              </a>
+             </div>
+           </div>
+           <% }) %>
+         </div>
+ 
+-        <!-- PAGINATION -->
+-        <% if (pagination.totalPages > 1) { %>
+-          <div class="pagination-row" style="display:flex;justify-content:center;align-items:center;gap:12px;margin:24px 0;">
++        <!-- Pagination -->
++        <% if (pagination && pagination.totalPages > 1) { %>
++          <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin: 24px 0;">
+             <% if (pagination.hasPrev) { %>
+-              <a href="/dashboard?page=<%= pagination.page - 1 %>&search=<%= filters.search %>&template=<%= filters.template %>&sort=<%= filters.sort %>" class="btn btn-outline btn-sm"><i class="fas fa-chevron-left"></i> Prev</a>
++              <a href="/dashboard?page=<%= pagination.page - 1 %>&search=<%= filters.search %>&template=<%= filters.template %>&sort=<%= filters.sort %>" class="btn btn-outline btn-sm">← Prev</a>
+             <% } else { %>
+-              <button class="btn btn-outline btn-sm" disabled><i class="fas fa-chevron-left"></i> Prev</button>
++              <button class="btn btn-outline btn-sm" disabled>← Prev</button>
+             <% } %>
+-            <span style="font-size:14px;color:var(--muted)">Page <%= pagination.page %> of <%= pagination.totalPages %></span>
++            <span style="font-size: 0.875rem; color: var(--text-secondary);">Page <%= pagination.page %> of <%= pagination.totalPages %></span>
+             <% if (pagination.hasNext) { %>
+-              <a href="/dashboard?page=<%= pagination.page + 1 %>&search=<%= filters.search %>&template=<%= filters.template %>&sort=<%= filters.sort %>" class="btn btn-outline btn-sm">Next <i class="fas fa-chevron-right"></i></a>
++              <a href="/dashboard?page=<%= pagination.page + 1 %>&search=<%= filters.search %>&template=<%= filters.template %>&sort=<%= filters.sort %>" class="btn btn-outline btn-sm">Next →</a>
+             <% } else { %>
+-              <button class="btn btn-outline btn-sm" disabled>Next <i class="fas fa-chevron-right"></i></button>
++              <button class="btn btn-outline btn-sm" disabled>Next →</button>
+             <% } %>
+           </div>
+         <% } %>
+       <% } %>
+-
+-      <!-- COVER LETTERS SECTION -->
+-      <div class="dash-section-header" style="margin-top:32px;">
+-        <h3 class="dash-section-title">Cover Letters</h3>
+-        <a href="/cover-letter/new" class="btn btn-outline btn-sm"><i class="fas fa-plus"></i> Create New</a>
+-      </div>
+-
+-      <% if (typeof coverLetters === 'undefined' || coverLetters.length === 0) { %>
+-        <!-- EMPTY STATE -->
+-        <div class="empty-state" style="padding:32px;">
+-          <div class="empty-state-icon">
+-            <i class="fas fa-envelope"></i>
+-          </div>
+-          <h3>No cover letters yet</h3>
+-          <p>Create professional cover letters tailored to your resumes.</p>
+-          <a href="/cover-letter/new" class="btn btn-primary btn-sm" style="margin-top:8px">
+-            <i class="fas fa-plus"></i> Create Cover Letter
+-          </a>
+-        </div>
+-      <% } else { %>
+-        <!-- COVER LETTERS GRID -->
+-        <div class="resume-grid">
+-          <% coverLetters.forEach(function(letter, idx){ %>
+-          <div class="resume-card animate-on-scroll" style="animation-delay: <%= idx * 60 %>ms">
+-            <div class="resume-card-bar" style="height: 4px; background: linear-gradient(135deg,#EC4899,#F472B6);"></div>
+-            <!-- Header -->
+-            <div class="resume-card-header">
+-              <span class="resume-template-badge" style="background:rgba(236,72,153,0.1);color:#EC4899;font-size:12px;font-weight:600;padding:6px 12px;border-radius:50px;display:inline-flex;align-items:center;gap:6px;">
+-                <i class="fas fa-envelope"></i> Cover Letter
+-              </span>
+-            </div>
+-
+-            <!-- Action Buttons Row -->
+-            <div class="resume-card-actions-row">
+-              <a href="/cover-letter/<%= letter._id %>/preview" class="btn-action" title="Preview">
+-                <i class="fas fa-eye"></i> Preview
+-              </a>
+-              <a href="/cover-letter/<%= letter._id %>/edit" class="btn-action" title="Edit">
+-                <i class="fas fa-pencil-alt"></i> Edit
+-              </a>
+-              <a href="/cover-letter/<%= letter._id %>/download" class="btn-action" title="Download PDF">
+-                <i class="fas fa-file-pdf"></i> PDF
+-              </a>
+-              <form action="/cover-letter/<%= letter._id %>?_method=DELETE" method="POST" style="display:inline;margin:0;"
+-                onsubmit="return confirm('Are you sure you want to delete this cover letter?')">
+-                <button type="submit" class="btn-action btn-action-danger" title="Delete">
+-                  <i class="fas fa-trash-alt"></i> Delete
+-                </button>
+-              </form>
+-            </div>
+-
+-            <!-- Body -->
+-            <div class="resume-card-body">
+-              <h3 class="resume-title"><%= letter.title %></h3>
+-              <p class="resume-person-name">
+-                <i class="fas fa-user"></i>
+-                <%= letter.personalInfo && letter.personalInfo.fullName ? letter.personalInfo.fullName : 'Name not set' %>
+-              </p>
+-              <% if (letter.jobTitle) { %>
+-                <p class="resume-job-title">
+-                  <i class="fas fa-briefcase"></i> <%= letter.jobTitle %>
+-                </p>
+-              <% } %>
+-              <% if (letter.employerInfo && letter.employerInfo.companyName) { %>
+-                <p class="resume-job-title">
+-                  <i class="fas fa-building"></i> <%= letter.employerInfo.companyName %>
+-                </p>
+-              <% } %>
+-              <p class="resume-meta">
+-                <i class="fas fa-clock"></i>
+-                Updated <%= new Date(letter.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %>
+-              </p>
+-            </div>
+-          </div>
+-          <% }) %>
+-        </div>
+-      <% } %>
+-
+-      <!-- QUICK TIPS -->
+-      <div class="quick-tips">
+-        <h4 class="quick-tips-title"><i class="fas fa-lightbulb"></i> Quick Tips</h4>
+-        <div class="tips-grid">
+-          <div class="tip-item">
+-            <i class="fas fa-check-circle"></i>
+-            <span>Keep your resume to 1-2 pages for best results</span>
+-          </div>
+-          <div class="tip-item">
+-            <i class="fas fa-check-circle"></i>
+-            <span>Use keywords from the job description to pass ATS filters</span>
+-          </div>
+-          <div class="tip-item">
+-            <i class="fas fa-check-circle"></i>
+-            <span>Quantify your achievements with numbers where possible</span>
+-          </div>
+-        </div>
+-      </div>
+-
+-    </div><!-- /.page-content -->
+-  </div><!-- /.dashboard-main -->
+-</div><!-- /.dashboard-layout -->
++    </div>
++  </div>
++</div>
+ 
+ <script>
+-// Dashboard Theme Toggle
+-(function() {
+-  const html = document.documentElement;
+-  const themeToggle = document.getElementById('dashboardThemeToggle');
+-  const themeIcon = document.getElementById('dashboardThemeIcon');
+-
+-  // Detect system preference on first visit
+-  function getSystemTheme() {
+-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+-  }
+-
+-  // Load saved theme or detect system preference
+-  const savedTheme = localStorage.getItem('theme');
+-  let theme = savedTheme;
++// Initialize Lucide icons
++lucide.createIcons();
+ 
+-  if (!theme || theme === 'system') {
+-    theme = getSystemTheme();
+-  }
++// Sidebar toggle
++const sidebar = document.getElementById('sidebar');
++const sidebarToggle = document.getElementById('sidebarToggle');
++const sidebarCollapse = document.getElementById('sidebarCollapse');
+ 
+-  html.setAttribute('data-theme', theme);
+-  updateThemeIcon(theme);
++sidebarToggle.addEventListener('click', () => {
++  sidebar.classList.toggle('open');
++});
+ 
+-  function updateThemeIcon(theme) {
+-    if (themeIcon) {
+-      themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+-    }
+-  }
++sidebarCollapse.addEventListener('click', () => {
++  sidebar.classList.toggle('collapsed');
++});
+ 
+-  if (themeToggle) {
+-    themeToggle.addEventListener('click', () => {
+-      const currentTheme = html.getAttribute('data-theme');
+-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+-      html.setAttribute('data-theme', newTheme);
+-      localStorage.setItem('theme', newTheme);
+-      updateThemeIcon(newTheme);
+-    });
++// Mobile sidebar close
++document.addEventListener('click', (e) => {
++  if (window.innerWidth <= 1024 && 
++      sidebar.classList.contains('open') && 
++      !sidebar.contains(e.target) && 
++      !sidebarToggle.contains(e.target)) {
++    sidebar.classList.remove('open');
+   }
++});
+ 
+-  // Listen for system theme changes
+-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+-    if (localStorage.getItem('theme') === 'system') {
+-      const newTheme = e.matches ? 'dark' : 'light';
+-      html.setAttribute('data-theme', newTheme);
+-      updateThemeIcon(newTheme);
+-    }
+-  });
+-})();
+-
+-// Sidebar Tooltips
+-(function() {
+-  const sidebar = document.getElementById('dashSidebar');
+-  const navItems = document.querySelectorAll('.sidebar-nav-item[data-tooltip]');
+-
+-  navItems.forEach(item => {
+-    item.addEventListener('mouseenter', function(e) {
+-      if (sidebar.classList.contains('collapsed')) {
+-        const tooltip = document.createElement('div');
+-        tooltip.className = 'sidebar-tooltip';
+-        tooltip.textContent = this.getAttribute('data-tooltip');
+-        document.body.appendChild(tooltip);
+-        
+-        const rect = this.getBoundingClientRect();
+-        tooltip.style.left = (rect.right + 10) + 'px';
+-        tooltip.style.top = (rect.top + (rect.height / 2) - (tooltip.offsetHeight / 2)) + 'px';
+-        
+-        this._tooltip = tooltip;
+-      }
+-    });
+-
+-    item.addEventListener('mouseleave', function() {
+-      if (this._tooltip) {
+-        this._tooltip.remove();
+-        this._tooltip = null;
+-      }
+-    });
+-  });
+-})();
+-
+-// Sidebar Collapse Toggle
+-(function() {
+-  const sidebar = document.getElementById('dashSidebar');
+-  const collapseBtn = document.getElementById('sidebarCollapse');
+-  const dashboardMain = document.querySelector('.dashboard-main');
+-
+-  if (collapseBtn && sidebar) {
+-    collapseBtn.addEventListener('click', () => {
+-      sidebar.classList.toggle('collapsed');
+-      
+-      // Adjust dashboard main margin
+-      if (sidebar.classList.contains('collapsed')) {
+-        dashboardMain.style.marginLeft = '70px';
+-      } else {
+-        dashboardMain.style.marginLeft = '260px';
+-      }
+-    });
+-  }
+-})();
+-
+-function renameResume(id, currentTitle) {
+-  const newTitle = prompt('Enter new title:', currentTitle);
+-  if (newTitle && newTitle.trim() !== '' && newTitle !== currentTitle) {
+-    const form = document.createElement('form');
+-    form.method = 'POST';
+-    form.action = `/resume/${id}/rename`;
+-    const input = document.createElement('input');
+-    input.type = 'hidden';
+-    input.name = 'title';
+-    input.value = newTitle;
+-    form.appendChild(input);
+-    document.body.appendChild(form);
+-    form.submit();
+-  }
++function toggleMenu(id) {
++  // Add menu toggle logic if needed
+ }
+ </script>
+ 

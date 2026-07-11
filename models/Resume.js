@@ -62,6 +62,35 @@ const SocialLinkSchema = new mongoose.Schema({
   url:      { type: String, trim: true, default: '' },
 }, { _id: true });
 
+const SkillSchema = new mongoose.Schema({
+  skill:       { type: String, trim: true, default: '' },
+  proficiency: {
+    type: String,
+    enum: ['Beginner','Intermediate','Advanced','Expert'],
+    default: 'Intermediate',
+  },
+}, { _id: true });
+
+const ReferenceSchema = new mongoose.Schema({
+  name:     { type: String, trim: true, default: '' },
+  position: { type: String, trim: true, default: '' },
+  company:  { type: String, trim: true, default: '' },
+  email:    { type: String, trim: true, default: '' },
+  phone:    { type: String, trim: true, default: '' },
+}, { _id: true });
+
+const VolunteerExperienceSchema = new mongoose.Schema({
+  organization: { type: String, trim: true, default: '' },
+  role:         { type: String, trim: true, default: '' },
+  startDate:    { type: String, default: '' },
+  endDate:      { type: String, default: '' },
+  description:  { type: String, trim: true, default: '' },
+}, { _id: true });
+
+const InterestSchema = new mongoose.Schema({
+  interest: { type: String, trim: true, default: '' },
+}, { _id: true });
+
 const ResumeSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -96,6 +125,18 @@ const ResumeSchema = new mongoose.Schema({
     ],
     default: 'modern',
   },
+  shareToken: {
+    type: String,
+    default: null,
+  },
+  isShared: {
+    type: Boolean,
+    default: false,
+  },
+  downloads: {
+    type: Number,
+    default: 0,
+  },
   personalInfo: {
     fullName: { type: String, trim: true, default: '' },
     email:    { type: String, trim: true, default: '' },
@@ -114,11 +155,15 @@ const ResumeSchema = new mongoose.Schema({
   education:      [EducationSchema],
   workExperience: [WorkExperienceSchema],
   skills:         { type: [String], default: [] },
+  skillsArray:    [SkillSchema],
   projects:       [ProjectSchema],
   certifications: [CertificationSchema],
   languages:      [LanguageSchema],
   achievements:   [AchievementSchema],
   socialLinks:    [SocialLinkSchema],
+  references:     [ReferenceSchema],
+  volunteerExperience: [VolunteerExperienceSchema],
+  interests:      [InterestSchema],
   // Track downloads
   downloadCount:  { type: Number, default: 0 },
   // Public sharing

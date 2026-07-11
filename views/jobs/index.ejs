@@ -119,11 +119,16 @@
     <!-- Job Applications Grid -->
     <div class="jobs-grid">
       <% if (jobs.length === 0) { %>
-      <div class="empty-state">
-        <i class="fas fa-briefcase"></i>
-        <h3>No job applications yet</h3>
-        <p>Start tracking your job applications to monitor your progress and stay organized.</p>
-        <a href="/jobs/new" class="btn btn-primary">Add Your First Application</a>
+      <div class="premium-empty-state animate-fade-in-up">
+        <div class="empty-state-icon">
+          <i class="fas fa-briefcase"></i>
+        </div>
+        <h3 class="empty-state-title">No job applications yet</h3>
+        <p class="empty-state-description">Start tracking your job applications to monitor your progress and stay organized.</p>
+        <a href="/jobs/new" class="btn btn-primary btn-lg hover-lift">
+          <i class="fas fa-plus"></i>
+          <span>Add Your First Application</span>
+        </a>
       </div>
       <% } else { %>
         <% jobs.forEach(function(job) { %>

@@ -2,9 +2,9 @@
 <%- include("../partials/navbar") %>
 <main class="auth-page">
   <div class="container">
-    <div class="auth-card">
+    <div class="glass-card glass-card-dark auth-card animate-fade-in-up">
       <div class="auth-header">
-        <div class="auth-icon"><i class="fas fa-user-plus"></i></div>
+        <div class="auth-icon glass-badge"><i class="fas fa-user-plus"></i></div>
         <h1>Create Account</h1>
         <p>Join thousands building better resumes</p>
       </div>
@@ -18,42 +18,42 @@
       <% } %>
       <form action="/auth/register" method="POST" class="auth-form" novalidate>
         <div class="form-group">
-          <label for="name">Full Name</label>
+          <label for="name" class="form-label">Full Name</label>
           <div class="input-wrapper">
             <i class="fas fa-user input-icon"></i>
-            <input type="text" id="name" name="name" class="form-control" placeholder="John Doe"
+            <input type="text" id="name" name="name" class="glass-input-dark input" placeholder="John Doe"
               value="<%= formData.name || "" %>" required autocomplete="name" />
           </div>
         </div>
         <div class="form-group">
-          <label for="email">Email Address</label>
+          <label for="email" class="form-label">Email Address</label>
           <div class="input-wrapper">
             <i class="fas fa-envelope input-icon"></i>
-            <input type="email" id="email" name="email" class="form-control" placeholder="john@example.com"
+            <input type="email" id="email" name="email" class="glass-input-dark input" placeholder="john@example.com"
               value="<%= formData.email || "" %>" required autocomplete="email" />
           </div>
         </div>
         <div class="form-group">
-          <label for="password">Password</label>
+          <label for="password" class="form-label">Password</label>
           <div class="input-wrapper">
             <i class="fas fa-lock input-icon"></i>
-            <input type="password" id="password" name="password" class="form-control"
+            <input type="password" id="password" name="password" class="glass-input-dark input"
               placeholder="Min 6 characters" required autocomplete="new-password" />
           </div>
         </div>
         <div class="form-group">
-          <label for="confirmPassword">Confirm Password</label>
+          <label for="confirmPassword" class="form-label">Confirm Password</label>
           <div class="input-wrapper">
             <i class="fas fa-lock input-icon"></i>
-            <input type="password" id="confirmPassword" name="confirmPassword" class="form-control"
+            <input type="password" id="confirmPassword" name="confirmPassword" class="glass-input-dark input"
               placeholder="Repeat your password" required autocomplete="new-password" />
           </div>
         </div>
-        <button type="submit" class="btn btn-primary btn-block">
+        <button type="submit" class="btn btn-primary btn-lg btn-block hover-lift">
           <i class="fas fa-user-plus"></i> Create Account
         </button>
       </form>
-      <p class="auth-footer">Already have an account? <a href="/auth/login">Sign in</a></p>
+      <p class="auth-footer">Already have an account? <a href="/auth/login" class="hover-underline">Sign in</a></p>
     </div>
   </div>
 </main>

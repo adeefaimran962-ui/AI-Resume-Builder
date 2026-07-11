@@ -93,6 +93,10 @@ const parseResumeBody = (body) => {
     languages:      extract('languages'),
     achievements:   extract('achievements'),
     socialLinks:    extract('socialLinks'),
+    skillsArray:    extract('skillsList'),
+    references:     extract('references'),
+    volunteerExperience: extract('volunteerExperience'),
+    interests:      extract('interests'),
   };
 };
 
@@ -278,6 +282,8 @@ exports.update = async (req, res) => {
 
     // ── DEBUG: Log template before save ───────────────────────────────────
     console.log('[DEBUG update] Setting doc.template to:', data.template);
+    console.log('[DEBUG update] doc.isModified("template"):', doc.isModified('template'));
+    console.log('[DEBUG update] doc.template value after assignment:', doc.template);
     // ────────────────────────────────────────────────────────────────────
 
     // Nested plain-object path: assign each sub-field individually, then
@@ -590,6 +596,56 @@ exports.atsCheck = async (req, res) => {
 };
 
 
+exports.share = async (req, res) => {
+  try {
+    const resume = await ownsResume(req, res);
+    if (!resume) return;
+
+    // Generate or retrieve share token
+    if (!resume.shareToken) {
+      const crypto = require('crypto');
+      const shareToken = crypto.randomBytes(32).toString('hex');
+      await Resume.findByIdAndUpdate(req.params.id, { shareToken, isShared: true });
+      resume.shareToken = shareToken;
+    } else {
+      await Resume.findByIdAndUpdate(req.params.id, { isShared: true });
+    }
+
+    const shareUrl = `${req.protocol}://${req.get('host')}/resume/${resume._id}/share/${resume.shareToken}`;
+    
+    res.render('resume/share', {
+      title: `Share ${resume.title}`,
+      resume,
+      shareUrl,
+      currentUser: req.session.user
+    });
+  } catch (err) {
+    console.error('Share error:', err);
+    req.flash('error', 'Failed to generate share link.');
+    res.redirect('/dashboard');
+  }
+};
+
+exports.viewShared = async (req, res) => {
+  try {
+    const { id, token } = req.params;
+    const resume = await Resume.findOne({ _id: id, shareToken: token, isShared: true }).lean();
+    
+    if (!resume) {
+      return res.status(404).render('404', { title: 'Shared Resume Not Found' });
+    }
+
+    res.render('resume/shared-view', {
+      title: resume.title,
+      resume,
+      isShared: true
+    });
+  } catch (err) {
+    console.error('View shared error:', err);
+    res.status(500).render('error', { title: 'Error', message: 'Could not load shared resume.' });
+  }
+};
+
 exports.downloadPDF = async (req, res) => {
   try {
     const resume = await ownsResume(req,res); if (!resume) return;
@@ -598,6 +654,8 @@ exports.downloadPDF = async (req, res) => {
     console.log('[DEBUG downloadPDF] resume._id:', resume._id);
     console.log('[DEBUG downloadPDF] resume.template from DB:', resume.template);
     console.log('[DEBUG downloadPDF] using template:', resume.template || 'modern');
+    console.log('[DEBUG downloadPDF] template type check:', typeof resume.template);
+    console.log('[DEBUG downloadPDF] is template truthy?:', !!resume.template);
     // ────────────────────────────────────────────────────────────────────────
     
     Resume.findByIdAndUpdate(req.params.id,{$inc:{downloadCount:1}}).catch(()=>{});
@@ -613,26 +671,61 @@ exports.downloadPDF = async (req, res) => {
     const pi  = resume.personalInfo;
     const PW  = doc.page.width - 120;
 
-    /* palette per template */
+    /* palette per template - now supports all 13 templates */
     let CP, CD, CM, CL, headerH, hdrSub;
-    if (tpl === 'classic') {
-      CP='#1E3A5F'; CD='#1a1a2e'; CM='#555566'; CL='#FFF8F0'; headerH=140; hdrSub='#F6AD55';
-    } else if (tpl === 'minimal') {
-      CP='#111827'; CD='#1F2937'; CM='#6B7280'; CL='#FFFFFF'; headerH=110; hdrSub='#374151';
-    } else {
-      CP='#6C63FF'; CD='#1E293B'; CM='#64748B'; CL='#F1F5F9'; headerH=130; hdrSub='#C4B5FD';
+    
+    switch(tpl) {
+      case 'classic':
+        CP='#1E3A5F'; CD='#1a1a2e'; CM='#555566'; CL='#FFF8F0'; headerH=140; hdrSub='#F6AD55';
+        break;
+      case 'minimal':
+      case 'minimal-pro':
+        CP='#111827'; CD='#1F2937'; CM='#6B7280'; CL='#FFFFFF'; headerH=110; hdrSub='#374151';
+        break;
+      case 'professional':
+        CP='#2563EB'; CD='#1E293B'; CM='#64748B'; CL='#F8FAFC'; headerH=130; hdrSub='#93C5FD';
+        break;
+      case 'executive':
+        CP='#1E293B'; CD='#0F172A'; CM='#475569'; CL='#F1F5F9'; headerH=140; hdrSub='#94A3B8';
+        break;
+      case 'creative':
+        CP='#EC4899'; CD='#1E293B'; CM='#64748B'; CL='#FCE7F3'; headerH=135; hdrSub='#F9A8D4';
+        break;
+      case 'compact':
+      case 'ats-professional':
+        CP='#059669'; CD='#1F2937'; CM='#6B7280'; CL='#F0FDF4'; headerH=120; hdrSub='#86EFAC';
+        break;
+      case 'tech':
+        CP='#00D4AA'; CD='#0F172A'; CM='#64748B'; CL='#1E293B'; headerH=125; hdrSub='#5EEAD4';
+        break;
+      case 'elegant':
+        CP='#8B5CF6'; CD='#1E293B'; CM='#64748B'; CL='#FAF5FF'; headerH=135; hdrSub='#C4B5FD';
+        break;
+      case 'modern-gradient':
+        CP='#6366F1'; CD='#1E293B'; CM='#64748B'; CL='#EEF2FF'; headerH=130; hdrSub='#A5B4FC';
+        break;
+      case 'sharp':
+        CP='#DC2626'; CD='#1F2937'; CM='#6B7280'; CL='#FEF2F2'; headerH=125; hdrSub='#FCA5A5';
+        break;
+      case 'modern':
+      default:
+        CP='#6C63FF'; CD='#1E293B'; CM='#64748B'; CL='#F1F5F9'; headerH=130; hdrSub='#C4B5FD';
+        break;
     }
 
     const contact = [pi.email, pi.phone,
       pi.city&&pi.country ? pi.city+', '+pi.country : (pi.city||pi.country),
       pi.website].filter(Boolean);
 
-    /* ── MODERN & CLASSIC: two-column ── */
-    if (tpl !== 'minimal') {
+    /* ── TWO-COLUMN LAYOUT: all templates except minimal variants ── */
+    const isMinimalLayout = (tpl === 'minimal' || tpl === 'minimal-pro');
+    
+    if (!isMinimalLayout) {
       const CW=180, CRS=60+CW+20, CRW=PW-CW-20;
 
       doc.rect(0,0,doc.page.width,headerH).fill(CP);
       if (tpl==='classic') doc.rect(0,headerH-6,doc.page.width,6).fill('#F6AD55');
+      if (tpl==='sharp') doc.rect(0,headerH-4,doc.page.width,4).fill(CP);
 
       // Profile photo in header
       let photoX = 60;
@@ -875,6 +968,201 @@ exports.aiGenerate = async (req, res) => {
   } catch (err) {
     console.error('AI Generation Error:', err);
     res.status(500).json({ success: false, message: 'AI generation failed.' });
+  }
+};
+
+/* ────────────────────────────────────────────────────────────────────────────
+   AJAX SECTION MANAGEMENT
+   Individual CRUD operations for dynamic resume sections (workExperience,
+   education, projects, certifications, languages, achievements, socialLinks)
+──────────────────────────────────────────────────────────────────────────── */
+
+const VALID_SECTIONS = ['workExperience', 'education', 'projects', 'certifications', 'languages', 'achievements', 'socialLinks'];
+
+/**
+ * POST /resume/:id/section/:sectionName
+ * Add a new item to a specific section
+ */
+exports.addSectionItem = async (req, res) => {
+  try {
+    const { sectionName } = req.params;
+    if (!VALID_SECTIONS.includes(sectionName)) {
+      return res.status(400).json({ success: false, message: 'Invalid section name' });
+    }
+
+    const resume = await Resume.findOne({ _id: req.params.id, user: req.session.userId });
+    if (!resume) {
+      return res.status(404).json({ success: false, message: 'Resume not found' });
+    }
+
+    // Create new item with data from request body
+    const newItem = req.body;
+    resume[sectionName].push(newItem);
+    resume.markModified(sectionName);
+    await resume.save();
+
+    // Return the newly created item with its _id
+    const addedItem = resume[sectionName][resume[sectionName].length - 1];
+    
+    console.log(`[addSectionItem] Added item to ${sectionName}:`, addedItem._id);
+    res.json({ success: true, item: addedItem });
+  } catch (err) {
+    console.error('Add section item error:', err);
+    res.status(500).json({ success: false, message: 'Failed to add item' });
+  }
+};
+
+/**
+ * PUT /resume/:id/section/:sectionName/:itemId
+ * Update an existing item in a section
+ */
+exports.updateSectionItem = async (req, res) => {
+  try {
+    const { sectionName, itemId } = req.params;
+    if (!VALID_SECTIONS.includes(sectionName)) {
+      return res.status(400).json({ success: false, message: 'Invalid section name' });
+    }
+
+    const resume = await Resume.findOne({ _id: req.params.id, user: req.session.userId });
+    if (!resume) {
+      return res.status(404).json({ success: false, message: 'Resume not found' });
+    }
+
+    // Find the item in the array
+    const item = resume[sectionName].id(itemId);
+    if (!item) {
+      return res.status(404).json({ success: false, message: 'Item not found' });
+    }
+
+    // Update all fields from request body
+    Object.keys(req.body).forEach(key => {
+      item[key] = req.body[key];
+    });
+
+    resume.markModified(sectionName);
+    await resume.save();
+
+    console.log(`[updateSectionItem] Updated item in ${sectionName}:`, itemId);
+    res.json({ success: true, item });
+  } catch (err) {
+    console.error('Update section item error:', err);
+    res.status(500).json({ success: false, message: 'Failed to update item' });
+  }
+};
+
+/**
+ * DELETE /resume/:id/section/:sectionName/:itemId
+ * Delete an item from a section
+ */
+exports.deleteSectionItem = async (req, res) => {
+  try {
+    const { sectionName, itemId } = req.params;
+    if (!VALID_SECTIONS.includes(sectionName)) {
+      return res.status(400).json({ success: false, message: 'Invalid section name' });
+    }
+
+    const resume = await Resume.findOne({ _id: req.params.id, user: req.session.userId });
+    if (!resume) {
+      return res.status(404).json({ success: false, message: 'Resume not found' });
+    }
+
+    // Remove the item using pull
+    resume[sectionName].pull(itemId);
+    resume.markModified(sectionName);
+    await resume.save();
+
+    console.log(`[deleteSectionItem] Deleted item from ${sectionName}:`, itemId);
+    res.json({ success: true, message: 'Item deleted successfully' });
+  } catch (err) {
+    console.error('Delete section item error:', err);
+    res.status(500).json({ success: false, message: 'Failed to delete item' });
+  }
+};
+
+/**
+ * POST /resume/:id/section/:sectionName/reorder
+ * Reorder items in a section (drag-and-drop)
+ */
+exports.reorderSection = async (req, res) => {
+  try {
+    const { sectionName } = req.params;
+    const { order } = req.body; // Array of item IDs in new order
+
+    if (!VALID_SECTIONS.includes(sectionName)) {
+      return res.status(400).json({ success: false, message: 'Invalid section name' });
+    }
+
+    if (!Array.isArray(order)) {
+      return res.status(400).json({ success: false, message: 'Order must be an array of IDs' });
+    }
+
+    const resume = await Resume.findOne({ _id: req.params.id, user: req.session.userId });
+    if (!resume) {
+      return res.status(404).json({ success: false, message: 'Resume not found' });
+    }
+
+    // Create a map of items by ID
+    const itemMap = {};
+    resume[sectionName].forEach(item => {
+      itemMap[item._id.toString()] = item;
+    });
+
+    // Rebuild array in new order
+    const reordered = order.map(id => itemMap[id]).filter(Boolean);
+    resume[sectionName] = reordered;
+    resume.markModified(sectionName);
+    await resume.save();
+
+    console.log(`[reorderSection] Reordered ${sectionName}`);
+    res.json({ success: true, message: 'Items reordered successfully' });
+  } catch (err) {
+    console.error('Reorder section error:', err);
+    res.status(500).json({ success: false, message: 'Failed to reorder items' });
+  }
+};
+
+/**
+ * POST /resume/:id/section/:sectionName/:itemId/duplicate
+ * Duplicate an item in a section
+ */
+exports.duplicateSectionItem = async (req, res) => {
+  try {
+    const { sectionName, itemId } = req.params;
+    if (!VALID_SECTIONS.includes(sectionName)) {
+      return res.status(400).json({ success: false, message: 'Invalid section name' });
+    }
+
+    const resume = await Resume.findOne({ _id: req.params.id, user: req.session.userId });
+    if (!resume) {
+      return res.status(404).json({ success: false, message: 'Resume not found' });
+    }
+
+    // Find the item to duplicate
+    const item = resume[sectionName].id(itemId);
+    if (!item) {
+      return res.status(404).json({ success: false, message: 'Item not found' });
+    }
+
+    // Create a copy (remove _id so MongoDB generates a new one)
+    const itemCopy = item.toObject();
+    delete itemCopy._id;
+    
+    // Add " (Copy)" to title/name field if it exists
+    const titleField = itemCopy.title || itemCopy.name || itemCopy.jobTitle;
+    if (itemCopy.title) itemCopy.title += ' (Copy)';
+    if (itemCopy.name) itemCopy.name += ' (Copy)';
+    if (itemCopy.jobTitle) itemCopy.jobTitle += ' (Copy)';
+
+    resume[sectionName].push(itemCopy);
+    resume.markModified(sectionName);
+    await resume.save();
+
+    const duplicatedItem = resume[sectionName][resume[sectionName].length - 1];
+    console.log(`[duplicateSectionItem] Duplicated item in ${sectionName}:`, duplicatedItem._id);
+    res.json({ success: true, item: duplicatedItem });
+  } catch (err) {
+    console.error('Duplicate section item error:', err);
+    res.status(500).json({ success: false, message: 'Failed to duplicate item' });
   }
 };
 
